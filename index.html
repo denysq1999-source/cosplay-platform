@@ -7,39 +7,58 @@
     <style>
         body { font-family: sans-serif; background: #121212; color: #fff; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
         .hidden { display: none !important; }
-        .auth-box, .admin-panel { background: #1e1e1e; padding: 30px; border-radius: 12px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.5); width: 100%; max-width: 400px; }
-        button { background: #4285F4; color: white; border: none; padding: 12px 20px; font-size: 16px; border-radius: 6px; cursor: pointer; margin-top: 15px; width: 100%; }
-        button:hover { background: #357ae8; }
-        .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; width: 100%; max-width: 1000px; margin-top: 20px; }
-        .card { background: #1e1e1e; border-radius: 8px; overflow: hidden; padding: 10px; }
-        .card img { width: 100%; height: auto; border-radius: 4px; display: block; }
-        #user-info { margin-bottom: 15px; color: #aaa; }
+        .auth-box { background: #1e1e1e; padding: 30px; border-radius: 12px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.5); width: 100%; max-width: 400px; box-sizing: border-box; }
+        .tabs { display: flex; margin-bottom: 20px; border-bottom: 1px solid #333; }
+        .tab { flex: 1; padding: 10px; cursor: pointer; color: #888; background: none; border: none; font-size: 16px; font-weight: bold; }
+        .tab.active { color: #fff; border-bottom: 2px solid #4285F4; }
+        input { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 6px; border: 1px solid #333; background: #2a2a2a; color: #fff; box-sizing: border-box; font-size: 14px; }
+        button.action-btn { background: #4285F4; color: white; border: none; padding: 12px; font-size: 16px; border-radius: 6px; cursor: pointer; width: 100%; margin-top: 5px; }
+        button.action-btn:hover { background: #357ae8; }
+        .google-btn { background: #fff; color: #333; font-weight: bold; margin-top: 15px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .google-btn:hover { background: #f1f1f1; }
+        .error-msg { color: #d93025; font-size: 14px; margin-bottom: 15px; }
     </style>
 </head>
 <body>
 
-    <!-- Екран авторизації -->
     <div id="auth-section" class="auth-box">
-        <h2>Вхід на платформу</h2>
-        <p>Авторизуйтесь через Google, щоб отримати доступ.</p>
-        <button id="login-btn">Увійти через Google</button>
+        <div class="tabs">
+            <button id="tab-login" class="tab active">Вхід</button>
+            <button id="tab-register" class="tab">Реєстрація</button>
+        </div>
+
+        <div id="error-container" class="error-msg"></div>
+
+        <!-- Форма Входу -->
+        <form id="login-form">
+            <input type="email" id="login-email" placeholder="Email" required>
+            <input type="password" id="login-password" placeholder="Пароль" required>
+            <button type="submit" class="action-btn">Увійти</button>
+        </form>
+
+        <!-- Форма Реєстрації (початково прихована) -->
+        <form id="register-form" class="hidden">
+            <input type="email" id="reg-email" placeholder="Email" required>
+            <input type="password" id="reg-password" placeholder="Пароль (мін. 6 символів)" required>
+            <button type="submit" class="action-btn">Зареєструватися</button>
+        </form>
+
+        <hr style="border: 0; border-top: 1px solid #333; margin: 20px 0;">
+        <button id="google-login-btn" class="action-btn google-btn">Увійти через Google</button>
     </div>
 
-    <!-- Основний контент (прихований до входу) -->
+    <!-- Основний контент після входу -->
     <div id="app-section" class="hidden" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
-        <div style="display: flex; justify-content: space-between; width: 100%; max-width: 1000px; align-items: center;">
+        <div style="display: flex; justify-content: space-between; width: 100%; max-width: 1000px; align-items: center; border-bottom: 1px solid #333; padding-bottom: 15px;">
             <h1>Косплей Галерея</h1>
             <div>
-                <span id="user-info"></span>
-                <button id="logout-btn" style="background: #d93025; width: auto; padding: 8px 15px; margin-top: 0;">Вийти</button>
+                <span id="user-info" style="margin-right: 15px; color: #aaa;"></span>
+                <button id="logout-btn" style="background: #d93025; width: auto; padding: 8px 15px; border: none; border-radius: 6px; color: #fff; cursor: pointer;">Вийти</button>
             </div>
         </div>
-        
-        <!-- Сюди виводитимуться картинки з Диска -->
-        <div id="gallery" class="gallery"></div>
+        <div id="gallery" class="gallery" style="margin-top: 20px; color: #aaa;">Тут скоро з'явиться галерея...</div>
     </div>
 
-    <!-- Підключаємо Firebase SDK -->
     <script type="module" src="app.js"></script>
 </body>
 </html>
