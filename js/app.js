@@ -163,11 +163,17 @@ document.addEventListener("DOMContentLoaded", () => {
     try { await signOut(auth); } catch (err) { console.error(err); }
   });
 
+  function normalizeEmail(email) {
+    if (!email) return "";
+    return String(email).trim().toLowerCase().replace(/\s+/g, "");
+  }
+
   function isAdmin(user) {
     if (!user || !user.email) return false;
-    const email = (user.email || "").trim().toLowerCase();
-    const result = email === ADMIN_EMAIL.toLowerCase();
-    console.log("[ADMIN CHECK]", email, "=>", result);
+    const userEmail = normalizeEmail(user.email);
+    const adminEmail = normalizeEmail(ADMIN_EMAIL);
+    const result = userEmail === adminEmail;
+    console.log("[ADMIN CHECK]", JSON.stringify(userEmail), "vs", JSON.stringify(adminEmail), "=>", result);
     return result;
   }
 
@@ -180,7 +186,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   onAuthStateChanged(auth, (user) => {
     currentUser = user;
-    console.log("[AUTH]", user ? user.email : "logged out");
+    console.log("[AUTH]", user ? user.email : "logged out", user ? user.uid : "");
 
     if (user) {
       guestControls.classList.add("hidden");
