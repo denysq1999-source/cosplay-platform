@@ -107,6 +107,8 @@ function updateLangUI() {
   });
   document.getElementById("lang-uk")?.classList.toggle("active", currentLang === "uk");
   document.getElementById("lang-en")?.classList.toggle("active", currentLang === "en");
+  const langSwitcher = document.querySelector(".lang-switcher");
+  if (langSwitcher) langSwitcher.dataset.lang = currentLang;
 }
 
 document.getElementById("lang-uk")?.addEventListener("click", () => {
