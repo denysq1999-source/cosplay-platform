@@ -93,7 +93,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function applyTitleStyle() {
     if (siteTitleEl) {
       siteTitleEl.textContent = siteTitle;
-      siteTitleEl.style.textShadow = `0 1px 4px ${shadowColor}99`;
+      siteTitleEl.style.textShadow = `0 0 6px ${shadowColor}cc, 0 0 14px ${shadowColor}88`;
     }
   }
 
