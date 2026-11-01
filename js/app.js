@@ -89,6 +89,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const galleryEl = document.getElementById("gallery");
   const rememberCheckbox = document.getElementById("remember-password");
   const siteTitleEl = document.querySelector("header h1");
+  const langSwitcher = document.querySelector(".lang-switcher");
 
   function applyTitleStyle() {
     if (siteTitleEl) {
@@ -133,6 +134,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (authSubmitBtn) authSubmitBtn.textContent = isLoginMode ? dict[currentLang].modal_submit_login : dict[currentLang].modal_submit_register;
     document.getElementById("lang-uk").classList.toggle("active", currentLang === "uk");
     document.getElementById("lang-en").classList.toggle("active", currentLang === "en");
+    if (langSwitcher) langSwitcher.dataset.lang = currentLang;
     applyTitleStyle();
   };
 
