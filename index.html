@@ -3,21 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cosplay Platform</title>
+    <title>Cosplay Platform - Авторизація</title>
     <style>
-        body { font-family: sans-serif; background: #121212; color: #fff; padding: 20px; }
-        .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; }
+        body { font-family: sans-serif; background: #121212; color: #fff; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
+        .hidden { display: none !important; }
+        .auth-box, .admin-panel { background: #1e1e1e; padding: 30px; border-radius: 12px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.5); width: 100%; max-width: 400px; }
+        button { background: #4285F4; color: white; border: none; padding: 12px 20px; font-size: 16px; border-radius: 6px; cursor: pointer; margin-top: 15px; width: 100%; }
+        button:hover { background: #357ae8; }
+        .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; width: 100%; max-width: 1000px; margin-top: 20px; }
         .card { background: #1e1e1e; border-radius: 8px; overflow: hidden; padding: 10px; }
         .card img { width: 100%; height: auto; border-radius: 4px; display: block; }
+        #user-info { margin-bottom: 15px; color: #aaa; }
     </style>
 </head>
 <body>
 
-    <h1>Косплей Галерея</h1>
-    
-    <!-- Сюди за допомогою JS виводитимуться наші картинки з Диска -->
-    <div id="gallery" class="gallery"></div>
+    <!-- Екран авторизації -->
+    <div id="auth-section" class="auth-box">
+        <h2>Вхід на платформу</h2>
+        <p>Авторизуйтесь через Google, щоб отримати доступ.</p>
+        <button id="login-btn">Увійти через Google</button>
+    </div>
 
-    <script src="app.js"></script>
+    <!-- Основний контент (прихований до входу) -->
+    <div id="app-section" class="hidden" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
+        <div style="display: flex; justify-content: space-between; width: 100%; max-width: 1000px; align-items: center;">
+            <h1>Косплей Галерея</h1>
+            <div>
+                <span id="user-info"></span>
+                <button id="logout-btn" style="background: #d93025; width: auto; padding: 8px 15px; margin-top: 0;">Вийти</button>
+            </div>
+        </div>
+        
+        <!-- Сюди виводитимуться картинки з Диска -->
+        <div id="gallery" class="gallery"></div>
+    </div>
+
+    <!-- Підключаємо Firebase SDK -->
+    <script type="module" src="app.js"></script>
 </body>
 </html>
