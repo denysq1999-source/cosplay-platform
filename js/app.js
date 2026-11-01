@@ -97,7 +97,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  function applyButtonColors(primary, secondary, google) {
+  function applyButtonColors(primary, secondary, google, textColor) {
     if (primary) {
       document.querySelectorAll(".btn-primary").forEach(el => {
         el.style.background = primary;
@@ -111,6 +111,11 @@ document.addEventListener("DOMContentLoaded", () => {
     if (google) {
       document.querySelectorAll(".btn-google").forEach(el => {
         el.style.background = google;
+      });
+    }
+    if (textColor) {
+      document.querySelectorAll(".btn").forEach(el => {
+        el.style.color = textColor;
       });
     }
   }
@@ -286,7 +291,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const snap = await getDoc(doc(db, "settings", "button_colors"));
       if (snap.exists()) {
         const data = snap.data();
-        applyButtonColors(data.primary, data.secondary, data.google);
+        applyButtonColors(data.primary, data.secondary, data.google, data.textColor);
       }
     } catch (err) {
       console.error(err);
