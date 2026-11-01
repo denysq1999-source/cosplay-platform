@@ -3,40 +3,33 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Альбом косплеєра</title>
+<title>Альбом</title>
 <link rel="stylesheet" href="css/style.css">
 <style>
-  /* Album specific styles - adapted from provided */
-  :root{
-    --ink:#2b2230; --paper:#fbf6ee; --paper-2:#f3ebdd;
-    --sakura:#f3a8c3; --wine:#3a1630; --gold:#d8b46a;
-    --pw:420px; --ph:571px; --shift:0px;
-  }
-  .stage{ position:relative; flex:1; min-height:0; background: radial-gradient(ellipse 60% 55% at 50% 38%, rgba(255,214,235,.20), transparent 70%), repeating-linear-gradient(95deg, rgba(255,255,255,.012) 0 2px, transparent 2px 7px), linear-gradient(#1d1426, #120c18); }
-  .book{ position:absolute; left:50%; top:50%; width:calc(var(--pw) * 2); height:var(--ph); margin-left:calc(var(--pw) * -1 + var(--shift)); margin-top:calc(var(--ph) / -2); perspective:2600px; touch-action:none; user-select:none; cursor:grab; }
-  .book.grabbing{ cursor:grabbing; }
-  /* ... rest of styles abbreviated for brevity - full styles from provided file should be included in production */
-  .leaf{ position:absolute; left:50%; top:0; width:var(--pw); height:100%; transform-origin:left center; transform-style:preserve-3d; }
-  .face{ position:absolute; inset:0; overflow:hidden; backface-visibility:hidden; background-color:var(--paper); color:var(--ink); }
-  .face.cover{ background:radial-gradient(120% 90% at 30% 20%, #5b2349, var(--wine) 60%, #220c1d); color:#f3dfb2; }
-  /* Minimal styles - expand as needed */
+  body { background: #150f1c; color: #f6eef3; margin: 0; font-family: system-ui, sans-serif; }
+  .header { display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; }
+  .stage { height: calc(100vh - 140px); display: flex; align-items: center; justify-content: center; }
+  .book-container { width: 90%; max-width: 900px; height: 80%; background: #1a1224; border-radius: 16px; padding: 20px; box-shadow: 0 20px 60px rgba(0,0,0,.5); overflow: auto; }
+  .page-card { background: #fbf6ee; color: #2b2230; border-radius: 8px; padding: 16px; margin: 12px 0; display: flex; gap: 16px; }
+  .page-card img { width: 180px; height: 240px; object-fit: cover; border-radius: 4px; }
+  .ctrl { display: flex; justify-content: center; gap: 16px; padding: 16px; }
 </style>
 </head>
-<body style="display:flex; flex-direction:column; height:100vh; margin:0; background:#150f1c; color:#f6eef3;">
+<body>
 
 <header class="header">
-  <h1 id="albumTitle">Альбом косплеєра</h1>
+  <h1 id="albumTitle" style="margin:0; font-size:22px;">Альбом косплеєра</h1>
   <a href="index.html" class="btn btn-secondary">← На галерею</a>
 </header>
 
-<main class="stage" id="stage" style="flex:1; position:relative;">
-  <div class="book" id="book"></div>
-</main>
+<div class="stage">
+  <div class="book-container" id="book"></div>
+</div>
 
-<footer class="ctrl" style="display:flex; justify-content:center; gap:16px; padding:16px;">
-  <button class="btn" id="prev">‹</button>
-  <span id="label"></span>
-  <button class="btn" id="next">›</button>
+<footer class="ctrl">
+  <button class="btn" id="prev">‹ Попередня</button>
+  <span id="label" style="align-self:center; color:#aaa;"></span>
+  <button class="btn" id="next">Наступна ›</button>
 </footer>
 
 <script type="module">
@@ -55,29 +48,62 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-let PHOTOS = [];
-let ALBUM = { title: 'Альбом косплеєра', owner: 'Косплеєр', year: '2026' };
+let pages = [];
+let current = 0;
 
-async function loadAlbum() {
+function extractId(url) {
+  if (!url) return null;
+  const m = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/id=([a-zA-Z0-9_-]+)/);
+  return m ? m[1] : null;
+}
+
+function render() {
+  const book = document.getElementById("book");
+  const label = document.getElementById("label");
+  if (!pages.length) {
+    book.innerHTML = '<p style="text-align:center; padding:60px; color:#aaa;">Альбом порожній.<br>Додай сторінки в адмінці.</p>';
+    label.textContent = "";
+    return;
+  }
+
+  const p = pages[current];
+  const fileId = extractId(p.src);
+  const img = fileId 
+    ? `<img src="https://drive.google.com/thumbnail?id=${fileId}&sz=w800" alt="${p.title}">`
+    : `<div style="width:180px;height:240px;background:#ddd;display:flex;align-items:center;justify-content:center;border-radius:4px;">Немає фото</div>`;
+
+  book.innerHTML = `
+    <div class="page-card">
+      ${img}
+      <div>
+        <h2 style="margin:0 0 8px;">${p.title || "Без назви"}</h2>
+        <p style="margin:0; color:#666; font-style:italic;">${p.series || ""}</p>
+        <p style="margin:4px 0 0; font-size:14px;">Косплеєр: ${p.cosplayer || "—"}</p>
+        <div style="margin-top:12px;">${(p.tags || []).map(t => `<span style="background:#f3a8c3; color:#3a1630; padding:2px 8px; border-radius:12px; font-size:12px; margin-right:4px;">${t}</span>`).join("")}</div>
+      </div>
+    </div>
+  `;
+  label.textContent = `${current + 1} / ${pages.length}`;
+}
+
+document.getElementById("prev").onclick = () => { if (current > 0) { current--; render(); } };
+document.getElementById("next").onclick = () => { if (current < pages.length - 1) { current++; render(); } };
+
+async function load() {
   try {
     const snap = await getDoc(doc(db, "settings", "album"));
     if (snap.exists()) {
       const data = snap.data();
-      if (data.title) ALBUM.title = data.title;
-      if (data.owner) ALBUM.owner = data.owner;
-      if (data.pages) PHOTOS = data.pages;
+      document.getElementById("albumTitle").textContent = data.title || "Альбом";
+      pages = data.pages || [];
     }
   } catch (err) {
     console.error(err);
   }
-  document.getElementById("albumTitle").textContent = ALBUM.title;
-  // TODO: full flipbook init here using PHOTOS
-  // For now, simple list fallback
-  const book = document.getElementById("book");
-  book.innerHTML = PHOTOS.length ? PHOTOS.map(p => `<div style="padding:20px;"><img src="${p.src || ''}" style="max-width:300px;"><h3>${p.title}</h3><p>${p.series}</p></div>`).join('') : '<p style="text-align:center; padding:40px;">Альбом порожній. Додай сторінки в адмінці.</p>';
+  render();
 }
 
-loadAlbum();
+load();
 </script>
 </body>
 </html>
