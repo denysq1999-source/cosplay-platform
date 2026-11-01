@@ -45,6 +45,10 @@ const dict = {
     site_title_btn: "Назва сайту",
     site_title_label: "Назва сайту (в шапці)",
     shadow_color_label: "Колір тіні тексту",
+    button_colors_btn: "Кольори кнопок",
+    primary_btn_color: "Колір основних кнопок (Адмінка)",
+    secondary_btn_color: "Колір звичайних кнопок",
+    google_btn_color: "Колір кнопки Google",
     save_btn: "Зберегти",
     checking_access: "Перевірка доступу...",
     access_denied: "Доступ заборонено. Перенаправлення..."
@@ -76,6 +80,10 @@ const dict = {
     site_title_btn: "Site title",
     site_title_label: "Site title (in header)",
     shadow_color_label: "Text shadow color",
+    button_colors_btn: "Button colors",
+    primary_btn_color: "Primary buttons color (Admin)",
+    secondary_btn_color: "Secondary buttons color",
+    google_btn_color: "Google button color",
     save_btn: "Save",
     checking_access: "Checking access...",
     access_denied: "Access denied. Redirecting..."
@@ -123,6 +131,9 @@ const emptyStatus = document.getElementById("empty-status");
 const titleSection = document.getElementById("site-title-section");
 const btnSiteTitle = document.getElementById("btn-site-title");
 const titleStatus = document.getElementById("title-status");
+const colorsSection = document.getElementById("button-colors-section");
+const btnButtonColors = document.getElementById("btn-button-colors");
+const colorsStatus = document.getElementById("colors-status");
 
 onAuthStateChanged(auth, (user) => {
   if (!user || user.email?.trim().toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
@@ -136,6 +147,7 @@ onAuthStateChanged(auth, (user) => {
   loadBackgrounds();
   loadEmptyText();
   loadSiteTitle();
+  loadButtonColors();
 });
 
 btnAlbums?.addEventListener("click", () => {
@@ -143,6 +155,7 @@ btnAlbums?.addEventListener("click", () => {
   bgSection?.classList.add("hidden");
   emptySection?.classList.add("hidden");
   titleSection?.classList.add("hidden");
+  colorsSection?.classList.add("hidden");
 });
 
 btnBackground?.addEventListener("click", () => {
@@ -150,6 +163,7 @@ btnBackground?.addEventListener("click", () => {
   albumsSection?.classList.add("hidden");
   emptySection?.classList.add("hidden");
   titleSection?.classList.add("hidden");
+  colorsSection?.classList.add("hidden");
 });
 
 btnEmptyText?.addEventListener("click", () => {
@@ -157,6 +171,7 @@ btnEmptyText?.addEventListener("click", () => {
   albumsSection?.classList.add("hidden");
   bgSection?.classList.add("hidden");
   titleSection?.classList.add("hidden");
+  colorsSection?.classList.add("hidden");
 });
 
 btnSiteTitle?.addEventListener("click", () => {
@@ -164,6 +179,15 @@ btnSiteTitle?.addEventListener("click", () => {
   albumsSection?.classList.add("hidden");
   bgSection?.classList.add("hidden");
   emptySection?.classList.add("hidden");
+  colorsSection?.classList.add("hidden");
+});
+
+btnButtonColors?.addEventListener("click", () => {
+  colorsSection?.classList.toggle("hidden");
+  albumsSection?.classList.add("hidden");
+  bgSection?.classList.add("hidden");
+  emptySection?.classList.add("hidden");
+  titleSection?.classList.add("hidden");
 });
 
 function extractGoogleDriveFileId(url) {
@@ -281,6 +305,20 @@ async function loadSiteTitle() {
   }
 }
 
+async function loadButtonColors() {
+  try {
+    const snap = await getDoc(doc(db, "settings", "button_colors"));
+    if (snap.exists()) {
+      const data = snap.data();
+      if (data.primary) document.getElementById("primary-color").value = data.primary;
+      if (data.secondary) document.getElementById("secondary-color").value = data.secondary;
+      if (data.google) document.getElementById("google-color").value = data.google;
+    }
+  } catch (err) {
+    console.error(err);
+  }
+}
+
 document.getElementById("btn-save-empty-text")?.addEventListener("click", async () => {
   const text = document.getElementById("empty-text-input")?.value.trim();
   if (!text) {
@@ -318,6 +356,22 @@ document.getElementById("btn-save-site-title")?.addEventListener("click", async 
     console.error(err);
     titleStatus.textContent = "Помилка збереження";
     titleStatus.style.color = "#d93025";
+  }
+});
+
+document.getElementById("btn-save-button-colors")?.addEventListener("click", async () => {
+  const primary = document.getElementById("primary-color")?.value || "#9c27b0";
+  const secondary = document.getElementById("secondary-color")?.value || "#222222";
+  const google = document.getElementById("google-color")?.value || "#4285F4";
+
+  try {
+    await setDoc(doc(db, "settings", "button_colors"), { primary, secondary, google });
+    colorsStatus.textContent = "Збережено";
+    colorsStatus.style.color = "#4caf50";
+  } catch (err) {
+    console.error(err);
+    colorsStatus.textContent = "Помилка збереження";
+    colorsStatus.style.color = "#d93025";
   }
 });
 
