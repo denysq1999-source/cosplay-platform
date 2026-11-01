@@ -1,20 +1,22 @@
 // Імпортуємо необхідні модулі Firebase (використовуємо CDN)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { getFirestore, collection, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-// Твої налаштування Firebase (візьми їх зі своєї консолі Firebase у налаштуваннях проєкту -> General -> Web app)
+// Твої реальні налаштування Firebase
 const firebaseConfig = {
-  apiKey: "ТВОЙ_API_KEY",
-  authDomain: "ТВОЙ_PROJECT_ID.firebaseapp.com",
-  projectId: "ТВОЙ_PROJECT_ID",
-  storageBucket: "ТВОЙ_PROJECT_ID.appspot.com",
-  messagingSenderId: "ТВОЙ_MESSAGING_SENDER_ID",
-  appId: "ТВОЙ_APP_ID"
+  apiKey: "AIzaSyBnS9-bQngWjNxM1rKz_qRbrQopSd1aAqA",
+  authDomain: "cosplay-platform.firebaseapp.com",
+  projectId: "cosplay-platform",
+  storageBucket: "cosplay-platform.firebasestorage.app",
+  messagingSenderId: "524210919675",
+  appId: "1:524210919675:web:929740053092247656f85e"
 };
 
 // Ініціалізація Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
 
 // Елементи сторінки
@@ -31,7 +33,7 @@ loginBtn.addEventListener('click', async () => {
     await signInWithPopup(auth, provider);
   } catch (error) {
     console.error("Помилка входу:", error);
-    alert("Не вдалося увійти через Google. Перевір налаштування у Firebase Console.");
+    alert("Не вдалося увійти через Google.");
   }
 });
 
@@ -44,25 +46,23 @@ logoutBtn.addEventListener('click', async () => {
   }
 });
 
-// 3. Відстеження стану користувача (автоматично перемикає екрани)
+// 3. Відстеження стану користувача
 onAuthStateChanged(auth, (user) => {
   if (user) {
-    // Користувач увійшов
     authSection.classList.add('hidden');
     appSection.classList.remove('hidden');
     userInfo.textContent = user.email;
     
-    // Завантажуємо галерею, коли користувач авторизований
-    loadGallery();
+    // Завантажуємо галерею з бази даних
+    loadGalleryFromFirestore();
   } else {
-    // Користувач не увійшов
     authSection.classList.remove('hidden');
     appSection.classList.add('hidden');
     galleryEl.innerHTML = '';
   }
 });
 
-// --- Логіка Google Диска (як обговорювали раніше) ---
+// --- Функції для Google Диска ---
 
 function extractGoogleDriveFileId(url) {
   if (!url) return null;
@@ -84,20 +84,32 @@ function getDriveImageUrl(url, size = 1000) {
   return `https://drive.google.com/thumbnail?id=${fileId}&sz=w${size}`;
 }
 
-// Тестові посилання для перевірки
-const sampleCosplayLinks = [
-  "ТУТ_ВСТАВТЕ_ПОСИЛАННЯ_НА_ФОТКУ_З_ДИСКА_1"
-];
-
-function loadGallery() {
-  galleryEl.innerHTML = '';
-  sampleCosplayLinks.forEach(link => {
-    const imageUrl = getDriveImageUrl(link, 1000);
-    if (imageUrl) {
-      const card = document.createElement('div');
-      card.className = 'card';
-      card.innerHTML = `<img src="${imageUrl}" loading="lazy" referrerpolicy="no-referrer" alt="Cosplay photo">`;
-      galleryEl.appendChild(card);
+// Завантаження картинок із Firestore (колекція cosplays)
+async function loadGalleryFromFirestore() {
+  galleryEl.innerHTML = '<p style="color: #aaa;">Завантаження галереї...</p>';
+  try {
+    const querySnapshot = await getDocs(collection(db, "cosplays"));
+    galleryEl.innerHTML = '';
+    
+    if (querySnapshot.empty) {
+      galleryEl.innerHTML = '<p style="color: #aaa;">Поки що немає жодного посилання в базі.</p>';
+      return;
     }
-  });
+
+    querySnapshot.forEach((doc) => {
+      const data = doc.data();
+      if (data.url) {
+        const imageUrl = getDriveImageUrl(data.url, 1000);
+        if (imageUrl) {
+          const card = document.createElement('div');
+          card.className = 'card';
+          card.innerHTML = `<img src="${imageUrl}" loading="lazy" referrerpolicy="no-referrer" alt="Cosplay photo">`;
+          galleryEl.appendChild(card);
+        }
+      }
+    });
+  } catch (error) {
+    console.error("Помилка завантаження бази:", error);
+    galleryEl.innerHTML = '<p style="color: #d93025;">Помилка завантаження даних з бази.</p>';
+  }
 }
