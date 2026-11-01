@@ -42,6 +42,8 @@ const dict = {
     set_btn: "Встановити",
     empty_text_btn: "Текст порожньої галереї",
     empty_text_label: "Текст, коли галерея порожня",
+    site_title_btn: "Назва сайту",
+    site_title_label: "Назва сайту (в шапці)",
     save_btn: "Зберегти",
     checking_access: "Перевірка доступу...",
     access_denied: "Доступ заборонено. Перенаправлення..."
@@ -70,6 +72,8 @@ const dict = {
     set_btn: "Set",
     empty_text_btn: "Empty gallery text",
     empty_text_label: "Text when gallery is empty",
+    site_title_btn: "Site title",
+    site_title_label: "Site title (in header)",
     save_btn: "Save",
     checking_access: "Checking access...",
     access_denied: "Access denied. Redirecting..."
@@ -114,6 +118,9 @@ const bgStatus = document.getElementById("bg-status");
 const emptySection = document.getElementById("empty-text-section");
 const btnEmptyText = document.getElementById("btn-empty-text");
 const emptyStatus = document.getElementById("empty-status");
+const titleSection = document.getElementById("site-title-section");
+const btnSiteTitle = document.getElementById("btn-site-title");
+const titleStatus = document.getElementById("title-status");
 
 onAuthStateChanged(auth, (user) => {
   if (!user || user.email?.trim().toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
@@ -126,24 +133,35 @@ onAuthStateChanged(auth, (user) => {
   adminContent.classList.remove("hidden");
   loadBackgrounds();
   loadEmptyText();
+  loadSiteTitle();
 });
 
 btnAlbums?.addEventListener("click", () => {
   albumsSection?.classList.toggle("hidden");
   bgSection?.classList.add("hidden");
   emptySection?.classList.add("hidden");
+  titleSection?.classList.add("hidden");
 });
 
 btnBackground?.addEventListener("click", () => {
   bgSection?.classList.toggle("hidden");
   albumsSection?.classList.add("hidden");
   emptySection?.classList.add("hidden");
+  titleSection?.classList.add("hidden");
 });
 
 btnEmptyText?.addEventListener("click", () => {
   emptySection?.classList.toggle("hidden");
   albumsSection?.classList.add("hidden");
   bgSection?.classList.add("hidden");
+  titleSection?.classList.add("hidden");
+});
+
+btnSiteTitle?.addEventListener("click", () => {
+  titleSection?.classList.toggle("hidden");
+  albumsSection?.classList.add("hidden");
+  bgSection?.classList.add("hidden");
+  emptySection?.classList.add("hidden");
 });
 
 function extractGoogleDriveFileId(url) {
@@ -249,6 +267,17 @@ async function loadEmptyText() {
   }
 }
 
+async function loadSiteTitle() {
+  try {
+    const snap = await getDoc(doc(db, "settings", "site_title"));
+    if (snap.exists() && snap.data().title) {
+      document.getElementById("site-title-input").value = snap.data().title;
+    }
+  } catch (err) {
+    console.error(err);
+  }
+}
+
 document.getElementById("btn-save-empty-text")?.addEventListener("click", async () => {
   const text = document.getElementById("empty-text-input")?.value.trim();
   if (!text) {
@@ -265,6 +294,25 @@ document.getElementById("btn-save-empty-text")?.addEventListener("click", async 
     console.error(err);
     emptyStatus.textContent = "Помилка збереження";
     emptyStatus.style.color = "#d93025";
+  }
+});
+
+document.getElementById("btn-save-site-title")?.addEventListener("click", async () => {
+  const title = document.getElementById("site-title-input")?.value.trim();
+  if (!title) {
+    titleStatus.textContent = "Вкажи назву";
+    titleStatus.style.color = "#d93025";
+    return;
+  }
+
+  try {
+    await setDoc(doc(db, "settings", "site_title"), { title });
+    titleStatus.textContent = "Збережено";
+    titleStatus.style.color = "#4caf50";
+  } catch (err) {
+    console.error(err);
+    titleStatus.textContent = "Помилка збереження";
+    titleStatus.style.color = "#d93025";
   }
 });
 
