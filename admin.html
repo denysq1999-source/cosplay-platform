@@ -24,6 +24,7 @@
     <div class="admin-sidebar">
       <button class="admin-btn primary" id="btn-albums" data-i18n="albums_btn">Альбоми</button>
       <button class="admin-btn" id="btn-background" data-i18n="background_btn">Фон головної</button>
+      <button class="admin-btn" id="btn-empty-text" data-i18n="empty_text_btn">Текст порожньої галереї</button>
     </div>
 
     <div class="admin-main">
@@ -87,11 +88,20 @@
 
         <div id="bg-status" style="font-size: 13px; margin-top: 12px; color: #aaa;"></div>
       </div>
+
+      <div id="empty-text-section" class="albums-section hidden">
+        <div>
+          <label data-i18n="empty_text_label">Текст, коли галерея порожня</label>
+          <textarea id="empty-text-input" rows="3" style="width:100%; padding:10px; border-radius:8px; border:1px solid #333; background:#1e1e1e; color:#fff; font-size:14px; resize:vertical;" placeholder="Галерея порожня."></textarea>
+        </div>
+        <button class="admin-btn" id="btn-save-empty-text" data-i18n="save_btn">Зберегти</button>
+        <div id="empty-status" style="font-size: 13px; margin-top: 8px; color: #aaa;"></div>
+      </div>
     </div>
   </div>
 
   <div id="status" style="margin-top:40px; text-align:center; color:#888;" data-i18n="checking_access">Перевірка доступу...</div>
 
-  <script type="module" src="js/admin.js?v=8"></script>
+  <script type="module" src="js/admin.js?v=9"></script>
 </body>
 </html>
