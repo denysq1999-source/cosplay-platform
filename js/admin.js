@@ -29,6 +29,7 @@ const dict = {
     add_photo_btn: "Додати фото до вибраного альбому",
     edit_btn: "Редагувати",
     delete_btn: "Видалити",
+    publish_btn: "Опублікувати",
     checking_access: "Перевірка доступу...",
     access_denied: "Доступ заборонено. Перенаправлення..."
   },
@@ -45,6 +46,7 @@ const dict = {
     add_photo_btn: "Add photo to selected album",
     edit_btn: "Edit",
     delete_btn: "Delete",
+    publish_btn: "Publish",
     checking_access: "Checking access...",
     access_denied: "Access denied. Redirecting..."
   }
@@ -110,4 +112,8 @@ document.getElementById("btn-edit")?.addEventListener("click", () => {
 
 document.getElementById("btn-delete")?.addEventListener("click", () => {
   alert("Видалити — зробимо далі");
+});
+
+document.getElementById("btn-publish")?.addEventListener("click", () => {
+  alert("Опублікувати — зробимо далі");
 });
