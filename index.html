@@ -8,10 +8,19 @@
         body { font-family: sans-serif; background: #121212; color: #fff; margin: 0; padding: 20px 0; min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
         .hidden { display: none !important; }
 
-        /* Шапка сайту - тепер розтягується пропорційно екрану */
+        /* Шапка сайту */
         .header-container { display: flex; justify-content: space-between; align-items: center; width: 95%; max-width: 1400px; border-bottom: 1px solid #333; padding-bottom: 15px; margin-bottom: 20px; box-sizing: border-box; }
         .header-title { margin: 0; font-size: 24px; }
         
+        /* Права частина шапки (Мови + Кнопки) */
+        .top-controls { display: flex; align-items: center; gap: 20px; }
+        
+        /* Перемикач мов */
+        .lang-switcher { display: flex; gap: 5px; align-items: center; font-size: 13px; color: #888; }
+        .lang-btn { background: none; border: none; color: #888; cursor: pointer; padding: 0; font-size: 13px; font-weight: bold; transition: 0.2s; }
+        .lang-btn.active { color: #fff; text-decoration: underline; }
+        .lang-btn:hover { color: #fff; }
+
         /* Маленькі кнопочки в кутку */
         .header-buttons { display: flex; gap: 10px; align-items: center; }
         .small-btn { background: #2a2a2a; color: #fff; border: 1px solid #444; padding: 8px 12px; font-size: 13px; border-radius: 6px; cursor: pointer; transition: 0.2s; }
@@ -36,28 +45,35 @@
         .logout-btn { background: #d93025; padding: 6px 12px; border-radius: 6px; color: #fff; border: none; cursor: pointer; font-size: 13px; }
         .logout-btn:hover { background: #b0271e; }
 
-        /* Контент і Галерея - також розтягуються під екран */
+        /* Контент */
         .main-content { width: 95%; max-width: 1400px; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; }
         .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; width: 100%; }
-        .card { background: #1e1e1e; border-radius: 8px; overflow: hidden; padding: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
-        .card img { width: 100%; height: auto; border-radius: 4px; display: block; }
     </style>
 </head>
 <body>
 
     <header class="header-container">
-        <h1 class="header-title">Косплей Галерея</h1>
+        <h1 class="header-title" data-i18n="site_title">Косплей Галерея</h1>
 
-        <!-- Маленькі кнопочки для гостей -->
-        <div id="guest-controls" class="header-buttons">
-            <button id="btn-login" class="small-btn">Вхід</button>
-            <button id="btn-register" class="small-btn">Реєстрація</button>
-            <button id="btn-google" class="small-btn google-small-btn">Увійти через Google</button>
-        </div>
+        <div class="top-controls">
+            <!-- Перемикач мов -->
+            <div class="lang-switcher">
+                <button id="lang-uk" class="lang-btn active">UK</button>
+                <span>|</span>
+                <button id="lang-en" class="lang-btn">EN</button>
+            </div>
 
-        <!-- Панель після входу (тепер тільки кнопка Вийти) -->
-        <div id="user-controls" class="user-controls hidden">
-            <button id="btn-logout" class="logout-btn">Вийти</button>
+            <!-- Маленькі кнопочки для гостей -->
+            <div id="guest-controls" class="header-buttons">
+                <button id="btn-login" class="small-btn" data-i18n="login_btn">Вхід</button>
+                <button id="btn-register" class="small-btn" data-i18n="register_btn">Реєстрація</button>
+                <button id="btn-google" class="small-btn google-small-btn" data-i18n="google_btn">Увійти через Google</button>
+            </div>
+
+            <!-- Панель після входу -->
+            <div id="user-controls" class="user-controls hidden">
+                <button id="btn-logout" class="logout-btn" data-i18n="logout_btn">Вийти</button>
+            </div>
         </div>
     </header>
 
@@ -69,14 +85,14 @@
             <div id="error-container" class="error-msg"></div>
 
             <form id="auth-form">
-                <input type="email" id="auth-email" placeholder="Email" required>
-                <input type="password" id="auth-password" placeholder="Пароль" required>
+                <input type="email" id="auth-email" data-i18n-placeholder="email_placeholder" placeholder="Email" required>
+                <input type="password" id="auth-password" data-i18n-placeholder="password_placeholder" placeholder="Пароль" required>
                 <button type="submit" id="auth-submit-btn" class="action-btn">Увійти</button>
             </form>
         </div>
     </div>
 
-    <!-- Галерея (без адмін-панелі) -->
+    <!-- Галерея -->
     <div id="app-section" class="main-content hidden">
         <div id="gallery" class="gallery"></div>
     </div>
