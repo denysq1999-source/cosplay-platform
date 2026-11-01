@@ -168,12 +168,19 @@ document.addEventListener("DOMContentLoaded", () => {
     return String(email).trim().toLowerCase().replace(/\s+/g, "");
   }
 
+  function getCharCodes(str) {
+    return Array.from(str).map(c => c.charCodeAt(0));
+  }
+
   function isAdmin(user) {
     if (!user || !user.email) return false;
     const userEmail = normalizeEmail(user.email);
     const adminEmail = normalizeEmail(ADMIN_EMAIL);
     const result = userEmail === adminEmail;
-    console.log("[ADMIN CHECK]", JSON.stringify(userEmail), "vs", JSON.stringify(adminEmail), "=>", result);
+    console.log("[ADMIN CHECK]");
+    console.log(" user:", JSON.stringify(userEmail), "len:", userEmail.length, "codes:", getCharCodes(userEmail));
+    console.log(" admin:", JSON.stringify(adminEmail), "len:", adminEmail.length, "codes:", getCharCodes(adminEmail));
+    console.log(" equal:", result);
     return result;
   }
 
