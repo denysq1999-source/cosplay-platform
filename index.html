@@ -38,8 +38,6 @@
 
         /* Контент і Галерея - також розтягуються під екран */
         .main-content { width: 95%; max-width: 1400px; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; }
-        .admin-panel { background: #1e1e1e; padding: 15px; border-radius: 8px; margin-bottom: 20px; width: 100%; display: flex; gap: 10px; box-sizing: border-box; }
-        .admin-panel input { margin-bottom: 0; flex: 1; }
         .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; width: 100%; }
         .card { background: #1e1e1e; border-radius: 8px; overflow: hidden; padding: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
         .card img { width: 100%; height: auto; border-radius: 4px; display: block; }
@@ -57,9 +55,8 @@
             <button id="btn-google" class="small-btn google-small-btn">Увійти через Google</button>
         </div>
 
-        <!-- Панель після входу -->
+        <!-- Панель після входу (тепер тільки кнопка Вийти) -->
         <div id="user-controls" class="user-controls hidden">
-            <span id="user-info" style="color: #aaa; font-size: 14px;"></span>
             <button id="btn-logout" class="logout-btn">Вийти</button>
         </div>
     </header>
@@ -79,13 +76,9 @@
         </div>
     </div>
 
-    <!-- Галерея -->
+    <!-- Галерея (без адмін-панелі) -->
     <div id="app-section" class="main-content hidden">
-        <div class="admin-panel">
-            <input type="text" id="image-url-input" placeholder="Вставте посилання на картинку з Google Диска...">
-            <button id="add-image-btn" class="action-btn" style="width: auto; margin-top: 0;">Додати в галерею</button>
-        </div>
-        <div id="gallery" class="gallery">Галерея завантажується...</div>
+        <div id="gallery" class="gallery"></div>
     </div>
 
     <script type="module" src="app.js"></script>
