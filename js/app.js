@@ -212,7 +212,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const snap = await getDoc(doc(db, "settings", docId));
       if (snap.exists() && snap.data().fileId) {
         const fileId = snap.data().fileId;
-        const bgUrl = `https://drive.google.com/thumbnail?id=${fileId}&sz=w1920`;
+        const size = snap.data().size || "w1920";
+        const bgUrl = `https://drive.google.com/thumbnail?id=${fileId}&sz=${size}`;
         document.body.style.backgroundImage = `url('${bgUrl}')`;
         document.body.style.backgroundSize = "cover";
         document.body.style.backgroundPosition = "center";
