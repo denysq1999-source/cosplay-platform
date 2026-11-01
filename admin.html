@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Адмінка — Косплей Галерея</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #0f0f0f;
+            color: #fff;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .hidden { display: none !important; }
+
+        .header {
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #2a2a2a;
+        }
+        .header h1 { margin: 0; font-size: 22px; font-weight: 600; }
+        .back-btn {
+            background: #1e1e1e;
+            color: #ccc;
+            border: 1px solid #333;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+        .back-btn:hover {
+            background: #2a2a2a;
+            color: #fff;
+            box-shadow: 0 0 12px rgba(255, 255, 255, 0.08);
+        }
+
+        .admin-panel {
+            width: 100%;
+            max-width: 520px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .admin-btn {
+            width: 100%;
+            padding: 16px 20px;
+            font-size: 16px;
+            font-weight: 500;
+            background: #1a1a1a;
+            color: #fff;
+            border: 1px solid #2e2e2e;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.22s ease;
+            text-align: left;
+            position: relative;
+        }
+        .admin-btn:hover {
+            background: #222;
+            border-color: #444;
+            transform: translateY(-1px);
+            box-shadow: 0 0 18px rgba(156, 39, 176, 0.25);
+        }
+        .admin-btn:active {
+            transform: translateY(0);
+        }
+
+        .admin-btn.primary {
+            background: #9c27b0;
+            border-color: #9c27b0;
+        }
+        .admin-btn.primary:hover {
+            background: #ab47bc;
+            box-shadow: 0 0 20px rgba(156, 39, 176, 0.45);
+        }
+
+        .admin-btn.danger {
+            background: #2a1a1a;
+            border-color: #5a2a2a;
+            color: #ff8a80;
+        }
+        .admin-btn.danger:hover {
+            background: #3a2020;
+            box-shadow: 0 0 18px rgba(217, 48, 37, 0.3);
+        }
+
+        .status {
+            margin-top: 30px;
+            color: #888;
+            font-size: 14px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Панель адміністратора</h1>
+        <a href="index.html" class="back-btn">← На галерею</a>
+    </div>
+
+    <div id="admin-content" class="admin-panel hidden">
+        <button class="admin-btn primary" id="btn-albums">Альбоми</button>
+        <button class="admin-btn" id="btn-add-photo">Додати фото до вибраного альбому</button>
+        <button class="admin-btn" id="btn-edit">Редагувати</button>
+        <button class="admin-btn danger" id="btn-delete">Видалити</button>
+        <button class="admin-btn" id="btn-publish">Опублікувати</button>
+    </div>
+
+    <div id="status" class="status">Перевірка доступу...</div>
+
+    <script type="module" src="admin.js"></script>
+</body>
+</html>
