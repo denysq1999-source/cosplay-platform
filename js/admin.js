@@ -40,6 +40,9 @@ const dict = {
     bg_guest_label: "Фон до входу",
     bg_user_label: "Фон після входу",
     set_btn: "Встановити",
+    empty_text_btn: "Текст порожньої галереї",
+    empty_text_label: "Текст, коли галерея порожня",
+    save_btn: "Зберегти",
     checking_access: "Перевірка доступу...",
     access_denied: "Доступ заборонено. Перенаправлення..."
   },
@@ -65,6 +68,9 @@ const dict = {
     bg_guest_label: "Background before login",
     bg_user_label: "Background after login",
     set_btn: "Set",
+    empty_text_btn: "Empty gallery text",
+    empty_text_label: "Text when gallery is empty",
+    save_btn: "Save",
     checking_access: "Checking access...",
     access_denied: "Access denied. Redirecting..."
   }
@@ -105,6 +111,9 @@ const btnAlbums = document.getElementById("btn-albums");
 const bgSection = document.getElementById("background-section");
 const btnBackground = document.getElementById("btn-background");
 const bgStatus = document.getElementById("bg-status");
+const emptySection = document.getElementById("empty-text-section");
+const btnEmptyText = document.getElementById("btn-empty-text");
+const emptyStatus = document.getElementById("empty-status");
 
 onAuthStateChanged(auth, (user) => {
   if (!user || user.email?.trim().toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
@@ -116,16 +125,25 @@ onAuthStateChanged(auth, (user) => {
   statusEl.classList.add("hidden");
   adminContent.classList.remove("hidden");
   loadBackgrounds();
+  loadEmptyText();
 });
 
 btnAlbums?.addEventListener("click", () => {
   albumsSection?.classList.toggle("hidden");
   bgSection?.classList.add("hidden");
+  emptySection?.classList.add("hidden");
 });
 
 btnBackground?.addEventListener("click", () => {
   bgSection?.classList.toggle("hidden");
   albumsSection?.classList.add("hidden");
+  emptySection?.classList.add("hidden");
+});
+
+btnEmptyText?.addEventListener("click", () => {
+  emptySection?.classList.toggle("hidden");
+  albumsSection?.classList.add("hidden");
+  bgSection?.classList.add("hidden");
 });
 
 function extractGoogleDriveFileId(url) {
@@ -219,6 +237,36 @@ async function deleteBackground(type) {
     bgStatus.style.color = "#d93025";
   }
 }
+
+async function loadEmptyText() {
+  try {
+    const snap = await getDoc(doc(db, "settings", "empty_text"));
+    if (snap.exists() && snap.data().text) {
+      document.getElementById("empty-text-input").value = snap.data().text;
+    }
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+document.getElementById("btn-save-empty-text")?.addEventListener("click", async () => {
+  const text = document.getElementById("empty-text-input")?.value.trim();
+  if (!text) {
+    emptyStatus.textContent = "Вкажи текст";
+    emptyStatus.style.color = "#d93025";
+    return;
+  }
+
+  try {
+    await setDoc(doc(db, "settings", "empty_text"), { text });
+    emptyStatus.textContent = "Збережено";
+    emptyStatus.style.color = "#4caf50";
+  } catch (err) {
+    console.error(err);
+    emptyStatus.textContent = "Помилка збереження";
+    emptyStatus.style.color = "#d93025";
+  }
+});
 
 document.getElementById("btn-set-guest")?.addEventListener("click", () => setBackground("guest"));
 document.getElementById("btn-set-user")?.addEventListener("click", () => setBackground("user"));
