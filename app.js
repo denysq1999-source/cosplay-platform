@@ -11,7 +11,10 @@ import {
 import { 
   getFirestore, 
   collection, 
-  getDocs
+  getDocs,
+  addDoc,
+  deleteDoc,
+  doc
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -28,8 +31,10 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
 
+// Твоя пошта для перевірки прав адміна
+const ADMIN_EMAIL = "denysq1999@gmail.com";
+
 document.addEventListener("DOMContentLoaded", () => {
-  // Словник перекладів
   const dict = {
     uk: {
       site_title: "Косплей Галерея",
@@ -44,7 +49,12 @@ document.addEventListener("DOMContentLoaded", () => {
       email_placeholder: "Email",
       password_placeholder: "Пароль",
       err_invalid: "Невірний email або пароль.",
-      err_reg: "Помилка реєстрації. Перевірте дані."
+      err_reg: "Помилка реєстрації. Перевірте дані.",
+      admin_panel_title: "Панель Адміністратора",
+      url_placeholder: "Посилання на картинку з Google Диска...",
+      add_btn: "Додати",
+      delete_btn: "Видалити",
+      empty_gallery: "Галерея порожня."
     },
     en: {
       site_title: "Cosplay Gallery",
@@ -59,18 +69,27 @@ document.addEventListener("DOMContentLoaded", () => {
       email_placeholder: "Email",
       password_placeholder: "Password",
       err_invalid: "Invalid email or password.",
-      err_reg: "Registration error. Check your data."
+      err_reg: "Registration error. Check your data.",
+      admin_panel_title: "Admin Panel",
+      url_placeholder: "Google Drive image URL...",
+      add_btn: "Add",
+      delete_btn: "Delete",
+      empty_gallery: "Gallery is empty."
     }
   };
 
   let currentLang = localStorage.getItem('appLang') || 'uk';
   let isLoginMode = true;
+  let currentUser = null;
 
   const modalTitle = document.getElementById('modal-title');
   const authSubmitBtn = document.getElementById('auth-submit-btn');
   const errorContainer = document.getElementById('error-container');
+  const adminPanel = document.getElementById('admin-panel');
+  const galleryEl = document.getElementById('gallery');
+  const imageUrlInput = document.getElementById('image-url-input');
+  const addImageBtn = document.getElementById('add-image-btn');
 
-  // Оновлення текстів на сторінці
   const updateLangUI = () => {
     document.querySelectorAll('[data-i18n]').forEach(el => {
       const key = el.getAttribute('data-i18n');
@@ -82,23 +101,18 @@ document.addEventListener("DOMContentLoaded", () => {
       if (dict[currentLang][key]) el.placeholder = dict[currentLang][key];
     });
 
-    // Динамічні тексти модалки
     if (modalTitle) modalTitle.textContent = isLoginMode ? dict[currentLang].modal_title_login : dict[currentLang].modal_title_register;
     if (authSubmitBtn) authSubmitBtn.textContent = isLoginMode ? dict[currentLang].modal_submit_login : dict[currentLang].modal_submit_register;
 
-    // Перемикання стилів кнопок мови
     document.getElementById('lang-uk').classList.toggle('active', currentLang === 'uk');
     document.getElementById('lang-en').classList.toggle('active', currentLang === 'en');
   };
 
-  // Кліки по мовах
   document.getElementById('lang-uk').addEventListener('click', () => { currentLang = 'uk'; localStorage.setItem('appLang', 'uk'); updateLangUI(); });
   document.getElementById('lang-en').addEventListener('click', () => { currentLang = 'en'; localStorage.setItem('appLang', 'en'); updateLangUI(); });
 
-  // Ініціалізація мови при завантаженні
   updateLangUI();
 
-  // Елементи DOM
   const guestControls = document.getElementById('guest-controls');
   const userControls = document.getElementById('user-controls');
   const appSection = document.getElementById('app-section');
@@ -110,7 +124,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const closeModalBtn = document.getElementById('close-modal-btn');
   const authForm = document.getElementById('auth-form');
 
-  // Логіка модального вікна
   const openModal = (mode) => {
     isLoginMode = mode === 'login';
     errorContainer.textContent = '';
@@ -124,7 +137,6 @@ document.addEventListener("DOMContentLoaded", () => {
   if (closeModalBtn) closeModalBtn.addEventListener('click', () => authModal.classList.add('hidden'));
   if (authModal) authModal.addEventListener('click', (e) => { if (e.target === authModal) authModal.classList.add('hidden'); });
 
-  // Авторизація
   if (btnGoogle) {
     btnGoogle.addEventListener('click', async () => {
       try { await signInWithPopup(auth, provider); } 
@@ -158,16 +170,106 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // --- Стан користувача ---
+  // Стан користувача
   onAuthStateChanged(auth, (user) => {
+    currentUser = user;
     if (user) {
       guestControls.classList.add('hidden');
       userControls.classList.remove('hidden');
       appSection.classList.remove('hidden');
+
+      // Показ адмінки тільки для тебе
+      if (user.email === ADMIN_EMAIL) {
+        adminPanel.classList.remove('hidden');
+      } else {
+        adminPanel.classList.add('hidden');
+      }
+
+      loadGalleryFromFirestore();
     } else {
       guestControls.classList.remove('hidden');
       userControls.classList.add('hidden');
       appSection.classList.add('hidden');
+      adminPanel.classList.add('hidden');
     }
   });
+
+  // Додавання картинок в адмінці
+  if (addImageBtn && imageUrlInput) {
+    addImageBtn.addEventListener('click', async () => {
+      const url = imageUrlInput.value.trim();
+      if (!url) return;
+      try {
+        await addDoc(collection(db, "cosplays"), { url: url, createdAt: new Date() });
+        imageUrlInput.value = '';
+        loadGalleryFromFirestore();
+      } catch (error) { 
+        console.error(error); 
+        alert("Помилка доступу. Тільки адмін може додавати записи."); 
+      }
+    });
+  }
+
+  function extractGoogleDriveFileId(url) {
+    if (!url) return null;
+    const patterns = [ /\/file\/d\/([a-zA-Z0-9_-]+)/, /[?&]id=([a-zA-Z0-9_-]+)/, /\/d\/([a-zA-Z0-9_-]+)/ ];
+    for (const pattern of patterns) {
+      const match = url.match(pattern);
+      if (match && match[1]) return match[1];
+    }
+    return null;
+  }
+
+  async function loadGalleryFromFirestore() {
+    if (!galleryEl) return;
+    galleryEl.innerHTML = '';
+    try {
+      const querySnapshot = await getDocs(collection(db, "cosplays"));
+      if (querySnapshot.empty) { 
+        galleryEl.innerHTML = `<p style="color: #aaa;">${dict[currentLang].empty_gallery}</p>`; 
+        return; 
+      }
+      querySnapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        if (data.url) {
+          const fileId = extractGoogleDriveFileId(data.url);
+          if (fileId) {
+            const imageUrl = `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000`;
+            const card = document.createElement('div');
+            card.className = 'card';
+            
+            let deleteBtnHtml = '';
+            if (currentUser && currentUser.email === ADMIN_EMAIL) {
+              deleteBtnHtml = `<button class="delete-btn" data-id="${docSnap.id}">${dict[currentLang].delete_btn}</button>`;
+            }
+
+            card.innerHTML = `
+              <img src="${imageUrl}" loading="lazy" referrerpolicy="no-referrer" alt="Cosplay photo">
+              ${deleteBtnHtml}
+            `;
+            
+            galleryEl.appendChild(card);
+          }
+        }
+      });
+
+      // Події для кнопок видалення
+      document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          const id = e.target.getAttribute('data-id');
+          if (confirm("Видалити цю картинку?")) {
+            try {
+              await deleteDoc(doc(db, "cosplays", id));
+              loadGalleryFromFirestore();
+            } catch (err) {
+              alert("Помилка видалення.");
+            }
+          }
+        });
+      });
+
+    } catch (error) { 
+      galleryEl.innerHTML = '<p style="color: #d93025;">Помилка завантаження даних.</p>'; 
+    }
+  }
 });
