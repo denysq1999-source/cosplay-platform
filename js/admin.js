@@ -49,7 +49,9 @@ const dict = {
     primary_btn_color: "Колір основних кнопок (Адмінка)",
     secondary_btn_color: "Колір звичайних кнопок",
     google_btn_color: "Колір кнопки Google",
+    btn_text_color: "Колір тексту кнопок",
     save_btn: "Зберегти",
+    reset_btn: "Скинути",
     checking_access: "Перевірка доступу...",
     access_denied: "Доступ заборонено. Перенаправлення..."
   },
@@ -84,7 +86,9 @@ const dict = {
     primary_btn_color: "Primary buttons color (Admin)",
     secondary_btn_color: "Secondary buttons color",
     google_btn_color: "Google button color",
+    btn_text_color: "Button text color",
     save_btn: "Save",
+    reset_btn: "Reset",
     checking_access: "Checking access...",
     access_denied: "Access denied. Redirecting..."
   }
@@ -313,6 +317,7 @@ async function loadButtonColors() {
       if (data.primary) document.getElementById("primary-color").value = data.primary;
       if (data.secondary) document.getElementById("secondary-color").value = data.secondary;
       if (data.google) document.getElementById("google-color").value = data.google;
+      if (data.textColor) document.getElementById("btn-text-color").value = data.textColor;
     }
   } catch (err) {
     console.error(err);
@@ -363,14 +368,31 @@ document.getElementById("btn-save-button-colors")?.addEventListener("click", asy
   const primary = document.getElementById("primary-color")?.value || "#9c27b0";
   const secondary = document.getElementById("secondary-color")?.value || "#222222";
   const google = document.getElementById("google-color")?.value || "#4285F4";
+  const textColor = document.getElementById("btn-text-color")?.value || "#ffffff";
 
   try {
-    await setDoc(doc(db, "settings", "button_colors"), { primary, secondary, google });
+    await setDoc(doc(db, "settings", "button_colors"), { primary, secondary, google, textColor });
     colorsStatus.textContent = "Збережено";
     colorsStatus.style.color = "#4caf50";
   } catch (err) {
     console.error(err);
     colorsStatus.textContent = "Помилка збереження";
+    colorsStatus.style.color = "#d93025";
+  }
+});
+
+document.getElementById("btn-reset-button-colors")?.addEventListener("click", async () => {
+  try {
+    await deleteDoc(doc(db, "settings", "button_colors"));
+    document.getElementById("primary-color").value = "#9c27b0";
+    document.getElementById("secondary-color").value = "#222222";
+    document.getElementById("google-color").value = "#4285F4";
+    document.getElementById("btn-text-color").value = "#ffffff";
+    colorsStatus.textContent = "Скинуто до стандарту";
+    colorsStatus.style.color = "#4caf50";
+  } catch (err) {
+    console.error(err);
+    colorsStatus.textContent = "Помилка скидання";
     colorsStatus.style.color = "#d93025";
   }
 });
