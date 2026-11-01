@@ -213,7 +213,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const snap = await getDoc(doc(db, "settings", "background"));
       if (snap.exists() && snap.data().fileId) {
         const fileId = snap.data().fileId;
-        const bgUrl = `https://drive.google.com/thumbnail?id=${fileId}&sz=w2000`;
+        // Більш надійний спосіб для фону
+        const bgUrl = `https://drive.google.com/uc?export=view&id=${fileId}`;
         document.body.style.backgroundImage = `url('${bgUrl}')`;
         document.body.style.backgroundSize = "cover";
         document.body.style.backgroundPosition = "center";
