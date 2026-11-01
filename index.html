@@ -40,6 +40,10 @@
       <form id="auth-form">
         <input type="email" id="auth-email" data-i18n-placeholder="email_placeholder" placeholder="Email" required>
         <input type="password" id="auth-password" data-i18n-placeholder="password_placeholder" placeholder="Пароль" required>
+        <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:#aaa; margin: 4px 0 12px; cursor:pointer;">
+          <input type="checkbox" id="remember-password" style="width:auto; margin:0;">
+          <span data-i18n="remember_password">Запам’ятати пароль</span>
+        </label>
         <button type="submit" id="auth-submit-btn" class="action-btn">Увійти</button>
       </form>
     </div>
@@ -49,6 +53,6 @@
     <div id="gallery" class="gallery"></div>
   </div>
 
-  <script type="module" src="js/app.js?v=10"></script>
+  <script type="module" src="js/app.js?v=11"></script>
 </body>
 </html>
