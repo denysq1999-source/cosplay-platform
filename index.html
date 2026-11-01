@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cosplay Platform</title>
     <style>
-        body { font-family: sans-serif; background: #121212; color: #fff; margin: 0; padding: 20px 0; min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
+        body { font-family: system-ui, -apple-system, sans-serif; background: #121212; color: #fff; margin: 0; padding: 20px 0; min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
         .hidden { display: none !important; }
 
-        .header-container { display: flex; justify-content: space-between; align-items: center; width: 95%; max-width: 1400px; border-bottom: 1px solid #333; padding-bottom: 15px; margin-bottom: 20px; box-sizing: border-box; }
-        .header-title { margin: 0; font-size: 24px; }
+        .header-container { display: flex; justify-content: space-between; align-items: center; width: 95%; max-width: 1400px; border-bottom: 1px solid #2a2a2a; padding-bottom: 15px; margin-bottom: 20px; box-sizing: border-box; }
+        .header-title { margin: 0; font-size: 24px; font-weight: 600; }
         
         .top-controls { display: flex; align-items: center; gap: 20px; }
         
@@ -19,36 +19,98 @@
         .lang-btn:hover { color: #fff; }
 
         .header-buttons { display: flex; gap: 10px; align-items: center; }
-        .small-btn { background: #2a2a2a; color: #fff; border: 1px solid #444; padding: 8px 12px; font-size: 13px; border-radius: 6px; cursor: pointer; transition: 0.2s; }
-        .small-btn:hover { background: #3a3a3a; }
-        .google-small-btn { background: #4285F4; color: #fff; border: none; font-weight: bold; }
-        .google-small-btn:hover { background: #357ae8; }
 
-        .admin-btn { background: #9c27b0; color: #fff; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: bold; transition: 0.2s; }
-        .admin-btn:hover { background: #7b1fa2; }
+        .small-btn, .admin-btn, .logout-btn, .action-btn {
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            box-shadow: 0 0 0 rgba(66, 133, 244, 0);
+        }
+
+        .small-btn {
+            background: #2a2a2a;
+            color: #fff;
+            border: 1px solid #3a3a3a;
+            padding: 8px 14px;
+        }
+        .small-btn:hover {
+            background: #353535;
+            box-shadow: 0 0 12px rgba(255, 255, 255, 0.08);
+            transform: translateY(-1px);
+        }
+
+        .google-small-btn {
+            background: #4285F4;
+            border: none;
+            font-weight: 600;
+        }
+        .google-small-btn:hover {
+            background: #5a95f5;
+            box-shadow: 0 0 14px rgba(66, 133, 244, 0.45);
+        }
+
+        .admin-btn {
+            background: #9c27b0;
+            color: #fff;
+            padding: 7px 14px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .admin-btn:hover {
+            background: #ab47bc;
+            box-shadow: 0 0 16px rgba(156, 39, 176, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .logout-btn {
+            background: #d93025;
+            color: #fff;
+            padding: 7px 14px;
+        }
+        .logout-btn:hover {
+            background: #e53935;
+            box-shadow: 0 0 12px rgba(217, 48, 37, 0.35);
+            transform: translateY(-1px);
+        }
 
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.75); display: flex; justify-content: center; align-items: center; z-index: 1000; }
-        .auth-box { background: #1e1e1e; padding: 30px; border-radius: 12px; position: relative; width: 100%; max-width: 400px; box-sizing: border-box; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        .auth-box { background: #1e1e1e; padding: 30px; border-radius: 12px; position: relative; width: 100%; max-width: 400px; box-sizing: border-box; box-shadow: 0 8px 30px rgba(0,0,0,0.6); }
         .close-modal-btn { position: absolute; top: 10px; right: 15px; background: transparent; border: none; color: #888; font-size: 24px; cursor: pointer; padding: 0; }
-        .close-modal-btn:hover { color: #fff; background: transparent; }
+        .close-modal-btn:hover { color: #fff; }
         
         .auth-title { margin: 0 0 15px 0; font-size: 18px; text-align: center; }
-        input { width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 6px; border: 1px solid #333; background: #2a2a2a; color: #fff; box-sizing: border-box; font-size: 14px; }
-        .action-btn { width: 100%; padding: 10px; font-size: 14px; background: #4285F4; color: white; border: none; border-radius: 6px; cursor: pointer; transition: 0.2s; }
-        .action-btn:hover { background: #357ae8; }
+        input { width: 100%; padding: 12px; margin-bottom: 12px; border-radius: 8px; border: 1px solid #333; background: #2a2a2a; color: #fff; box-sizing: border-box; font-size: 14px; }
+        input:focus { outline: none; border-color: #4285F4; box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.2); }
+
+        .action-btn {
+            width: 100%;
+            padding: 12px;
+            font-size: 15px;
+            background: #4285F4;
+            color: white;
+            font-weight: 600;
+        }
+        .action-btn:hover {
+            background: #5a95f5;
+            box-shadow: 0 0 16px rgba(66, 133, 244, 0.4);
+        }
+
         .error-msg { color: #d93025; font-size: 12px; margin-bottom: 10px; text-align: center; }
 
         .user-controls { display: flex; align-items: center; gap: 10px; }
-        .logout-btn { background: #d93025; padding: 6px 12px; border-radius: 6px; color: #fff; border: none; cursor: pointer; font-size: 13px; }
-        .logout-btn:hover { background: #b0271e; }
 
         .main-content { width: 95%; max-width: 1400px; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; }
-        .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; width: 100%; }
+        .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; width: 100%; }
         
-        .card { background: #1e1e1e; border-radius: 8px; overflow: hidden; padding: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.3); position: relative; }
-        .card img { width: 100%; height: 300px; object-fit: cover; border-radius: 4px; display: block; }
-        .delete-btn { position: absolute; top: 15px; right: 15px; background: rgba(217, 48, 37, 0.85); color: #fff; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; }
-        .delete-btn:hover { background: #d93025; }
+        .card { background: #1e1e1e; border-radius: 10px; overflow: hidden; padding: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.3); position: relative; transition: transform 0.2s; }
+        .card:hover { transform: translateY(-2px); }
+        .card img { width: 100%; height: 300px; object-fit: cover; border-radius: 6px; display: block; }
+        .delete-btn { position: absolute; top: 16px; right: 16px; background: rgba(217, 48, 37, 0.9); color: #fff; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; transition: 0.2s; }
+        .delete-btn:hover { background: #d93025; box-shadow: 0 0 8px rgba(217, 48, 37, 0.4); }
     </style>
 </head>
 <body>
@@ -70,8 +132,7 @@
             </div>
 
             <div id="user-controls" class="user-controls hidden">
-                <!-- Кнопка адмінки в кутку (тільки для тебе) -->
-                <button id="btn-admin" class="admin-btn hidden" data-i18n="admin_btn">Адмінка</button>
+                <a id="btn-admin" href="admin.html" class="admin-btn hidden" data-i18n="admin_btn">Адмінка</a>
                 <button id="btn-logout" class="logout-btn" data-i18n="logout_btn">Вийти</button>
             </div>
         </div>
@@ -92,20 +153,10 @@
         </div>
     </div>
 
-    <!-- Модалка Адмінки (відкривається за кнопкою в кутку) -->
-    <div id="admin-modal" class="modal-overlay hidden">
-        <div class="auth-box">
-            <button id="close-admin-modal-btn" class="close-modal-btn">&times;</button>
-            <h2 class="auth-title" data-i18n="admin_panel_title">Панель Адміністратора</h2>
-            <input type="text" id="image-url-input" data-i18n-placeholder="url_placeholder" placeholder="Посилання на картинку з Google Диска...">
-            <button id="add-image-btn" class="action-btn" data-i18n="add_btn">Додати</button>
-        </div>
-    </div>
-
     <div id="app-section" class="main-content hidden">
         <div id="gallery" class="gallery"></div>
     </div>
 
-    <script type="module" src="app.js?v=4"></script>
+    <script type="module" src="app.js?v=5"></script>
 </body>
 </html>
