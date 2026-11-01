@@ -49,9 +49,17 @@
       </div>
 
       <div id="background-section" class="albums-section hidden">
-        <div style="margin-bottom: 20px;">
+        <div style="margin-bottom: 24px;">
           <label data-i18n="bg_guest_label">Фон до входу</label>
           <div id="preview-guest" style="width:100%; height:100px; background:#222; border-radius:8px; margin:8px 0; background-size:cover; background-position:center;"></div>
+          <div style="margin-bottom: 8px;">
+            <label data-i18n="size_label">Розмір</label>
+            <select id="size-guest">
+              <option value="w1920" data-i18n="size_full">Full HD (1920)</option>
+              <option value="w1280" data-i18n="size_hd">HD (1280)</option>
+              <option value="w800" data-i18n="size_medium">Середній (800)</option>
+            </select>
+          </div>
           <input type="text" id="bg-guest-url" data-i18n-placeholder="drive_url_placeholder" placeholder="https://drive.google.com/file/d/...">
           <div style="display:flex; gap:8px; margin-top:8px;">
             <button class="admin-btn" id="btn-set-guest" data-i18n="set_btn">Встановити</button>
@@ -62,6 +70,14 @@
         <div>
           <label data-i18n="bg_user_label">Фон після входу</label>
           <div id="preview-user" style="width:100%; height:100px; background:#222; border-radius:8px; margin:8px 0; background-size:cover; background-position:center;"></div>
+          <div style="margin-bottom: 8px;">
+            <label data-i18n="size_label">Розмір</label>
+            <select id="size-user">
+              <option value="w1920" data-i18n="size_full">Full HD (1920)</option>
+              <option value="w1280" data-i18n="size_hd">HD (1280)</option>
+              <option value="w800" data-i18n="size_medium">Середній (800)</option>
+            </select>
+          </div>
           <input type="text" id="bg-user-url" data-i18n-placeholder="drive_url_placeholder" placeholder="https://drive.google.com/file/d/...">
           <div style="display:flex; gap:8px; margin-top:8px;">
             <button class="admin-btn" id="btn-set-user" data-i18n="set_btn">Встановити</button>
@@ -76,6 +92,6 @@
 
   <div id="status" style="margin-top:40px; text-align:center; color:#888;" data-i18n="checking_access">Перевірка доступу...</div>
 
-  <script type="module" src="js/admin.js?v=7"></script>
+  <script type="module" src="js/admin.js?v=8"></script>
 </body>
 </html>
