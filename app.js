@@ -141,7 +141,7 @@ document.addEventListener("DOMContentLoaded", () => {
     authForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       errorContainer.textContent = '';
-      const email = document.getElementById('auth-email').value;
+      const email = document.getElementById('auth-email').value.trim();
       const password = document.getElementById('auth-password').value;
 
       try {
@@ -163,6 +163,11 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  function isAdmin(user) {
+    if (!user || !user.email) return false;
+    return user.email.trim().toLowerCase() === ADMIN_EMAIL.toLowerCase();
+  }
+
   onAuthStateChanged(auth, (user) => {
     currentUser = user;
     if (user) {
@@ -170,7 +175,7 @@ document.addEventListener("DOMContentLoaded", () => {
       userControls.classList.remove('hidden');
       appSection.classList.remove('hidden');
 
-      if (user.email === ADMIN_EMAIL) {
+      if (isAdmin(user)) {
         btnAdmin.classList.remove('hidden');
       } else {
         btnAdmin.classList.add('hidden');
@@ -214,7 +219,7 @@ document.addEventListener("DOMContentLoaded", () => {
             card.className = 'card';
             
             let deleteBtnHtml = '';
-            if (currentUser && currentUser.email === ADMIN_EMAIL) {
+            if (isAdmin(currentUser)) {
               deleteBtnHtml = `<button class="delete-btn" data-id="${docSnap.id}">${dict[currentLang].delete_btn}</button>`;
             }
 
