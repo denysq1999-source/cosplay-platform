@@ -1,10 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { 
-  getAuth, 
-  onAuthStateChanged,
-  EmailAuthProvider,
-  linkWithCredential 
-} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBnS9-bQngWjNxM1rKz_qRbrQopSd1aAqA",
@@ -20,15 +15,77 @@ const auth = getAuth(app);
 
 const ADMIN_EMAIL = "denysq1999@gmail.com";
 
+const dict = {
+  uk: {
+    admin_title: "Панель адміністратора",
+    back_btn: "← На галерею",
+    albums_btn: "Альбоми",
+    instagram_size_label: "Instagram-розмір зображення",
+    size_square: "Квадрат 1:1 (1080×1080)",
+    size_portrait: "Портрет 4:5 (1080×1350)",
+    size_landscape: "Ландшафт 1.91:1 (1080×566)",
+    drive_url_label: "Посилання на зображення з Google Диска",
+    drive_url_placeholder: "https://drive.google.com/file/d/...",
+    add_photo_btn: "Додати фото до вибраного альбому",
+    edit_btn: "Редагувати",
+    delete_btn: "Видалити",
+    checking_access: "Перевірка доступу...",
+    access_denied: "Доступ заборонено. Перенаправлення..."
+  },
+  en: {
+    admin_title: "Admin Panel",
+    back_btn: "← Back to Gallery",
+    albums_btn: "Albums",
+    instagram_size_label: "Instagram image size",
+    size_square: "Square 1:1 (1080×1080)",
+    size_portrait: "Portrait 4:5 (1080×1350)",
+    size_landscape: "Landscape 1.91:1 (1080×566)",
+    drive_url_label: "Google Drive image URL",
+    drive_url_placeholder: "https://drive.google.com/file/d/...",
+    add_photo_btn: "Add photo to selected album",
+    edit_btn: "Edit",
+    delete_btn: "Delete",
+    checking_access: "Checking access...",
+    access_denied: "Access denied. Redirecting..."
+  }
+};
+
+let currentLang = localStorage.getItem("appLang") || "uk";
+
+function updateLangUI() {
+  document.querySelectorAll("[data-i18n]").forEach(el => {
+    const key = el.getAttribute("data-i18n");
+    if (dict[currentLang][key]) el.textContent = dict[currentLang][key];
+  });
+  document.querySelectorAll("[data-i18n-placeholder]").forEach(el => {
+    const key = el.getAttribute("data-i18n-placeholder");
+    if (dict[currentLang][key]) el.placeholder = dict[currentLang][key];
+  });
+  document.getElementById("lang-uk")?.classList.toggle("active", currentLang === "uk");
+  document.getElementById("lang-en")?.classList.toggle("active", currentLang === "en");
+}
+
+document.getElementById("lang-uk")?.addEventListener("click", () => {
+  currentLang = "uk";
+  localStorage.setItem("appLang", "uk");
+  updateLangUI();
+});
+document.getElementById("lang-en")?.addEventListener("click", () => {
+  currentLang = "en";
+  localStorage.setItem("appLang", "en");
+  updateLangUI();
+});
+
+updateLangUI();
+
 const adminContent = document.getElementById("admin-content");
 const statusEl = document.getElementById("status");
 const albumsSection = document.getElementById("albums-section");
 const btnAlbums = document.getElementById("btn-albums");
-const linkStatus = document.getElementById("link-status");
 
 onAuthStateChanged(auth, (user) => {
   if (!user || user.email?.trim().toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
-    statusEl.textContent = "Доступ заборонено. Перенаправлення...";
+    statusEl.textContent = dict[currentLang].access_denied;
     setTimeout(() => { window.location.href = "index.html"; }, 1200);
     return;
   }
@@ -53,43 +110,4 @@ document.getElementById("btn-edit")?.addEventListener("click", () => {
 
 document.getElementById("btn-delete")?.addEventListener("click", () => {
   alert("Видалити — зробимо далі");
-});
-
-document.getElementById("btn-publish")?.addEventListener("click", () => {
-  alert("Опублікувати — зробимо далі");
-});
-
-// Прив’язка email/пароль до поточного акаунта
-document.getElementById("btn-link-email")?.addEventListener("click", async () => {
-  const email = document.getElementById("link-email")?.value.trim();
-  const password = document.getElementById("link-password")?.value;
-
-  if (!email || !password) {
-    linkStatus.textContent = "Вкажи email і пароль";
-    linkStatus.style.color = "#d93025";
-    return;
-  }
-
-  const user = auth.currentUser;
-  if (!user) {
-    linkStatus.textContent = "Спочатку зайди через Google";
-    linkStatus.style.color = "#d93025";
-    return;
-  }
-
-  try {
-    const credential = EmailAuthProvider.credential(email, password);
-    await linkWithCredential(user, credential);
-    linkStatus.textContent = "Успішно прив’язано! Тепер можна заходити і через email/пароль.";
-    linkStatus.style.color = "#4caf50";
-    document.getElementById("link-password").value = "";
-  } catch (err) {
-    console.error(err);
-    let msg = "Помилка прив’язки";
-    if (err.code === "auth/provider-already-linked") msg = "Email вже прив’язаний";
-    if (err.code === "auth/email-already-in-use") msg = "Цей email вже використовується іншим акаунтом";
-    if (err.code === "auth/weak-password") msg = "Пароль занадто слабкий (мінімум 6 символів)";
-    linkStatus.textContent = msg;
-    linkStatus.style.color = "#d93025";
-  }
 });
