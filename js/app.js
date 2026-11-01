@@ -164,17 +164,24 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   function isAdmin(user) {
-    if (!user?.email) return false;
-    return user.email.trim().toLowerCase() === ADMIN_EMAIL.toLowerCase();
+    if (!user || !user.email) return false;
+    const email = (user.email || "").trim().toLowerCase();
+    const result = email === ADMIN_EMAIL.toLowerCase();
+    console.log("[ADMIN CHECK]", email, "=>", result);
+    return result;
   }
 
   function updateAdminButton(user) {
     if (!btnAdmin) return;
-    btnAdmin.style.display = isAdmin(user) ? "inline-block" : "none";
+    const show = isAdmin(user);
+    btnAdmin.style.display = show ? "inline-block" : "none";
+    btnAdmin.classList.toggle("hidden", !show);
   }
 
   onAuthStateChanged(auth, (user) => {
     currentUser = user;
+    console.log("[AUTH]", user ? user.email : "logged out");
+
     if (user) {
       guestControls.classList.add("hidden");
       userControls.classList.remove("hidden");
