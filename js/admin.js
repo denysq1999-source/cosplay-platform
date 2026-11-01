@@ -1,5 +1,10 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { 
+  getAuth, 
+  onAuthStateChanged,
+  EmailAuthProvider,
+  linkWithCredential 
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBnS9-bQngWjNxM1rKz_qRbrQopSd1aAqA",
@@ -19,6 +24,7 @@ const adminContent = document.getElementById("admin-content");
 const statusEl = document.getElementById("status");
 const albumsSection = document.getElementById("albums-section");
 const btnAlbums = document.getElementById("btn-albums");
+const linkStatus = document.getElementById("link-status");
 
 onAuthStateChanged(auth, (user) => {
   if (!user || user.email?.trim().toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
@@ -51,4 +57,39 @@ document.getElementById("btn-delete")?.addEventListener("click", () => {
 
 document.getElementById("btn-publish")?.addEventListener("click", () => {
   alert("Опублікувати — зробимо далі");
+});
+
+// Прив’язка email/пароль до поточного акаунта
+document.getElementById("btn-link-email")?.addEventListener("click", async () => {
+  const email = document.getElementById("link-email")?.value.trim();
+  const password = document.getElementById("link-password")?.value;
+
+  if (!email || !password) {
+    linkStatus.textContent = "Вкажи email і пароль";
+    linkStatus.style.color = "#d93025";
+    return;
+  }
+
+  const user = auth.currentUser;
+  if (!user) {
+    linkStatus.textContent = "Спочатку зайди через Google";
+    linkStatus.style.color = "#d93025";
+    return;
+  }
+
+  try {
+    const credential = EmailAuthProvider.credential(email, password);
+    await linkWithCredential(user, credential);
+    linkStatus.textContent = "Успішно прив’язано! Тепер можна заходити і через email/пароль.";
+    linkStatus.style.color = "#4caf50";
+    document.getElementById("link-password").value = "";
+  } catch (err) {
+    console.error(err);
+    let msg = "Помилка прив’язки";
+    if (err.code === "auth/provider-already-linked") msg = "Email вже прив’язаний";
+    if (err.code === "auth/email-already-in-use") msg = "Цей email вже використовується іншим акаунтом";
+    if (err.code === "auth/weak-password") msg = "Пароль занадто слабкий (мінімум 6 символів)";
+    linkStatus.textContent = msg;
+    linkStatus.style.color = "#d93025";
+  }
 });
