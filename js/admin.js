@@ -22,6 +22,8 @@ const dict = {
     admin_title: "Панель адміністратора",
     back_btn: "← На галерею",
     albums_btn: "Альбоми",
+    settings_btn: "Налаштування сайту",
+    settings_title: "Налаштування сайту",
     instagram_size_label: "Instagram-розмір зображення",
     size_square: "Квадрат 1:1 (1080×1080)",
     size_portrait: "Портрет 4:5 (1080×1350)",
@@ -36,22 +38,19 @@ const dict = {
     edit_btn: "Редагувати",
     delete_btn: "Видалити",
     publish_btn: "Опублікувати",
-    background_btn: "Фон головної",
     bg_guest_label: "Фон до входу",
     bg_user_label: "Фон після входу",
+    admin_bg_label: "Зображення в адмінці",
     set_btn: "Встановити",
-    empty_text_btn: "Текст порожньої галереї",
     empty_text_label: "Текст, коли галерея порожня",
-    site_title_btn: "Назва сайту",
     site_title_label: "Назва сайту (в шапці)",
     shadow_color_label: "Колір тіні тексту",
-    button_colors_btn: "Кольори кнопок",
     primary_btn_color: "Колір основних кнопок (Адмінка)",
     secondary_btn_color: "Колір звичайних кнопок",
     google_btn_color: "Колір кнопки Google",
     btn_text_color: "Колір тексту кнопок",
-    save_btn: "Зберегти",
-    reset_btn: "Скинути",
+    save_btn: "Зберегти все",
+    reset_btn: "Скинути кольори",
     checking_access: "Перевірка доступу...",
     access_denied: "Доступ заборонено. Перенаправлення..."
   },
@@ -59,6 +58,8 @@ const dict = {
     admin_title: "Admin Panel",
     back_btn: "← Back to Gallery",
     albums_btn: "Albums",
+    settings_btn: "Site Settings",
+    settings_title: "Site Settings",
     instagram_size_label: "Instagram image size",
     size_square: "Square 1:1 (1080×1080)",
     size_portrait: "Portrait 4:5 (1080×1350)",
@@ -73,22 +74,19 @@ const dict = {
     edit_btn: "Edit",
     delete_btn: "Delete",
     publish_btn: "Publish",
-    background_btn: "Main background",
     bg_guest_label: "Background before login",
     bg_user_label: "Background after login",
+    admin_bg_label: "Admin panel image",
     set_btn: "Set",
-    empty_text_btn: "Empty gallery text",
     empty_text_label: "Text when gallery is empty",
-    site_title_btn: "Site title",
     site_title_label: "Site title (in header)",
     shadow_color_label: "Text shadow color",
-    button_colors_btn: "Button colors",
     primary_btn_color: "Primary buttons color (Admin)",
     secondary_btn_color: "Secondary buttons color",
     google_btn_color: "Google button color",
     btn_text_color: "Button text color",
-    save_btn: "Save",
-    reset_btn: "Reset",
+    save_btn: "Save all",
+    reset_btn: "Reset colors",
     checking_access: "Checking access...",
     access_denied: "Access denied. Redirecting..."
   }
@@ -128,18 +126,9 @@ const adminContent = document.getElementById("admin-content");
 const statusEl = document.getElementById("status");
 const albumsSection = document.getElementById("albums-section");
 const btnAlbums = document.getElementById("btn-albums");
-const bgSection = document.getElementById("background-section");
-const btnBackground = document.getElementById("btn-background");
-const bgStatus = document.getElementById("bg-status");
-const emptySection = document.getElementById("empty-text-section");
-const btnEmptyText = document.getElementById("btn-empty-text");
-const emptyStatus = document.getElementById("empty-status");
-const titleSection = document.getElementById("site-title-section");
-const btnSiteTitle = document.getElementById("btn-site-title");
-const titleStatus = document.getElementById("title-status");
-const colorsSection = document.getElementById("button-colors-section");
-const btnButtonColors = document.getElementById("btn-button-colors");
-const colorsStatus = document.getElementById("colors-status");
+const settingsSection = document.getElementById("settings-section");
+const btnSettings = document.getElementById("btn-settings");
+const settingsStatus = document.getElementById("settings-status");
 
 onAuthStateChanged(auth, (user) => {
   if (!user || user.email?.trim().toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
@@ -150,50 +139,17 @@ onAuthStateChanged(auth, (user) => {
 
   statusEl.classList.add("hidden");
   adminContent.classList.remove("hidden");
-  loadBackgrounds();
-  loadEmptyText();
-  loadSiteTitle();
-  loadButtonColors();
+  loadAllSettings();
 });
 
 btnAlbums?.addEventListener("click", () => {
   albumsSection?.classList.toggle("hidden");
-  bgSection?.classList.add("hidden");
-  emptySection?.classList.add("hidden");
-  titleSection?.classList.add("hidden");
-  colorsSection?.classList.add("hidden");
+  settingsSection?.classList.add("hidden");
 });
 
-btnBackground?.addEventListener("click", () => {
-  bgSection?.classList.toggle("hidden");
+btnSettings?.addEventListener("click", () => {
+  settingsSection?.classList.toggle("hidden");
   albumsSection?.classList.add("hidden");
-  emptySection?.classList.add("hidden");
-  titleSection?.classList.add("hidden");
-  colorsSection?.classList.add("hidden");
-});
-
-btnEmptyText?.addEventListener("click", () => {
-  emptySection?.classList.toggle("hidden");
-  albumsSection?.classList.add("hidden");
-  bgSection?.classList.add("hidden");
-  titleSection?.classList.add("hidden");
-  colorsSection?.classList.add("hidden");
-});
-
-btnSiteTitle?.addEventListener("click", () => {
-  titleSection?.classList.toggle("hidden");
-  albumsSection?.classList.add("hidden");
-  bgSection?.classList.add("hidden");
-  emptySection?.classList.add("hidden");
-  colorsSection?.classList.add("hidden");
-});
-
-btnButtonColors?.addEventListener("click", () => {
-  colorsSection?.classList.toggle("hidden");
-  albumsSection?.classList.add("hidden");
-  bgSection?.classList.add("hidden");
-  emptySection?.classList.add("hidden");
-  titleSection?.classList.add("hidden");
 });
 
 function extractGoogleDriveFileId(url) {
@@ -216,8 +172,9 @@ function setPreview(elId, fileId, size = "w800") {
   }
 }
 
-async function loadBackgrounds() {
+async function loadAllSettings() {
   try {
+    // Backgrounds
     const guestSnap = await getDoc(doc(db, "settings", "background_guest"));
     if (guestSnap.exists() && guestSnap.data().fileId) {
       document.getElementById("bg-guest-url").value = guestSnap.data().url || "";
@@ -231,91 +188,31 @@ async function loadBackgrounds() {
       if (userSnap.data().size) document.getElementById("size-user").value = userSnap.data().size;
       setPreview("preview-user", userSnap.data().fileId, userSnap.data().size || "w800");
     }
-  } catch (err) {
-    console.error(err);
-  }
-}
 
-async function setBackground(type) {
-  const inputId = type === "guest" ? "bg-guest-url" : "bg-user-url";
-  const previewId = type === "guest" ? "preview-guest" : "preview-user";
-  const sizeId = type === "guest" ? "size-guest" : "size-user";
-  const docId = type === "guest" ? "background_guest" : "background_user";
-
-  const url = document.getElementById(inputId)?.value.trim();
-  const size = document.getElementById(sizeId)?.value || "w1920";
-
-  if (!url) {
-    bgStatus.textContent = "Вкажи посилання";
-    bgStatus.style.color = "#d93025";
-    return;
-  }
-
-  const fileId = extractGoogleDriveFileId(url);
-  if (!fileId) {
-    bgStatus.textContent = "Невірне посилання Google Drive";
-    bgStatus.style.color = "#d93025";
-    return;
-  }
-
-  try {
-    await setDoc(doc(db, "settings", docId), { url, fileId, size });
-    setPreview(previewId, fileId, size);
-    bgStatus.textContent = "Збережено";
-    bgStatus.style.color = "#4caf50";
-  } catch (err) {
-    console.error(err);
-    bgStatus.textContent = "Помилка збереження";
-    bgStatus.style.color = "#d93025";
-  }
-}
-
-async function deleteBackground(type) {
-  const inputId = type === "guest" ? "bg-guest-url" : "bg-user-url";
-  const previewId = type === "guest" ? "preview-guest" : "preview-user";
-  const docId = type === "guest" ? "background_guest" : "background_user";
-
-  try {
-    await deleteDoc(doc(db, "settings", docId));
-    document.getElementById(inputId).value = "";
-    setPreview(previewId, null);
-    bgStatus.textContent = "Видалено";
-    bgStatus.style.color = "#4caf50";
-  } catch (err) {
-    console.error(err);
-    bgStatus.textContent = "Помилка видалення";
-    bgStatus.style.color = "#d93025";
-  }
-}
-
-async function loadEmptyText() {
-  try {
-    const snap = await getDoc(doc(db, "settings", "empty_text"));
-    if (snap.exists() && snap.data().text) {
-      document.getElementById("empty-text-input").value = snap.data().text;
+    const adminSnap = await getDoc(doc(db, "settings", "background_admin"));
+    if (adminSnap.exists() && adminSnap.data().fileId) {
+      document.getElementById("bg-admin-url").value = adminSnap.data().url || "";
+      if (adminSnap.data().size) document.getElementById("size-admin").value = adminSnap.data().size;
+      setPreview("preview-admin", adminSnap.data().fileId, adminSnap.data().size || "w800");
+      applyAdminBackground(adminSnap.data().fileId, adminSnap.data().size);
     }
-  } catch (err) {
-    console.error(err);
-  }
-}
 
-async function loadSiteTitle() {
-  try {
-    const snap = await getDoc(doc(db, "settings", "site_title"));
-    if (snap.exists()) {
-      if (snap.data().title) document.getElementById("site-title-input").value = snap.data().title;
-      if (snap.data().shadowColor) document.getElementById("shadow-color").value = snap.data().shadowColor;
+    // Texts
+    const emptySnap = await getDoc(doc(db, "settings", "empty_text"));
+    if (emptySnap.exists() && emptySnap.data().text) {
+      document.getElementById("empty-text-input").value = emptySnap.data().text;
     }
-  } catch (err) {
-    console.error(err);
-  }
-}
 
-async function loadButtonColors() {
-  try {
-    const snap = await getDoc(doc(db, "settings", "button_colors"));
-    if (snap.exists()) {
-      const data = snap.data();
+    const titleSnap = await getDoc(doc(db, "settings", "site_title"));
+    if (titleSnap.exists()) {
+      if (titleSnap.data().title) document.getElementById("site-title-input").value = titleSnap.data().title;
+      if (titleSnap.data().shadowColor) document.getElementById("shadow-color").value = titleSnap.data().shadowColor;
+    }
+
+    // Colors
+    const colorsSnap = await getDoc(doc(db, "settings", "button_colors"));
+    if (colorsSnap.exists()) {
+      const data = colorsSnap.data();
       if (data.primary) document.getElementById("primary-color").value = data.primary;
       if (data.secondary) document.getElementById("secondary-color").value = data.secondary;
       if (data.google) document.getElementById("google-color").value = data.google;
@@ -326,83 +223,124 @@ async function loadButtonColors() {
   }
 }
 
-document.getElementById("btn-save-empty-text")?.addEventListener("click", async () => {
-  const text = document.getElementById("empty-text-input")?.value.trim();
-  if (!text) {
-    emptyStatus.textContent = "Вкажи текст";
-    emptyStatus.style.color = "#d93025";
+function applyAdminBackground(fileId, size = "w1920") {
+  if (fileId) {
+    const url = `https://drive.google.com/thumbnail?id=${fileId}&sz=${size}`;
+    document.body.style.backgroundImage = `url('${url}')`;
+    document.body.style.backgroundSize = "cover";
+    document.body.style.backgroundPosition = "center";
+    document.body.style.backgroundAttachment = "fixed";
+  }
+}
+
+async function setBackground(type) {
+  const map = {
+    guest: { input: "bg-guest-url", preview: "preview-guest", size: "size-guest", doc: "background_guest" },
+    user: { input: "bg-user-url", preview: "preview-user", size: "size-user", doc: "background_user" },
+    admin: { input: "bg-admin-url", preview: "preview-admin", size: "size-admin", doc: "background_admin" }
+  };
+
+  const cfg = map[type];
+  if (!cfg) return;
+
+  const url = document.getElementById(cfg.input)?.value.trim();
+  const size = document.getElementById(cfg.size)?.value || "w1920";
+
+  if (!url) {
+    settingsStatus.textContent = "Вкажи посилання";
+    settingsStatus.style.color = "#d93025";
+    return;
+  }
+
+  const fileId = extractGoogleDriveFileId(url);
+  if (!fileId) {
+    settingsStatus.textContent = "Невірне посилання Google Drive";
+    settingsStatus.style.color = "#d93025";
     return;
   }
 
   try {
-    await setDoc(doc(db, "settings", "empty_text"), { text });
-    emptyStatus.textContent = "Збережено";
-    emptyStatus.style.color = "#4caf50";
+    await setDoc(doc(db, "settings", cfg.doc), { url, fileId, size });
+    setPreview(cfg.preview, fileId, size);
+    if (type === "admin") applyAdminBackground(fileId, size);
+    settingsStatus.textContent = "Збережено";
+    settingsStatus.style.color = "#4caf50";
   } catch (err) {
     console.error(err);
-    emptyStatus.textContent = "Помилка збереження";
-    emptyStatus.style.color = "#d93025";
+    settingsStatus.textContent = "Помилка збереження";
+    settingsStatus.style.color = "#d93025";
   }
-});
+}
 
-document.getElementById("btn-save-site-title")?.addEventListener("click", async () => {
+async function deleteBackground(type) {
+  const map = {
+    guest: { input: "bg-guest-url", preview: "preview-guest", doc: "background_guest" },
+    user: { input: "bg-user-url", preview: "preview-user", doc: "background_user" },
+    admin: { input: "bg-admin-url", preview: "preview-admin", doc: "background_admin" }
+  };
+
+  const cfg = map[type];
+  if (!cfg) return;
+
+  try {
+    await deleteDoc(doc(db, "settings", cfg.doc));
+    document.getElementById(cfg.input).value = "";
+    setPreview(cfg.preview, null);
+    if (type === "admin") document.body.style.backgroundImage = "none";
+    settingsStatus.textContent = "Видалено";
+    settingsStatus.style.color = "#4caf50";
+  } catch (err) {
+    console.error(err);
+    settingsStatus.textContent = "Помилка видалення";
+    settingsStatus.style.color = "#d93025";
+  }
+}
+
+document.getElementById("btn-save-settings")?.addEventListener("click", async () => {
   const title = document.getElementById("site-title-input")?.value.trim();
   const shadowColor = document.getElementById("shadow-color")?.value || "#000000";
-
-  if (!title) {
-    titleStatus.textContent = "Вкажи назву";
-    titleStatus.style.color = "#d93025";
-    return;
-  }
-
-  try {
-    await setDoc(doc(db, "settings", "site_title"), { title, shadowColor });
-    titleStatus.textContent = "Збережено";
-    titleStatus.style.color = "#4caf50";
-  } catch (err) {
-    console.error(err);
-    titleStatus.textContent = "Помилка збереження";
-    titleStatus.style.color = "#d93025";
-  }
-});
-
-document.getElementById("btn-save-button-colors")?.addEventListener("click", async () => {
+  const emptyText = document.getElementById("empty-text-input")?.value.trim();
   const primary = document.getElementById("primary-color")?.value || "#9c27b0";
   const secondary = document.getElementById("secondary-color")?.value || "#222222";
   const google = document.getElementById("google-color")?.value || "#4285F4";
   const textColor = document.getElementById("btn-text-color")?.value || "#ffffff";
 
   try {
+    if (title) await setDoc(doc(db, "settings", "site_title"), { title, shadowColor });
+    if (emptyText) await setDoc(doc(db, "settings", "empty_text"), { text: emptyText });
     await setDoc(doc(db, "settings", "button_colors"), { primary, secondary, google, textColor });
-    colorsStatus.textContent = "Збережено";
-    colorsStatus.style.color = "#4caf50";
+
+    settingsStatus.textContent = "Збережено";
+    settingsStatus.style.color = "#4caf50";
   } catch (err) {
     console.error(err);
-    colorsStatus.textContent = "Помилка збереження";
-    colorsStatus.style.color = "#d93025";
+    settingsStatus.textContent = "Помилка збереження";
+    settingsStatus.style.color = "#d93025";
   }
 });
 
-document.getElementById("btn-reset-button-colors")?.addEventListener("click", async () => {
+document.getElementById("btn-reset-settings")?.addEventListener("click", async () => {
   try {
     await deleteDoc(doc(db, "settings", "button_colors"));
     document.getElementById("primary-color").value = "#9c27b0";
     document.getElementById("secondary-color").value = "#222222";
     document.getElementById("google-color").value = "#4285F4";
     document.getElementById("btn-text-color").value = "#ffffff";
-    colorsStatus.textContent = "Скинуто до стандарту";
-    colorsStatus.style.color = "#4caf50";
+    settingsStatus.textContent = "Кольори скинуто";
+    settingsStatus.style.color = "#4caf50";
   } catch (err) {
     console.error(err);
-    colorsStatus.textContent = "Помилка скидання";
-    colorsStatus.style.color = "#d93025";
+    settingsStatus.textContent = "Помилка скидання";
+    settingsStatus.style.color = "#d93025";
   }
 });
 
 document.getElementById("btn-set-guest")?.addEventListener("click", () => setBackground("guest"));
 document.getElementById("btn-set-user")?.addEventListener("click", () => setBackground("user"));
+document.getElementById("btn-set-admin")?.addEventListener("click", () => setBackground("admin"));
 document.getElementById("btn-del-guest")?.addEventListener("click", () => deleteBackground("guest"));
 document.getElementById("btn-del-user")?.addEventListener("click", () => deleteBackground("user"));
+document.getElementById("btn-del-admin")?.addEventListener("click", () => deleteBackground("admin"));
 
 document.getElementById("btn-add-photo")?.addEventListener("click", () => {
   const url = document.getElementById("drive-url")?.value || "";
