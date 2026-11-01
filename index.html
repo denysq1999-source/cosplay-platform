@@ -5,6 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Косплей Галерея</title>
   <link rel="stylesheet" href="css/style.css">
+  <style>
+    #album-section { margin: 40px auto; max-width: 900px; padding: 0 20px; }
+    .album-card { background: rgba(30,20,40,.6); border-radius: 16px; padding: 20px; backdrop-filter: blur(10px); }
+    .album-page { display: flex; gap: 20px; align-items: flex-start; }
+    .album-page img { width: 220px; height: 300px; object-fit: cover; border-radius: 8px; }
+    .album-nav { display: flex; justify-content: center; gap: 16px; margin-top: 16px; }
+  </style>
 </head>
 <body>
 
@@ -24,7 +31,6 @@
       </div>
 
       <div id="user-controls" class="hidden" style="display:flex; gap:10px;">
-        <a href="album.html" class="btn btn-secondary">Альбом</a>
         <a href="profile.html" class="btn btn-secondary" data-i18n="profile_btn">Кабінет</a>
         <a id="btn-admin" href="admin.html" class="btn btn-primary" data-i18n="admin_btn">Адмінка</a>
         <button id="btn-logout" class="btn btn-danger" data-i18n="logout_btn">Вийти</button>
@@ -51,9 +57,21 @@
   </div>
 
   <div id="app-section" class="hidden">
+    <div id="album-section" class="hidden">
+      <div class="album-card">
+        <h2 id="album-title-display" style="margin:0 0 16px; text-align:center;">Альбом</h2>
+        <div id="album-page" class="album-page"></div>
+        <div class="album-nav">
+          <button class="btn" id="album-prev">‹</button>
+          <span id="album-label" style="align-self:center; color:#aaa;"></span>
+          <button class="btn" id="album-next">›</button>
+        </div>
+      </div>
+    </div>
+
     <div id="gallery" class="gallery"></div>
   </div>
 
-  <script type="module" src="js/app.js?v=22"></script>
+  <script type="module" src="js/app.js?v=23"></script>
 </body>
 </html>
