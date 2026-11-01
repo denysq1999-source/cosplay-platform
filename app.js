@@ -31,7 +31,6 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
 
-// Твоя пошта для перевірки прав адміна
 const ADMIN_EMAIL = "denysq1999@gmail.com";
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -42,6 +41,7 @@ document.addEventListener("DOMContentLoaded", () => {
       register_btn: "Реєстрація",
       google_btn: "Увійти через Google",
       logout_btn: "Вийти",
+      admin_btn: "Адмінка",
       modal_title_login: "Вхід",
       modal_title_register: "Реєстрація",
       modal_submit_login: "Увійти",
@@ -62,6 +62,7 @@ document.addEventListener("DOMContentLoaded", () => {
       register_btn: "Register",
       google_btn: "Login with Google",
       logout_btn: "Logout",
+      admin_btn: "Admin",
       modal_title_login: "Login",
       modal_title_register: "Register",
       modal_submit_login: "Login",
@@ -85,7 +86,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const modalTitle = document.getElementById('modal-title');
   const authSubmitBtn = document.getElementById('auth-submit-btn');
   const errorContainer = document.getElementById('error-container');
-  const adminPanel = document.getElementById('admin-panel');
+  const btnAdmin = document.getElementById('btn-admin');
+  const adminModal = document.getElementById('admin-modal');
+  const closeAdminModalBtn = document.getElementById('close-admin-modal-btn');
   const galleryEl = document.getElementById('gallery');
   const imageUrlInput = document.getElementById('image-url-input');
   const addImageBtn = document.getElementById('add-image-btn');
@@ -137,6 +140,11 @@ document.addEventListener("DOMContentLoaded", () => {
   if (closeModalBtn) closeModalBtn.addEventListener('click', () => authModal.classList.add('hidden'));
   if (authModal) authModal.addEventListener('click', (e) => { if (e.target === authModal) authModal.classList.add('hidden'); });
 
+  // Керування кнопкою та модалкою адмінки
+  if (btnAdmin) btnAdmin.addEventListener('click', () => adminModal.classList.remove('hidden'));
+  if (closeAdminModalBtn) closeAdminModalBtn.addEventListener('click', () => adminModal.classList.add('hidden'));
+  if (adminModal) adminModal.addEventListener('click', (e) => { if (e.target === adminModal) adminModal.classList.add('hidden'); });
+
   if (btnGoogle) {
     btnGoogle.addEventListener('click', async () => {
       try { await signInWithPopup(auth, provider); } 
@@ -170,7 +178,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Стан користувача
   onAuthStateChanged(auth, (user) => {
     currentUser = user;
     if (user) {
@@ -178,11 +185,10 @@ document.addEventListener("DOMContentLoaded", () => {
       userControls.classList.remove('hidden');
       appSection.classList.remove('hidden');
 
-      // Показ адмінки тільки для тебе
       if (user.email === ADMIN_EMAIL) {
-        adminPanel.classList.remove('hidden');
+        btnAdmin.classList.remove('hidden');
       } else {
-        adminPanel.classList.add('hidden');
+        btnAdmin.classList.add('hidden');
       }
 
       loadGalleryFromFirestore();
@@ -190,11 +196,10 @@ document.addEventListener("DOMContentLoaded", () => {
       guestControls.classList.remove('hidden');
       userControls.classList.add('hidden');
       appSection.classList.add('hidden');
-      adminPanel.classList.add('hidden');
+      btnAdmin.classList.add('hidden');
     }
   });
 
-  // Додавання картинок в адмінці
   if (addImageBtn && imageUrlInput) {
     addImageBtn.addEventListener('click', async () => {
       const url = imageUrlInput.value.trim();
@@ -202,10 +207,11 @@ document.addEventListener("DOMContentLoaded", () => {
       try {
         await addDoc(collection(db, "cosplays"), { url: url, createdAt: new Date() });
         imageUrlInput.value = '';
+        adminModal.classList.add('hidden');
         loadGalleryFromFirestore();
       } catch (error) { 
         console.error(error); 
-        alert("Помилка доступу. Тільки адмін може додавати записи."); 
+        alert("Помилка доступу."); 
       }
     });
   }
@@ -253,7 +259,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       });
 
-      // Події для кнопок видалення
       document.querySelectorAll('.delete-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
           const id = e.target.getAttribute('data-id');
