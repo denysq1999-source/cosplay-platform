@@ -44,6 +44,7 @@ const dict = {
     empty_text_label: "Текст, коли галерея порожня",
     site_title_btn: "Назва сайту",
     site_title_label: "Назва сайту (в шапці)",
+    shadow_color_label: "Колір тіні тексту",
     save_btn: "Зберегти",
     checking_access: "Перевірка доступу...",
     access_denied: "Доступ заборонено. Перенаправлення..."
@@ -74,6 +75,7 @@ const dict = {
     empty_text_label: "Text when gallery is empty",
     site_title_btn: "Site title",
     site_title_label: "Site title (in header)",
+    shadow_color_label: "Text shadow color",
     save_btn: "Save",
     checking_access: "Checking access...",
     access_denied: "Access denied. Redirecting..."
@@ -270,8 +272,9 @@ async function loadEmptyText() {
 async function loadSiteTitle() {
   try {
     const snap = await getDoc(doc(db, "settings", "site_title"));
-    if (snap.exists() && snap.data().title) {
-      document.getElementById("site-title-input").value = snap.data().title;
+    if (snap.exists()) {
+      if (snap.data().title) document.getElementById("site-title-input").value = snap.data().title;
+      if (snap.data().shadowColor) document.getElementById("shadow-color").value = snap.data().shadowColor;
     }
   } catch (err) {
     console.error(err);
@@ -299,6 +302,8 @@ document.getElementById("btn-save-empty-text")?.addEventListener("click", async 
 
 document.getElementById("btn-save-site-title")?.addEventListener("click", async () => {
   const title = document.getElementById("site-title-input")?.value.trim();
+  const shadowColor = document.getElementById("shadow-color")?.value || "#000000";
+
   if (!title) {
     titleStatus.textContent = "Вкажи назву";
     titleStatus.style.color = "#d93025";
@@ -306,7 +311,7 @@ document.getElementById("btn-save-site-title")?.addEventListener("click", async 
   }
 
   try {
-    await setDoc(doc(db, "settings", "site_title"), { title });
+    await setDoc(doc(db, "settings", "site_title"), { title, shadowColor });
     titleStatus.textContent = "Збережено";
     titleStatus.style.color = "#4caf50";
   } catch (err) {
