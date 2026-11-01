@@ -26,6 +26,10 @@ const dict = {
     size_square: "Квадрат 1:1 (1080×1080)",
     size_portrait: "Портрет 4:5 (1080×1350)",
     size_landscape: "Ландшафт 1.91:1 (1080×566)",
+    size_label: "Розмір",
+    size_full: "Full HD (1920)",
+    size_hd: "HD (1280)",
+    size_medium: "Середній (800)",
     drive_url_label: "Посилання на зображення з Google Диска",
     drive_url_placeholder: "https://drive.google.com/file/d/...",
     add_photo_btn: "Додати фото до вибраного альбому",
@@ -47,6 +51,10 @@ const dict = {
     size_square: "Square 1:1 (1080×1080)",
     size_portrait: "Portrait 4:5 (1080×1350)",
     size_landscape: "Landscape 1.91:1 (1080×566)",
+    size_label: "Size",
+    size_full: "Full HD (1920)",
+    size_hd: "HD (1280)",
+    size_medium: "Medium (800)",
     drive_url_label: "Google Drive image URL",
     drive_url_placeholder: "https://drive.google.com/file/d/...",
     add_photo_btn: "Add photo to selected album",
@@ -130,11 +138,11 @@ function extractGoogleDriveFileId(url) {
   return null;
 }
 
-function setPreview(elId, fileId) {
+function setPreview(elId, fileId, size = "w800") {
   const el = document.getElementById(elId);
   if (!el) return;
   if (fileId) {
-    el.style.backgroundImage = `url('https://drive.google.com/thumbnail?id=${fileId}&sz=w800')`;
+    el.style.backgroundImage = `url('https://drive.google.com/thumbnail?id=${fileId}&sz=${size}')`;
   } else {
     el.style.backgroundImage = "none";
   }
@@ -145,13 +153,15 @@ async function loadBackgrounds() {
     const guestSnap = await getDoc(doc(db, "settings", "background_guest"));
     if (guestSnap.exists() && guestSnap.data().fileId) {
       document.getElementById("bg-guest-url").value = guestSnap.data().url || "";
-      setPreview("preview-guest", guestSnap.data().fileId);
+      if (guestSnap.data().size) document.getElementById("size-guest").value = guestSnap.data().size;
+      setPreview("preview-guest", guestSnap.data().fileId, guestSnap.data().size || "w800");
     }
 
     const userSnap = await getDoc(doc(db, "settings", "background_user"));
     if (userSnap.exists() && userSnap.data().fileId) {
       document.getElementById("bg-user-url").value = userSnap.data().url || "";
-      setPreview("preview-user", userSnap.data().fileId);
+      if (userSnap.data().size) document.getElementById("size-user").value = userSnap.data().size;
+      setPreview("preview-user", userSnap.data().fileId, userSnap.data().size || "w800");
     }
   } catch (err) {
     console.error(err);
@@ -161,9 +171,12 @@ async function loadBackgrounds() {
 async function setBackground(type) {
   const inputId = type === "guest" ? "bg-guest-url" : "bg-user-url";
   const previewId = type === "guest" ? "preview-guest" : "preview-user";
+  const sizeId = type === "guest" ? "size-guest" : "size-user";
   const docId = type === "guest" ? "background_guest" : "background_user";
 
   const url = document.getElementById(inputId)?.value.trim();
+  const size = document.getElementById(sizeId)?.value || "w1920";
+
   if (!url) {
     bgStatus.textContent = "Вкажи посилання";
     bgStatus.style.color = "#d93025";
@@ -178,8 +191,8 @@ async function setBackground(type) {
   }
 
   try {
-    await setDoc(doc(db, "settings", docId), { url, fileId });
-    setPreview(previewId, fileId);
+    await setDoc(doc(db, "settings", docId), { url, fileId, size });
+    setPreview(previewId, fileId, size);
     bgStatus.textContent = "Збережено";
     bgStatus.style.color = "#4caf50";
   } catch (err) {
