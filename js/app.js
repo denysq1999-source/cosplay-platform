@@ -78,6 +78,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentLang = localStorage.getItem("appLang") || "uk";
   let isLoginMode = true;
   let currentUser = null;
+  let emptyText = dict[currentLang].empty_gallery;
 
   const modalTitle = document.getElementById("modal-title");
   const authSubmitBtn = document.getElementById("auth-submit-btn");
@@ -227,6 +228,19 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  async function loadEmptyText() {
+    try {
+      const snap = await getDoc(doc(db, "settings", "empty_text"));
+      if (snap.exists() && snap.data().text) {
+        emptyText = snap.data().text;
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  loadEmptyText();
+
   onAuthStateChanged(auth, (user) => {
     currentUser = user;
 
@@ -262,7 +276,12 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       const snap = await getDocs(collection(db, "cosplays"));
       if (snap.empty) {
-        galleryEl.innerHTML = `<p style="color:#aaa; text-align:center;">${dict[currentLang].empty_gallery}</p>`;
+        galleryEl.innerHTML = `
+          <div style="text-align:center; padding:60px 20px; color:#666;">
+            <div style="font-size:48px; margin-bottom:12px;">🖼️</div>
+            <p style="margin:0; font-size:15px;">${emptyText}</p>
+          </div>
+        `;
         return;
       }
       snap.forEach((docSnap) => {
