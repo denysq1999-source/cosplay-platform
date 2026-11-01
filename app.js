@@ -165,28 +165,40 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function isAdmin(user) {
     if (!user || !user.email) return false;
-    return user.email.trim().toLowerCase() === ADMIN_EMAIL.toLowerCase();
+    const userEmail = user.email.trim().toLowerCase();
+    const isMatch = userEmail === ADMIN_EMAIL.toLowerCase();
+    console.log("Auth check:", userEmail, "is admin:", isMatch);
+    return isMatch;
+  }
+
+  function updateAdminButton(user) {
+    if (!btnAdmin) return;
+    if (isAdmin(user)) {
+      btnAdmin.style.display = "inline-block";
+      btnAdmin.classList.remove("hidden");
+    } else {
+      btnAdmin.style.display = "none";
+      btnAdmin.classList.add("hidden");
+    }
   }
 
   onAuthStateChanged(auth, (user) => {
     currentUser = user;
+    console.log("Auth state changed:", user ? user.email : "logged out");
+
     if (user) {
       guestControls.classList.add('hidden');
       userControls.classList.remove('hidden');
       appSection.classList.remove('hidden');
 
-      if (isAdmin(user)) {
-        btnAdmin.classList.remove('hidden');
-      } else {
-        btnAdmin.classList.add('hidden');
-      }
+      updateAdminButton(user);
 
       loadGalleryFromFirestore();
     } else {
       guestControls.classList.remove('hidden');
       userControls.classList.add('hidden');
       appSection.classList.add('hidden');
-      btnAdmin.classList.add('hidden');
+      updateAdminButton(null);
     }
   });
 
