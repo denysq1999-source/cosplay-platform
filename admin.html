@@ -32,11 +32,11 @@
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px;">
           <div>
             <label>Назва альбому</label>
-            <input type="text" id="album-title" placeholder="Альбом косплеєра">
+            <input type="text" id="album-title" placeholder="Альбом косплеєра" style="width:100%; padding:10px; border-radius:8px; border:1px solid #333; background:#1e1e1e; color:#fff;">
           </div>
           <div>
             <label>Власник / нік</label>
-            <input type="text" id="album-owner" placeholder="Нікнейм косплеєра">
+            <input type="text" id="album-owner" placeholder="Нікнейм косплеєра" style="width:100%; padding:10px; border-radius:8px; border:1px solid #333; background:#1e1e1e; color:#fff;">
           </div>
         </div>
 
@@ -44,11 +44,11 @@
 
         <h4>Додати / редагувати сторінку</h4>
         <div style="display:grid; gap:10px;">
-          <input type="text" id="page-title" placeholder="Назва образу (напр. Ху Тао)">
-          <input type="text" id="page-series" placeholder="Серія (напр. Genshin Impact)">
-          <input type="text" id="page-cosplayer" placeholder="Косплеєр">
-          <input type="text" id="page-tags" placeholder="Теги через кому (Genshin, Студія)">
-          <input type="text" id="page-url" placeholder="Посилання Google Drive">
+          <input type="text" id="page-title" placeholder="Назва образу" style="width:100%; padding:10px; border-radius:8px; border:1px solid #333; background:#1e1e1e; color:#fff;">
+          <input type="text" id="page-series" placeholder="Серія" style="width:100%; padding:10px; border-radius:8px; border:1px solid #333; background:#1e1e1e; color:#fff;">
+          <input type="text" id="page-cosplayer" placeholder="Косплеєр" style="width:100%; padding:10px; border-radius:8px; border:1px solid #333; background:#1e1e1e; color:#fff;">
+          <input type="text" id="page-tags" placeholder="Теги через кому" style="width:100%; padding:10px; border-radius:8px; border:1px solid #333; background:#1e1e1e; color:#fff;">
+          <input type="text" id="page-url" placeholder="Посилання Google Drive" style="width:100%; padding:10px; border-radius:8px; border:1px solid #333; background:#1e1e1e; color:#fff;">
           <div style="display:flex; gap:8px;">
             <button class="admin-btn" id="btn-add-page">Додати сторінку</button>
             <button class="admin-btn" id="btn-update-page" style="display:none;">Оновити сторінку</button>
@@ -58,7 +58,7 @@
 
         <div id="pages-list" style="margin-top:20px;"></div>
 
-        <div style="margin-top:16px; display:flex; gap:8px;">
+        <div style="margin-top:16px; display:flex; gap:8px; flex-wrap:wrap;">
           <button class="admin-btn" id="btn-save-album">Зберегти альбом</button>
           <a href="album.html" class="admin-btn" target="_blank">Переглянути альбом</a>
           <button class="admin-btn danger" id="btn-delete-album">Видалити альбом</button>
@@ -68,15 +68,105 @@
       </div>
 
       <div id="settings-section" class="albums-section hidden">
-        <!-- settings content remains the same -->
         <h3 style="margin:0 0 8px; font-size:16px;" data-i18n="settings_title">Налаштування сайту</h3>
-        <!-- ... (keep existing settings fields) -->
+
+        <div>
+          <label data-i18n="site_title_label">Назва сайту (в шапці)</label>
+          <input type="text" id="site-title-input" style="width:100%; padding:10px; border-radius:8px; border:1px solid #333; background:#1e1e1e; color:#fff; font-size:14px;" placeholder="Косплей Галерея">
+        </div>
+
+        <div>
+          <label data-i18n="shadow_color_label">Колір тіні тексту</label>
+          <input type="color" id="shadow-color" value="#000000" style="width:60px; height:36px; padding:2px; border:none; border-radius:6px; background:#1e1e1e; cursor:pointer;">
+        </div>
+
+        <div>
+          <label data-i18n="empty_text_label">Текст, коли галерея порожня</label>
+          <textarea id="empty-text-input" rows="3" style="width:100%; padding:10px; border-radius:8px; border:1px solid #333; background:#1e1e1e; color:#fff; font-size:14px; resize:vertical;" placeholder="Галерея порожня."></textarea>
+        </div>
+
+        <div style="margin-top: 16px;">
+          <label data-i18n="bg_guest_label">Фон до входу</label>
+          <div id="preview-guest" style="width:100%; height:80px; background:#222; border-radius:8px; margin:8px 0; background-size:cover; background-position:center;"></div>
+          <div style="margin-bottom: 8px;">
+            <label data-i18n="size_label">Розмір</label>
+            <select id="size-guest">
+              <option value="w1920">Full HD (1920)</option>
+              <option value="w1280">HD (1280)</option>
+              <option value="w800">Середній (800)</option>
+            </select>
+          </div>
+          <input type="text" id="bg-guest-url" placeholder="https://drive.google.com/file/d/...">
+          <div style="display:flex; gap:8px; margin-top:8px;">
+            <button class="admin-btn" id="btn-set-guest">Встановити</button>
+            <button class="admin-btn danger" id="btn-del-guest">Видалити</button>
+          </div>
+        </div>
+
+        <div style="margin-top: 16px;">
+          <label data-i18n="bg_user_label">Фон після входу</label>
+          <div id="preview-user" style="width:100%; height:80px; background:#222; border-radius:8px; margin:8px 0; background-size:cover; background-position:center;"></div>
+          <div style="margin-bottom: 8px;">
+            <label>Розмір</label>
+            <select id="size-user">
+              <option value="w1920">Full HD (1920)</option>
+              <option value="w1280">HD (1280)</option>
+              <option value="w800">Середній (800)</option>
+            </select>
+          </div>
+          <input type="text" id="bg-user-url" placeholder="https://drive.google.com/file/d/...">
+          <div style="display:flex; gap:8px; margin-top:8px;">
+            <button class="admin-btn" id="btn-set-user">Встановити</button>
+            <button class="admin-btn danger" id="btn-del-user">Видалити</button>
+          </div>
+        </div>
+
+        <div style="margin-top: 16px;">
+          <label>Зображення в адмінці</label>
+          <div id="preview-admin" style="width:100%; height:80px; background:#222; border-radius:8px; margin:8px 0; background-size:cover; background-position:center;"></div>
+          <div style="margin-bottom: 8px;">
+            <label>Розмір</label>
+            <select id="size-admin">
+              <option value="w1920">Full HD (1920)</option>
+              <option value="w1280">HD (1280)</option>
+              <option value="w800">Середній (800)</option>
+            </select>
+          </div>
+          <input type="text" id="bg-admin-url" placeholder="https://drive.google.com/file/d/...">
+          <div style="display:flex; gap:8px; margin-top:8px;">
+            <button class="admin-btn" id="btn-set-admin">Встановити</button>
+            <button class="admin-btn danger" id="btn-del-admin">Видалити</button>
+          </div>
+        </div>
+
+        <div style="margin-top: 16px;">
+          <label>Колір основних кнопок (Адмінка)</label>
+          <input type="color" id="primary-color" value="#9c27b0" style="width:60px; height:36px; padding:2px; border:none; border-radius:6px; background:#1e1e1e; cursor:pointer;">
+        </div>
+        <div>
+          <label>Колір звичайних кнопок</label>
+          <input type="color" id="secondary-color" value="#222222" style="width:60px; height:36px; padding:2px; border:none; border-radius:6px; background:#1e1e1e; cursor:pointer;">
+        </div>
+        <div>
+          <label>Колір кнопки Google</label>
+          <input type="color" id="google-color" value="#4285F4" style="width:60px; height:36px; padding:2px; border:none; border-radius:6px; background:#1e1e1e; cursor:pointer;">
+        </div>
+        <div>
+          <label>Колір тексту кнопок</label>
+          <input type="color" id="btn-text-color" value="#ffffff" style="width:60px; height:36px; padding:2px; border:none; border-radius:6px; background:#1e1e1e; cursor:pointer;">
+        </div>
+
+        <div style="display:flex; gap:8px; margin-top:16px; flex-wrap:wrap;">
+          <button class="admin-btn" id="btn-save-settings">Зберегти все</button>
+          <button class="admin-btn danger" id="btn-reset-settings">Скинути кольори</button>
+        </div>
+
         <div id="settings-status" style="font-size: 13px; margin-top: 12px; color: #aaa;"></div>
       </div>
     </div>
   </div>
 
-  <div id="status" style="margin-top:40px; text-align:center; color:#888;" data-i18n="checking_access">Перевірка доступу...</div>
+  <div id="status" style="margin-top:40px; text-align:center; color:#888;">Перевірка доступу...</div>
 
   <script type="module" src="js/admin.js?v=16"></script>
 </body>
