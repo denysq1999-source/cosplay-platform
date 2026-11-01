@@ -22,20 +22,23 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
-// Чекаємо, поки весь DOM повністю завантажиться
 document.addEventListener("DOMContentLoaded", () => {
-  const authSection = document.getElementById('auth-section');
-  const appSection = document.getElementById('app-section');
+  // Елементи інтерфейсу
+  const authSection = document.getElementById('auth-section'); // Кутова форма входу
+  const userControls = document.getElementById('user-controls'); // Кутова панель користувача (після входу)
+  const appSection = document.getElementById('app-section'); // Основний контент (галерея)
+  
   const tabLogin = document.getElementById('tab-login');
   const tabRegister = document.getElementById('tab-register');
   const loginForm = document.getElementById('login-form');
   const registerForm = document.getElementById('register-form');
+  
   const googleLoginBtn = document.getElementById('google-login-btn');
   const logoutBtn = document.getElementById('logout-btn');
   const userInfo = document.getElementById('user-info');
   const errorContainer = document.getElementById('error-container');
 
-  // Перемикання вкладок
+  // Перемикання вкладок (Вхід / Реєстрація)
   if (tabLogin && tabRegister) {
     tabLogin.addEventListener('click', () => {
       tabLogin.classList.add('active');
@@ -54,7 +57,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Реєстрація
+  // Реєстрація через пошту/пароль
   if (registerForm) {
     registerForm.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -66,12 +69,12 @@ document.addEventListener("DOMContentLoaded", () => {
         await createUserWithEmailAndPassword(auth, email, password);
       } catch (error) {
         console.error("Помилка реєстрації:", error);
-        if (errorContainer) errorContainer.textContent = "Помилка реєстрації: " + error.message;
+        if (errorContainer) errorContainer.textContent = "Помилка реєстрації: перевірте дані.";
       }
     });
   }
 
-  // Вхід за поштою
+  // Вхід через пошту/пароль
   if (loginForm) {
     loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -101,7 +104,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Вихід
+  // Вихід з акаунту
   if (logoutBtn) {
     logoutBtn.addEventListener('click', async () => {
       try {
@@ -112,14 +115,18 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Відстеження стану користувача
+  // Відстеження стану користувача (головна логіка відображення)
   onAuthStateChanged(auth, (user) => {
     if (user) {
+      // Якщо увійшли: ховаємо форму, показуємо панель користувача і контент
       if (authSection) authSection.classList.add('hidden');
+      if (userControls) userControls.classList.remove('hidden');
       if (appSection) appSection.classList.remove('hidden');
       if (userInfo) userInfo.textContent = user.email;
     } else {
+      // Якщо вийшли: показуємо форму, ховаємо панель користувача і контент
       if (authSection) authSection.classList.remove('hidden');
+      if (userControls) userControls.classList.add('hidden');
       if (appSection) appSection.classList.add('hidden');
     }
   });
