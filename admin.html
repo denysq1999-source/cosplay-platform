@@ -43,10 +43,21 @@
       <button class="admin-btn danger" id="btn-delete" data-i18n="delete_btn">Видалити</button>
       <button class="admin-btn" id="btn-publish" data-i18n="publish_btn">Опублікувати</button>
     </div>
+
+    <button class="admin-btn" id="btn-background" data-i18n="background_btn">Фон головної</button>
+
+    <div id="background-section" class="albums-section hidden">
+      <div>
+        <label data-i18n="background_url_label">Посилання на фон з Google Диска</label>
+        <input type="text" id="background-url" data-i18n-placeholder="background_url_placeholder" placeholder="https://drive.google.com/file/d/...">
+      </div>
+      <button class="admin-btn" id="btn-set-background" data-i18n="set_background_btn">Встановити фон</button>
+      <div id="bg-status" style="font-size: 13px; margin-top: 8px; color: #aaa;"></div>
+    </div>
   </div>
 
   <div id="status" style="margin-top:40px; text-align:center; color:#888;" data-i18n="checking_access">Перевірка доступу...</div>
 
-  <script type="module" src="js/admin.js?v=4"></script>
+  <script type="module" src="js/admin.js?v=5"></script>
 </body>
 </html>
