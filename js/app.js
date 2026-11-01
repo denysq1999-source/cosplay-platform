@@ -80,6 +80,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentUser = null;
   let emptyText = dict[currentLang].empty_gallery;
   let siteTitle = dict[currentLang].site_title;
+  let shadowColor = "#000000";
 
   const modalTitle = document.getElementById("modal-title");
   const authSubmitBtn = document.getElementById("auth-submit-btn");
@@ -88,6 +89,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const galleryEl = document.getElementById("gallery");
   const rememberCheckbox = document.getElementById("remember-password");
   const siteTitleEl = document.querySelector("header h1");
+
+  function applyTitleStyle() {
+    if (siteTitleEl) {
+      siteTitleEl.textContent = siteTitle;
+      siteTitleEl.style.textShadow = `0 1px 4px ${shadowColor}99`;
+    }
+  }
 
   const updateLangUI = () => {
     document.querySelectorAll("[data-i18n]").forEach(el => {
@@ -102,7 +110,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (authSubmitBtn) authSubmitBtn.textContent = isLoginMode ? dict[currentLang].modal_submit_login : dict[currentLang].modal_submit_register;
     document.getElementById("lang-uk").classList.toggle("active", currentLang === "uk");
     document.getElementById("lang-en").classList.toggle("active", currentLang === "en");
-    if (siteTitleEl) siteTitleEl.textContent = siteTitle;
+    applyTitleStyle();
   };
 
   document.getElementById("lang-uk").addEventListener("click", () => {
@@ -245,9 +253,10 @@ document.addEventListener("DOMContentLoaded", () => {
   async function loadSiteTitle() {
     try {
       const snap = await getDoc(doc(db, "settings", "site_title"));
-      if (snap.exists() && snap.data().title) {
-        siteTitle = snap.data().title;
-        if (siteTitleEl) siteTitleEl.textContent = siteTitle;
+      if (snap.exists()) {
+        if (snap.data().title) siteTitle = snap.data().title;
+        if (snap.data().shadowColor) shadowColor = snap.data().shadowColor;
+        applyTitleStyle();
       }
     } catch (err) {
       console.error(err);
