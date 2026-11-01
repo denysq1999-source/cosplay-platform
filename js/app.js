@@ -6,7 +6,9 @@ import {
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
   signOut, 
-  onAuthStateChanged 
+  onAuthStateChanged,
+  linkWithCredential,
+  EmailAuthProvider
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { 
   getFirestore, 
@@ -51,6 +53,8 @@ document.addEventListener("DOMContentLoaded", () => {
       remember_password: "Запам’ятати пароль",
       err_invalid: "Невірний email або пароль.",
       err_reg: "Помилка реєстрації. Перевірте дані.",
+      err_google_exists: "Цей email вже зареєстрований через Google. Увійди через Google.",
+      err_email_exists: "Цей email вже існує. Спробуй увійти або скинути пароль.",
       delete_btn: "Видалити",
       empty_gallery: "Галерея порожня."
     },
@@ -70,6 +74,8 @@ document.addEventListener("DOMContentLoaded", () => {
       remember_password: "Remember password",
       err_invalid: "Invalid email or password.",
       err_reg: "Registration error. Check your data.",
+      err_google_exists: "This email is already registered via Google. Please sign in with Google.",
+      err_email_exists: "This email already exists. Try logging in or reset the password.",
       delete_btn: "Delete",
       empty_gallery: "Gallery is empty."
     }
@@ -194,8 +200,11 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   btnGoogle?.addEventListener("click", async () => {
-    try { await signInWithPopup(auth, provider); }
-    catch (err) { console.error(err); }
+    try { 
+      await signInWithPopup(auth, provider); 
+    } catch (err) { 
+      console.error(err); 
+    }
   });
 
   authForm?.addEventListener("submit", async (e) => {
@@ -217,8 +226,17 @@ document.addEventListener("DOMContentLoaded", () => {
         await createUserWithEmailAndPassword(auth, email, password);
       }
       authModal.classList.add("hidden");
-    } catch {
-      errorContainer.textContent = isLoginMode ? dict[currentLang].err_invalid : dict[currentLang].err_reg;
+    } catch (err) {
+      console.error(err);
+      let msg = isLoginMode ? dict[currentLang].err_invalid : dict[currentLang].err_reg;
+      
+      if (err.code === "auth/account-exists-with-different-credential" || err.code === "auth/email-already-in-use") {
+        msg = dict[currentLang].err_google_exists;
+      } else if (err.code === "auth/wrong-password" || err.code === "auth/user-not-found") {
+        msg = dict[currentLang].err_invalid;
+      }
+      
+      errorContainer.textContent = msg;
     }
   });
 
