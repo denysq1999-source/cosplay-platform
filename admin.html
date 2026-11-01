@@ -126,7 +126,14 @@
           <label data-i18n="google_btn_color">Колір кнопки Google</label>
           <input type="color" id="google-color" value="#4285F4" style="width:60px; height:36px; padding:2px; border:none; border-radius:6px; background:#1e1e1e; cursor:pointer;">
         </div>
-        <button class="admin-btn" id="btn-save-button-colors" data-i18n="save_btn">Зберегти</button>
+        <div>
+          <label data-i18n="btn_text_color">Колір тексту кнопок</label>
+          <input type="color" id="btn-text-color" value="#ffffff" style="width:60px; height:36px; padding:2px; border:none; border-radius:6px; background:#1e1e1e; cursor:pointer;">
+        </div>
+        <div style="display:flex; gap:8px; margin-top:8px;">
+          <button class="admin-btn" id="btn-save-button-colors" data-i18n="save_btn">Зберегти</button>
+          <button class="admin-btn danger" id="btn-reset-button-colors" data-i18n="reset_btn">Скинути</button>
+        </div>
         <div id="colors-status" style="font-size: 13px; margin-top: 8px; color: #aaa;"></div>
       </div>
     </div>
@@ -134,6 +141,6 @@
 
   <div id="status" style="margin-top:40px; text-align:center; color:#888;" data-i18n="checking_access">Перевірка доступу...</div>
 
-  <script type="module" src="js/admin.js?v=12"></script>
+  <script type="module" src="js/admin.js?v=13"></script>
 </body>
 </html>
