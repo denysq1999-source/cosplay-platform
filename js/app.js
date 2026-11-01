@@ -89,6 +89,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let emptyText = dict[currentLang].empty_gallery;
   let siteTitle = dict[currentLang].site_title;
   let shadowColor = "#000000";
+  let albumPages = [];
+  let albumIndex = 0;
 
   const modalTitle = document.getElementById("modal-title");
   const authSubmitBtn = document.getElementById("auth-submit-btn");
@@ -98,6 +100,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const rememberCheckbox = document.getElementById("remember-password");
   const siteTitleEl = document.querySelector("header h1");
   const langSwitcher = document.querySelector(".lang-switcher");
+  const albumSection = document.getElementById("album-section");
+  const albumPageEl = document.getElementById("album-page");
+  const albumTitleDisplay = document.getElementById("album-title-display");
+  const albumLabel = document.getElementById("album-label");
 
   function applyTitleStyle() {
     if (siteTitleEl) {
@@ -107,26 +113,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function applyButtonColors(primary, secondary, google, textColor) {
-    if (primary) {
-      document.querySelectorAll(".btn-primary").forEach(el => {
-        el.style.background = primary;
-      });
-    }
-    if (secondary) {
-      document.querySelectorAll(".btn-secondary").forEach(el => {
-        el.style.background = secondary;
-      });
-    }
-    if (google) {
-      document.querySelectorAll(".btn-google").forEach(el => {
-        el.style.background = google;
-      });
-    }
-    if (textColor) {
-      document.querySelectorAll(".btn").forEach(el => {
-        el.style.color = textColor;
-      });
-    }
+    if (primary) document.querySelectorAll(".btn-primary").forEach(el => el.style.background = primary);
+    if (secondary) document.querySelectorAll(".btn-secondary").forEach(el => el.style.background = secondary);
+    if (google) document.querySelectorAll(".btn-google").forEach(el => el.style.background = google);
+    if (textColor) document.querySelectorAll(".btn").forEach(el => el.style.color = textColor);
   }
 
   const updateLangUI = () => {
@@ -185,11 +175,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const openModal = (mode) => {
     isLoginMode = mode === "login";
     errorContainer.textContent = "";
-    if (mode === "login") {
-      loadSavedCredentials();
-    } else {
-      authForm.reset();
-    }
+    if (mode === "login") loadSavedCredentials();
+    else authForm.reset();
     updateLangUI();
     authModal.classList.remove("hidden");
   };
@@ -202,11 +189,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   btnGoogle?.addEventListener("click", async () => {
-    try { 
-      await signInWithPopup(auth, provider); 
-    } catch (err) { 
-      console.error(err); 
-    }
+    try { await signInWithPopup(auth, provider); } catch (err) { console.error(err); }
   });
 
   authForm?.addEventListener("submit", async (e) => {
@@ -222,22 +205,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     try {
-      if (isLoginMode) {
-        await signInWithEmailAndPassword(auth, email, password);
-      } else {
-        await createUserWithEmailAndPassword(auth, email, password);
-      }
+      if (isLoginMode) await signInWithEmailAndPassword(auth, email, password);
+      else await createUserWithEmailAndPassword(auth, email, password);
       authModal.classList.add("hidden");
     } catch (err) {
       console.error(err);
       let msg = isLoginMode ? dict[currentLang].err_invalid : dict[currentLang].err_reg;
-      
       if (err.code === "auth/account-exists-with-different-credential" || err.code === "auth/email-already-in-use") {
         msg = dict[currentLang].err_google_exists;
-      } else if (err.code === "auth/wrong-password" || err.code === "auth/user-not-found") {
-        msg = dict[currentLang].err_invalid;
       }
-      
       errorContainer.textContent = msg;
     }
   });
@@ -270,29 +246,21 @@ document.addEventListener("DOMContentLoaded", () => {
       if (snap.exists() && snap.data().fileId) {
         const fileId = snap.data().fileId;
         const size = snap.data().size || "w1920";
-        const bgUrl = `https://drive.google.com/thumbnail?id=${fileId}&sz=${size}`;
-        document.body.style.backgroundImage = `url('${bgUrl}')`;
+        document.body.style.backgroundImage = `url('https://drive.google.com/thumbnail?id=${fileId}&sz=${size}')`;
         document.body.style.backgroundSize = "cover";
         document.body.style.backgroundPosition = "center";
         document.body.style.backgroundAttachment = "fixed";
-        document.body.style.backgroundRepeat = "no-repeat";
       } else {
         document.body.style.backgroundImage = "none";
       }
-    } catch (err) {
-      console.error("Background load error", err);
-    }
+    } catch (err) { console.error(err); }
   }
 
   async function loadEmptyText() {
     try {
       const snap = await getDoc(doc(db, "settings", "empty_text"));
-      if (snap.exists() && snap.data().text) {
-        emptyText = snap.data().text;
-      }
-    } catch (err) {
-      console.error(err);
-    }
+      if (snap.exists() && snap.data().text) emptyText = snap.data().text;
+    } catch {}
   }
 
   async function loadSiteTitle() {
@@ -303,9 +271,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (snap.data().shadowColor) shadowColor = snap.data().shadowColor;
         applyTitleStyle();
       }
-    } catch (err) {
-      console.error(err);
-    }
+    } catch {}
   }
 
   async function loadButtonColors() {
@@ -315,10 +281,59 @@ document.addEventListener("DOMContentLoaded", () => {
         const data = snap.data();
         applyButtonColors(data.primary, data.secondary, data.google, data.textColor);
       }
+    } catch {}
+  }
+
+  function extractGoogleDriveFileId(url) {
+    if (!url) return null;
+    const m = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/id=([a-zA-Z0-9_-]+)/);
+    return m ? m[1] : null;
+  }
+
+  function renderAlbumPage() {
+    if (!albumPages.length || !albumPageEl) return;
+    const p = albumPages[albumIndex];
+    const fileId = extractGoogleDriveFileId(p.src);
+    const img = fileId 
+      ? `<img src="https://drive.google.com/thumbnail?id=${fileId}&sz=w800" alt="${p.title}">`
+      : `<div style="width:220px;height:300px;background:#333;border-radius:8px;display:flex;align-items:center;justify-content:center;">Немає фото</div>`;
+
+    albumPageEl.innerHTML = `
+      ${img}
+      <div>
+        <h3 style="margin:0 0 8px;">${p.title || "Без назви"}</h3>
+        <p style="margin:0; color:#aaa; font-style:italic;">${p.series || ""}</p>
+        <p style="margin:6px 0 0; font-size:14px;">Косплеєр: ${p.cosplayer || "—"}</p>
+        <div style="margin-top:10px;">${(p.tags || []).map(t => `<span style="background:#f3a8c3;color:#3a1630;padding:2px 8px;border-radius:12px;font-size:12px;margin-right:4px;">${t}</span>`).join("")}</div>
+      </div>
+    `;
+    if (albumLabel) albumLabel.textContent = `${albumIndex + 1} / ${albumPages.length}`;
+  }
+
+  async function loadAlbum() {
+    try {
+      const snap = await getDoc(doc(db, "settings", "album"));
+      if (snap.exists() && snap.data().pages?.length) {
+        const data = snap.data();
+        albumPages = data.pages;
+        albumIndex = 0;
+        if (albumTitleDisplay) albumTitleDisplay.textContent = data.title || "Альбом";
+        albumSection?.classList.remove("hidden");
+        renderAlbumPage();
+      } else {
+        albumSection?.classList.add("hidden");
+      }
     } catch (err) {
       console.error(err);
     }
   }
+
+  document.getElementById("album-prev")?.addEventListener("click", () => {
+    if (albumIndex > 0) { albumIndex--; renderAlbumPage(); }
+  });
+  document.getElementById("album-next")?.addEventListener("click", () => {
+    if (albumIndex < albumPages.length - 1) { albumIndex++; renderAlbumPage(); }
+  });
 
   loadEmptyText();
   loadSiteTitle();
@@ -334,6 +349,7 @@ document.addEventListener("DOMContentLoaded", () => {
       updateAdminButton(user);
       applyBackground(true);
       loadGallery();
+      loadAlbum();
     } else {
       guestControls.classList.remove("hidden");
       userControls.classList.add("hidden");
@@ -342,16 +358,6 @@ document.addEventListener("DOMContentLoaded", () => {
       applyBackground(false);
     }
   });
-
-  function extractGoogleDriveFileId(url) {
-    if (!url) return null;
-    const patterns = [/\/file\/d\/([a-zA-Z0-9_-]+)/, /[?&]id=([a-zA-Z0-9_-]+)/, /\/d\/([a-zA-Z0-9_-]+)/];
-    for (const p of patterns) {
-      const m = url.match(p);
-      if (m?.[1]) return m[1];
-    }
-    return null;
-  }
 
   async function loadGallery() {
     if (!galleryEl) return;
