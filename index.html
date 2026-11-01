@@ -1,27 +1,27 @@
-<!DOCTYPE html>
-<html lang="uk">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cosplay Platform</title>
-    <style>
-        body { font-family: sans-serif; background: #121212; color: #fff; margin: 0; padding: 20px; position: relative; min-height: 100vh; }
+<style>
+        body { font-family: sans-serif; background: #121212; color: #fff; margin: 0; padding: 20px; min-height: 100vh; }
         .hidden { display: none !important; }
         
-        .header-title { margin: 0; font-size: 24px; padding-bottom: 20px; border-bottom: 1px solid #333; }
+        /* Нормальна шапка з Flexbox */
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 1px solid #333;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
 
-        /* Блок авторизации жестко в правом верхнем углу */
+        .header-title { margin: 0; font-size: 24px; }
+
+        /* Блок авторизации тепер частина шапки, без absolute */
         .auth-corner-box {
-            position: absolute;
-            top: 20px;
-            right: 20px;
             background: #1e1e1e;
             padding: 20px;
             border-radius: 12px;
             width: 300px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.5);
             box-sizing: border-box;
-            z-index: 100;
         }
 
         .tabs { display: flex; margin-bottom: 15px; border-bottom: 1px solid #333; }
@@ -35,11 +35,8 @@
         .google-btn:hover { background: #f1f1f1; }
         .error-msg { color: #d93025; font-size: 12px; margin-bottom: 10px; text-align: center; }
 
-        /* Панель пользователя в том же углу (после входа) */
+        /* Панель користувача також у шапці */
         .user-controls {
-            position: absolute;
-            top: 20px;
-            right: 20px;
             display: flex;
             align-items: center;
             gap: 15px;
@@ -54,43 +51,42 @@
 </head>
 <body>
 
-    <h1 class="header-title">Косплей Галерея</h1>
+    <!-- Єдиний контейнер для шапки -->
+    <header class="header-container">
+        <h1 class="header-title">Косплей Галерея</h1>
 
-    <!-- Форма авторизации в углу -->
-    <div id="auth-section" class="auth-corner-box">
-        <div class="tabs">
-            <button id="tab-login" class="tab active">Вхід</button>
-            <button id="tab-register" class="tab">Реєстрація</button>
+        <!-- Форма авторизації -->
+        <div id="auth-section" class="auth-corner-box">
+            <div class="tabs">
+                <button id="tab-login" class="tab active">Вхід</button>
+                <button id="tab-register" class="tab">Реєстрація</button>
+            </div>
+            <div id="error-container" class="error-msg"></div>
+
+            <form id="login-form">
+                <input type="email" id="login-email" placeholder="Email" required>
+                <input type="password" id="login-password" placeholder="Пароль" required>
+                <button type="submit" class="action-btn">Увійти</button>
+            </form>
+
+            <form id="register-form" class="hidden">
+                <input type="email" id="reg-email" placeholder="Email" required>
+                <input type="password" id="reg-password" placeholder="Пароль (мін. 6 символів)" required>
+                <button type="submit" class="action-btn">Зареєструватися</button>
+            </form>
+
+            <hr style="border: 0; border-top: 1px solid #333; margin: 15px 0;">
+            <button id="google-login-btn" class="action-btn google-btn">Увійти через Google</button>
         </div>
-        <div id="error-container" class="error-msg"></div>
 
-        <form id="login-form">
-            <input type="email" id="login-email" placeholder="Email" required>
-            <input type="password" id="login-password" placeholder="Пароль" required>
-            <button type="submit" class="action-btn">Увійти</button>
-        </form>
+        <!-- Панель користувача (замість форми після входу) -->
+        <div id="user-controls" class="user-controls hidden">
+            <span id="user-info" style="color: #aaa; font-size: 14px;"></span>
+            <button id="logout-btn" class="logout-btn">Вийти</button>
+        </div>
+    </header>
 
-        <form id="register-form" class="hidden">
-            <input type="email" id="reg-email" placeholder="Email" required>
-            <input type="password" id="reg-password" placeholder="Пароль (мін. 6 символів)" required>
-            <button type="submit" class="action-btn">Зареєструватися</button>
-        </form>
-
-        <hr style="border: 0; border-top: 1px solid #333; margin: 15px 0;">
-        <button id="google-login-btn" class="action-btn google-btn">Увійти через Google</button>
-    </div>
-
-    <!-- Панель пользователя (появляется в углу после входа) -->
-    <div id="user-controls" class="user-controls hidden">
-        <span id="user-info" style="color: #aaa; font-size: 14px;"></span>
-        <button id="logout-btn" class="logout-btn">Вийти</button>
-    </div>
-
-    <!-- Здесь позже будет галерея -->
-    <div id="app-section" class="hidden" style="margin-top: 40px;">
+    <!-- Основний контент -->
+    <div id="app-section" class="hidden">
         <div id="gallery" style="color: #aaa;">Галерея завантажується...</div>
     </div>
-
-    <script type="module" src="app.js"></script>
-</body>
-</html>
