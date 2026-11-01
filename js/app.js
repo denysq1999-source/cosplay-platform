@@ -48,6 +48,7 @@ document.addEventListener("DOMContentLoaded", () => {
       modal_submit_register: "Зареєструватися",
       email_placeholder: "Email",
       password_placeholder: "Пароль",
+      remember_password: "Запам’ятати пароль",
       err_invalid: "Невірний email або пароль.",
       err_reg: "Помилка реєстрації. Перевірте дані.",
       delete_btn: "Видалити",
@@ -66,6 +67,7 @@ document.addEventListener("DOMContentLoaded", () => {
       modal_submit_register: "Register",
       email_placeholder: "Email",
       password_placeholder: "Password",
+      remember_password: "Remember password",
       err_invalid: "Invalid email or password.",
       err_reg: "Registration error. Check your data.",
       delete_btn: "Delete",
@@ -82,6 +84,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const errorContainer = document.getElementById("error-container");
   const btnAdmin = document.getElementById("btn-admin");
   const galleryEl = document.getElementById("gallery");
+  const rememberCheckbox = document.getElementById("remember-password");
 
   const updateLangUI = () => {
     document.querySelectorAll("[data-i18n]").forEach(el => {
@@ -122,10 +125,26 @@ document.addEventListener("DOMContentLoaded", () => {
   const closeModalBtn = document.getElementById("close-modal-btn");
   const authForm = document.getElementById("auth-form");
 
+  function loadSavedCredentials() {
+    const saved = localStorage.getItem("savedCredentials");
+    if (saved) {
+      try {
+        const { email, password } = JSON.parse(saved);
+        document.getElementById("auth-email").value = email || "";
+        document.getElementById("auth-password").value = password || "";
+        if (rememberCheckbox) rememberCheckbox.checked = true;
+      } catch {}
+    }
+  }
+
   const openModal = (mode) => {
     isLoginMode = mode === "login";
     errorContainer.textContent = "";
-    authForm.reset();
+    if (mode === "login") {
+      loadSavedCredentials();
+    } else {
+      authForm.reset();
+    }
     updateLangUI();
     authModal.classList.remove("hidden");
   };
@@ -147,6 +166,12 @@ document.addEventListener("DOMContentLoaded", () => {
     errorContainer.textContent = "";
     const email = document.getElementById("auth-email").value.trim();
     const password = document.getElementById("auth-password").value;
+
+    if (isLoginMode && rememberCheckbox?.checked) {
+      localStorage.setItem("savedCredentials", JSON.stringify({ email, password }));
+    } else if (isLoginMode) {
+      localStorage.removeItem("savedCredentials");
+    }
 
     try {
       if (isLoginMode) {
