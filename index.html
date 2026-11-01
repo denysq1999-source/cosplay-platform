@@ -8,27 +8,22 @@
         body { font-family: sans-serif; background: #121212; color: #fff; margin: 0; padding: 20px 0; min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
         .hidden { display: none !important; }
 
-        /* Шапка сайту */
         .header-container { display: flex; justify-content: space-between; align-items: center; width: 95%; max-width: 1400px; border-bottom: 1px solid #333; padding-bottom: 15px; margin-bottom: 20px; box-sizing: border-box; }
         .header-title { margin: 0; font-size: 24px; }
         
-        /* Права частина шапки (Мови + Кнопки) */
         .top-controls { display: flex; align-items: center; gap: 20px; }
         
-        /* Перемикач мов */
         .lang-switcher { display: flex; gap: 5px; align-items: center; font-size: 13px; color: #888; }
         .lang-btn { background: none; border: none; color: #888; cursor: pointer; padding: 0; font-size: 13px; font-weight: bold; transition: 0.2s; }
         .lang-btn.active { color: #fff; text-decoration: underline; }
         .lang-btn:hover { color: #fff; }
 
-        /* Маленькі кнопочки в кутку */
         .header-buttons { display: flex; gap: 10px; align-items: center; }
         .small-btn { background: #2a2a2a; color: #fff; border: 1px solid #444; padding: 8px 12px; font-size: 13px; border-radius: 6px; cursor: pointer; transition: 0.2s; }
         .small-btn:hover { background: #3a3a3a; }
         .google-small-btn { background: #4285F4; color: #fff; border: none; font-weight: bold; }
         .google-small-btn:hover { background: #357ae8; }
 
-        /* Модальне вікно */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.75); display: flex; justify-content: center; align-items: center; z-index: 1000; }
         .auth-box { background: #1e1e1e; padding: 30px; border-radius: 12px; position: relative; width: 100%; max-width: 350px; box-sizing: border-box; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
         .close-modal-btn { position: absolute; top: 10px; right: 15px; background: transparent; border: none; color: #888; font-size: 24px; cursor: pointer; padding: 0; }
@@ -40,14 +35,24 @@
         .action-btn:hover { background: #357ae8; }
         .error-msg { color: #d93025; font-size: 12px; margin-bottom: 10px; text-align: center; }
 
-        /* Панель користувача після входу */
         .user-controls { display: flex; align-items: center; gap: 15px; }
         .logout-btn { background: #d93025; padding: 6px 12px; border-radius: 6px; color: #fff; border: none; cursor: pointer; font-size: 13px; }
         .logout-btn:hover { background: #b0271e; }
 
-        /* Контент */
+        /* Адмін-панель */
+        .admin-panel { width: 100%; background: #1e1e1e; border: 1px solid #333; padding: 20px; border-radius: 8px; margin-bottom: 25px; box-sizing: border-box; }
+        .admin-title { margin-top: 0; margin-bottom: 15px; font-size: 16px; color: #4285F4; }
+        .admin-inputs { display: flex; gap: 10px; }
+        .admin-inputs input { margin-bottom: 0; flex: 1; }
+
         .main-content { width: 95%; max-width: 1400px; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; }
         .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; width: 100%; }
+        
+        /* Карточка товару/картинки */
+        .card { background: #1e1e1e; border-radius: 8px; overflow: hidden; padding: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.3); position: relative; }
+        .card img { width: 100%; height: 300px; object-fit: cover; border-radius: 4px; display: block; }
+        .delete-btn { position: absolute; top: 15px; right: 15px; background: rgba(217, 48, 37, 0.85); color: #fff; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+        .delete-btn:hover { background: #d93025; }
     </style>
 </head>
 <body>
@@ -56,28 +61,24 @@
         <h1 class="header-title" data-i18n="site_title">Косплей Галерея</h1>
 
         <div class="top-controls">
-            <!-- Перемикач мов -->
             <div class="lang-switcher">
                 <button id="lang-uk" class="lang-btn active">UK</button>
                 <span>|</span>
                 <button id="lang-en" class="lang-btn">EN</button>
             </div>
 
-            <!-- Маленькі кнопочки для гостей -->
             <div id="guest-controls" class="header-buttons">
                 <button id="btn-login" class="small-btn" data-i18n="login_btn">Вхід</button>
                 <button id="btn-register" class="small-btn" data-i18n="register_btn">Реєстрація</button>
                 <button id="btn-google" class="small-btn google-small-btn" data-i18n="google_btn">Увійти через Google</button>
             </div>
 
-            <!-- Панель після входу -->
             <div id="user-controls" class="user-controls hidden">
                 <button id="btn-logout" class="logout-btn" data-i18n="logout_btn">Вийти</button>
             </div>
         </div>
     </header>
 
-    <!-- Вікно для пошти/пароля -->
     <div id="auth-modal" class="modal-overlay hidden">
         <div class="auth-box">
             <button id="close-modal-btn" class="close-modal-btn">&times;</button>
@@ -92,11 +93,19 @@
         </div>
     </div>
 
-    <!-- Галерея -->
     <div id="app-section" class="main-content hidden">
+        <!-- Спеціальний блок Адмінки (видимий тільки для твоєї пошти) -->
+        <div id="admin-panel" class="admin-panel hidden">
+            <div class="admin-title" data-i18n="admin_panel_title">Панель Адміністратора</div>
+            <div class="admin-inputs">
+                <input type="text" id="image-url-input" data-i18n-placeholder="url_placeholder" placeholder="Посилання на картинку з Google Диска...">
+                <button id="add-image-btn" class="action-btn" style="width: auto; margin-top: 0;" data-i18n="add_btn">Додати</button>
+            </div>
+        </div>
+
         <div id="gallery" class="gallery"></div>
     </div>
 
-    <script type="module" src="app.js"></script>
+    <script type="module" src="app.js?v=3"></script>
 </body>
 </html>
