@@ -1,7 +1,13 @@
-<style>
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cosplay Platform</title>
+    <style>
         body { font-family: sans-serif; background: #121212; color: #fff; margin: 0; padding: 20px; min-height: 100vh; }
         .hidden { display: none !important; }
-        
+
         /* Нормальна шапка з Flexbox */
         .header-container {
             display: flex;
@@ -14,7 +20,7 @@
 
         .header-title { margin: 0; font-size: 24px; }
 
-        /* Блок авторизации тепер частина шапки, без absolute */
+        /* Блок авторизації тепер частина шапки, без absolute */
         .auth-corner-box {
             background: #1e1e1e;
             padding: 20px;
@@ -27,7 +33,7 @@
         .tabs { display: flex; margin-bottom: 15px; border-bottom: 1px solid #333; }
         .tab { flex: 1; padding: 10px; cursor: pointer; color: #888; background: none; border: none; font-size: 14px; font-weight: bold; }
         .tab.active { color: #fff; border-bottom: 2px solid #4285F4; }
-        
+
         input { width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 6px; border: 1px solid #333; background: #2a2a2a; color: #fff; box-sizing: border-box; font-size: 14px; }
         button.action-btn { width: 100%; padding: 10px; font-size: 14px; background: #4285F4; color: white; border: none; border-radius: 6px; cursor: pointer; transition: 0.2s; }
         button.action-btn:hover { background: #357ae8; }
@@ -47,6 +53,14 @@
         }
         .logout-btn { background: #d93025; padding: 8px 12px; border-radius: 6px; color: #fff; border: none; cursor: pointer; font-size: 14px; }
         .logout-btn:hover { background: #b0271e; }
+
+        /* Контент і Галерея */
+        .main-content { width: 100%; max-width: 1000px; margin: 0 auto; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; }
+        .admin-panel { background: #1e1e1e; padding: 15px; border-radius: 8px; margin-bottom: 20px; width: 100%; display: flex; gap: 10px; box-sizing: border-box; }
+        .admin-panel input { margin-bottom: 0; flex: 1; }
+        .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; width: 100%; }
+        .card { background: #1e1e1e; border-radius: 8px; overflow: hidden; padding: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+        .card img { width: 100%; height: auto; border-radius: 4px; display: block; }
     </style>
 </head>
 <body>
@@ -86,7 +100,15 @@
         </div>
     </header>
 
-    <!-- Основний контент -->
-    <div id="app-section" class="hidden">
-        <div id="gallery" style="color: #aaa;">Галерея завантажується...</div>
+    <!-- Основний контент (Галерея і адмінка) -->
+    <div id="app-section" class="main-content hidden">
+        <div class="admin-panel">
+            <input type="text" id="image-url-input" placeholder="Вставте посилання на картинку з Google Диска...">
+            <button id="add-image-btn" class="action-btn" style="width: auto; margin-top: 0;">Додати в галерею</button>
+        </div>
+        <div id="gallery" class="gallery">Галерея завантажується...</div>
     </div>
+
+    <script type="module" src="app.js"></script>
+</body>
+</html>
