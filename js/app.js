@@ -79,6 +79,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let isLoginMode = true;
   let currentUser = null;
   let emptyText = dict[currentLang].empty_gallery;
+  let siteTitle = dict[currentLang].site_title;
 
   const modalTitle = document.getElementById("modal-title");
   const authSubmitBtn = document.getElementById("auth-submit-btn");
@@ -86,6 +87,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const btnAdmin = document.getElementById("btn-admin");
   const galleryEl = document.getElementById("gallery");
   const rememberCheckbox = document.getElementById("remember-password");
+  const siteTitleEl = document.querySelector("header h1");
 
   const updateLangUI = () => {
     document.querySelectorAll("[data-i18n]").forEach(el => {
@@ -100,6 +102,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (authSubmitBtn) authSubmitBtn.textContent = isLoginMode ? dict[currentLang].modal_submit_login : dict[currentLang].modal_submit_register;
     document.getElementById("lang-uk").classList.toggle("active", currentLang === "uk");
     document.getElementById("lang-en").classList.toggle("active", currentLang === "en");
+    if (siteTitleEl) siteTitleEl.textContent = siteTitle;
   };
 
   document.getElementById("lang-uk").addEventListener("click", () => {
@@ -239,7 +242,20 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  async function loadSiteTitle() {
+    try {
+      const snap = await getDoc(doc(db, "settings", "site_title"));
+      if (snap.exists() && snap.data().title) {
+        siteTitle = snap.data().title;
+        if (siteTitleEl) siteTitleEl.textContent = siteTitle;
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
   loadEmptyText();
+  loadSiteTitle();
 
   onAuthStateChanged(auth, (user) => {
     currentUser = user;
