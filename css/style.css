@@ -9,6 +9,22 @@ body {
   margin: 0;
   padding: 16px;
   min-height: 100vh;
+  position: relative;
+}
+
+/* Semi-transparent overlay on top of background image */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+  z-index: 0;
+}
+
+body > * {
+  position: relative;
+  z-index: 1;
 }
 
 .hidden { display: none !important; }
@@ -31,6 +47,7 @@ body {
   margin: 0;
   font-size: 20px;
   font-weight: 600;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
 }
 
 /* Buttons */
@@ -299,7 +316,8 @@ body {
 }
 
 .albums-section input,
-.albums-section select {
+.albums-section select,
+.albums-section textarea {
   width: 100%;
   padding: 10px;
   border-radius: 8px;
@@ -310,7 +328,8 @@ body {
 }
 
 .albums-section input:focus,
-.albums-section select:focus {
+.albums-section select:focus,
+.albums-section textarea:focus {
   outline: none;
   border-color: #9c27b0;
   box-shadow: 0 0 0 2px rgba(156, 39, 176, 0.2);
