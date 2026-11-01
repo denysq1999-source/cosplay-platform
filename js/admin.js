@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore, doc, setDoc, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBnS9-bQngWjNxM1rKz_qRbrQopSd1aAqA",
@@ -33,9 +33,9 @@ const dict = {
     delete_btn: "Видалити",
     publish_btn: "Опублікувати",
     background_btn: "Фон головної",
-    background_url_label: "Посилання на фон з Google Диска",
-    background_url_placeholder: "https://drive.google.com/file/d/...",
-    set_background_btn: "Встановити фон",
+    bg_guest_label: "Фон до входу",
+    bg_user_label: "Фон після входу",
+    set_btn: "Встановити",
     checking_access: "Перевірка доступу...",
     access_denied: "Доступ заборонено. Перенаправлення..."
   },
@@ -54,9 +54,9 @@ const dict = {
     delete_btn: "Delete",
     publish_btn: "Publish",
     background_btn: "Main background",
-    background_url_label: "Background image URL from Google Drive",
-    background_url_placeholder: "https://drive.google.com/file/d/...",
-    set_background_btn: "Set background",
+    bg_guest_label: "Background before login",
+    bg_user_label: "Background after login",
+    set_btn: "Set",
     checking_access: "Checking access...",
     access_denied: "Access denied. Redirecting..."
   }
@@ -107,7 +107,7 @@ onAuthStateChanged(auth, (user) => {
 
   statusEl.classList.add("hidden");
   adminContent.classList.remove("hidden");
-  loadCurrentBackground();
+  loadBackgrounds();
 });
 
 btnAlbums?.addEventListener("click", () => {
@@ -130,19 +130,40 @@ function extractGoogleDriveFileId(url) {
   return null;
 }
 
-async function loadCurrentBackground() {
+function setPreview(elId, fileId) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  if (fileId) {
+    el.style.backgroundImage = `url('https://drive.google.com/thumbnail?id=${fileId}&sz=w800')`;
+  } else {
+    el.style.backgroundImage = "none";
+  }
+}
+
+async function loadBackgrounds() {
   try {
-    const snap = await getDoc(doc(db, "settings", "background"));
-    if (snap.exists() && snap.data().url) {
-      document.getElementById("background-url").value = snap.data().url;
+    const guestSnap = await getDoc(doc(db, "settings", "background_guest"));
+    if (guestSnap.exists() && guestSnap.data().fileId) {
+      document.getElementById("bg-guest-url").value = guestSnap.data().url || "";
+      setPreview("preview-guest", guestSnap.data().fileId);
+    }
+
+    const userSnap = await getDoc(doc(db, "settings", "background_user"));
+    if (userSnap.exists() && userSnap.data().fileId) {
+      document.getElementById("bg-user-url").value = userSnap.data().url || "";
+      setPreview("preview-user", userSnap.data().fileId);
     }
   } catch (err) {
     console.error(err);
   }
 }
 
-document.getElementById("btn-set-background")?.addEventListener("click", async () => {
-  const url = document.getElementById("background-url")?.value.trim();
+async function setBackground(type) {
+  const inputId = type === "guest" ? "bg-guest-url" : "bg-user-url";
+  const previewId = type === "guest" ? "preview-guest" : "preview-user";
+  const docId = type === "guest" ? "background_guest" : "background_user";
+
+  const url = document.getElementById(inputId)?.value.trim();
   if (!url) {
     bgStatus.textContent = "Вкажи посилання";
     bgStatus.style.color = "#d93025";
@@ -157,15 +178,39 @@ document.getElementById("btn-set-background")?.addEventListener("click", async (
   }
 
   try {
-    await setDoc(doc(db, "settings", "background"), { url: url, fileId: fileId });
-    bgStatus.textContent = "Фон збережено! Онови головну сторінку.";
+    await setDoc(doc(db, "settings", docId), { url, fileId });
+    setPreview(previewId, fileId);
+    bgStatus.textContent = "Збережено";
     bgStatus.style.color = "#4caf50";
   } catch (err) {
     console.error(err);
     bgStatus.textContent = "Помилка збереження";
     bgStatus.style.color = "#d93025";
   }
-});
+}
+
+async function deleteBackground(type) {
+  const inputId = type === "guest" ? "bg-guest-url" : "bg-user-url";
+  const previewId = type === "guest" ? "preview-guest" : "preview-user";
+  const docId = type === "guest" ? "background_guest" : "background_user";
+
+  try {
+    await deleteDoc(doc(db, "settings", docId));
+    document.getElementById(inputId).value = "";
+    setPreview(previewId, null);
+    bgStatus.textContent = "Видалено";
+    bgStatus.style.color = "#4caf50";
+  } catch (err) {
+    console.error(err);
+    bgStatus.textContent = "Помилка видалення";
+    bgStatus.style.color = "#d93025";
+  }
+}
+
+document.getElementById("btn-set-guest")?.addEventListener("click", () => setBackground("guest"));
+document.getElementById("btn-set-user")?.addEventListener("click", () => setBackground("user"));
+document.getElementById("btn-del-guest")?.addEventListener("click", () => deleteBackground("guest"));
+document.getElementById("btn-del-user")?.addEventListener("click", () => deleteBackground("user"));
 
 document.getElementById("btn-add-photo")?.addEventListener("click", () => {
   const url = document.getElementById("drive-url")?.value || "";
