@@ -13,7 +13,8 @@ import {
   collection, 
   getDocs,
   deleteDoc,
-  doc
+  doc,
+  getDoc
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -168,20 +169,9 @@ document.addEventListener("DOMContentLoaded", () => {
     return String(email).trim().toLowerCase().replace(/\s+/g, "");
   }
 
-  function getCharCodes(str) {
-    return Array.from(str).map(c => c.charCodeAt(0));
-  }
-
   function isAdmin(user) {
     if (!user || !user.email) return false;
-    const userEmail = normalizeEmail(user.email);
-    const adminEmail = normalizeEmail(ADMIN_EMAIL);
-    const result = userEmail === adminEmail;
-    console.log("[ADMIN CHECK]");
-    console.log(" user:", JSON.stringify(userEmail), "len:", userEmail.length, "codes:", getCharCodes(userEmail));
-    console.log(" admin:", JSON.stringify(adminEmail), "len:", adminEmail.length, "codes:", getCharCodes(adminEmail));
-    console.log(" equal:", result);
-    return result;
+    return normalizeEmail(user.email) === normalizeEmail(ADMIN_EMAIL);
   }
 
   function updateAdminButton(user) {
@@ -193,7 +183,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   onAuthStateChanged(auth, (user) => {
     currentUser = user;
-    console.log("[AUTH]", user ? user.email : "logged out", user ? user.uid : "");
 
     if (user) {
       guestControls.classList.add("hidden");
@@ -218,6 +207,25 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     return null;
   }
+
+  async function loadBackground() {
+    try {
+      const snap = await getDoc(doc(db, "settings", "background"));
+      if (snap.exists() && snap.data().fileId) {
+        const fileId = snap.data().fileId;
+        const bgUrl = `https://drive.google.com/thumbnail?id=${fileId}&sz=w2000`;
+        document.body.style.backgroundImage = `url('${bgUrl}')`;
+        document.body.style.backgroundSize = "cover";
+        document.body.style.backgroundPosition = "center";
+        document.body.style.backgroundAttachment = "fixed";
+        document.body.style.backgroundRepeat = "no-repeat";
+      }
+    } catch (err) {
+      console.error("Background load error", err);
+    }
+  }
+
+  loadBackground();
 
   async function loadGallery() {
     if (!galleryEl) return;
