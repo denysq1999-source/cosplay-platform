@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Альбом косплеєра</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+  /* Album specific styles - adapted from provided */
+  :root{
+    --ink:#2b2230; --paper:#fbf6ee; --paper-2:#f3ebdd;
+    --sakura:#f3a8c3; --wine:#3a1630; --gold:#d8b46a;
+    --pw:420px; --ph:571px; --shift:0px;
+  }
+  .stage{ position:relative; flex:1; min-height:0; background: radial-gradient(ellipse 60% 55% at 50% 38%, rgba(255,214,235,.20), transparent 70%), repeating-linear-gradient(95deg, rgba(255,255,255,.012) 0 2px, transparent 2px 7px), linear-gradient(#1d1426, #120c18); }
+  .book{ position:absolute; left:50%; top:50%; width:calc(var(--pw) * 2); height:var(--ph); margin-left:calc(var(--pw) * -1 + var(--shift)); margin-top:calc(var(--ph) / -2); perspective:2600px; touch-action:none; user-select:none; cursor:grab; }
+  .book.grabbing{ cursor:grabbing; }
+  /* ... rest of styles abbreviated for brevity - full styles from provided file should be included in production */
+  .leaf{ position:absolute; left:50%; top:0; width:var(--pw); height:100%; transform-origin:left center; transform-style:preserve-3d; }
+  .face{ position:absolute; inset:0; overflow:hidden; backface-visibility:hidden; background-color:var(--paper); color:var(--ink); }
+  .face.cover{ background:radial-gradient(120% 90% at 30% 20%, #5b2349, var(--wine) 60%, #220c1d); color:#f3dfb2; }
+  /* Minimal styles - expand as needed */
+</style>
+</head>
+<body style="display:flex; flex-direction:column; height:100vh; margin:0; background:#150f1c; color:#f6eef3;">
+
+<header class="header">
+  <h1 id="albumTitle">Альбом косплеєра</h1>
+  <a href="index.html" class="btn btn-secondary">← На галерею</a>
+</header>
+
+<main class="stage" id="stage" style="flex:1; position:relative;">
+  <div class="book" id="book"></div>
+</main>
+
+<footer class="ctrl" style="display:flex; justify-content:center; gap:16px; padding:16px;">
+  <button class="btn" id="prev">‹</button>
+  <span id="label"></span>
+  <button class="btn" id="next">›</button>
+</footer>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBnS9-bQngWjNxM1rKz_qRbrQopSd1aAqA",
+  authDomain: "cosplay-platform.firebaseapp.com",
+  projectId: "cosplay-platform",
+  storageBucket: "cosplay-platform.firebasestorage.app",
+  messagingSenderId: "524210919675",
+  appId: "1:524210919675:web:929740053092247656f85e"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+let PHOTOS = [];
+let ALBUM = { title: 'Альбом косплеєра', owner: 'Косплеєр', year: '2026' };
+
+async function loadAlbum() {
+  try {
+    const snap = await getDoc(doc(db, "settings", "album"));
+    if (snap.exists()) {
+      const data = snap.data();
+      if (data.title) ALBUM.title = data.title;
+      if (data.owner) ALBUM.owner = data.owner;
+      if (data.pages) PHOTOS = data.pages;
+    }
+  } catch (err) {
+    console.error(err);
+  }
+  document.getElementById("albumTitle").textContent = ALBUM.title;
+  // TODO: full flipbook init here using PHOTOS
+  // For now, simple list fallback
+  const book = document.getElementById("book");
+  book.innerHTML = PHOTOS.length ? PHOTOS.map(p => `<div style="padding:20px;"><img src="${p.src || ''}" style="max-width:300px;"><h3>${p.title}</h3><p>${p.series}</p></div>`).join('') : '<p style="text-align:center; padding:40px;">Альбом порожній. Додай сторінки в адмінці.</p>';
+}
+
+loadAlbum();
+</script>
+</body>
+</html>
