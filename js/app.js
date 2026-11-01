@@ -181,6 +181,26 @@ document.addEventListener("DOMContentLoaded", () => {
     btnAdmin.classList.toggle("hidden", !show);
   }
 
+  async function applyBackground(isLoggedIn) {
+    const docId = isLoggedIn ? "background_user" : "background_guest";
+    try {
+      const snap = await getDoc(doc(db, "settings", docId));
+      if (snap.exists() && snap.data().fileId) {
+        const fileId = snap.data().fileId;
+        const bgUrl = `https://drive.google.com/thumbnail?id=${fileId}&sz=w1920`;
+        document.body.style.backgroundImage = `url('${bgUrl}')`;
+        document.body.style.backgroundSize = "cover";
+        document.body.style.backgroundPosition = "center";
+        document.body.style.backgroundAttachment = "fixed";
+        document.body.style.backgroundRepeat = "no-repeat";
+      } else {
+        document.body.style.backgroundImage = "none";
+      }
+    } catch (err) {
+      console.error("Background load error", err);
+    }
+  }
+
   onAuthStateChanged(auth, (user) => {
     currentUser = user;
 
@@ -189,12 +209,14 @@ document.addEventListener("DOMContentLoaded", () => {
       userControls.classList.remove("hidden");
       appSection.classList.remove("hidden");
       updateAdminButton(user);
+      applyBackground(true);
       loadGallery();
     } else {
       guestControls.classList.remove("hidden");
       userControls.classList.add("hidden");
       appSection.classList.add("hidden");
       updateAdminButton(null);
+      applyBackground(false);
     }
   });
 
@@ -207,25 +229,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     return null;
   }
-
-  async function loadBackground() {
-    try {
-      const snap = await getDoc(doc(db, "settings", "background"));
-      if (snap.exists() && snap.data().fileId) {
-        const fileId = snap.data().fileId;
-        const bgUrl = `https://drive.google.com/thumbnail?id=${fileId}&sz=w1920`;
-        document.body.style.backgroundImage = `url('${bgUrl}')`;
-        document.body.style.backgroundSize = "cover";
-        document.body.style.backgroundPosition = "center";
-        document.body.style.backgroundAttachment = "fixed";
-        document.body.style.backgroundRepeat = "no-repeat";
-      }
-    } catch (err) {
-      console.error("Background load error", err);
-    }
-  }
-
-  loadBackground();
 
   async function loadGallery() {
     if (!galleryEl) return;
