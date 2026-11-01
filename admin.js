@@ -17,6 +17,8 @@ const ADMIN_EMAIL = "denysq1999@gmail.com";
 
 const adminContent = document.getElementById('admin-content');
 const statusEl = document.getElementById('status');
+const albumsSection = document.getElementById('albums-section');
+const btnAlbums = document.getElementById('btn-albums');
 
 onAuthStateChanged(auth, (user) => {
   if (!user || user.email !== ADMIN_EMAIL) {
@@ -31,12 +33,18 @@ onAuthStateChanged(auth, (user) => {
   adminContent.classList.remove('hidden');
 });
 
-// Поки просто логуємо натискання кнопок (функціонал пізніше)
-document.getElementById('btn-albums')?.addEventListener('click', () => {
-  alert("Альбоми — зробимо далі");
-});
+// Перемикання секції Альбоми
+if (btnAlbums && albumsSection) {
+  btnAlbums.addEventListener('click', () => {
+    albumsSection.classList.toggle('hidden');
+  });
+}
+
+// Поки просто показуємо повідомлення
 document.getElementById('btn-add-photo')?.addEventListener('click', () => {
-  alert("Додати фото до альбому — зробимо далі");
+  const url = document.getElementById('drive-url')?.value || '';
+  const size = document.getElementById('instagram-size')?.value || '';
+  alert(`Додати фото\nРозмір: ${size}\nURL: ${url || '(не вказано)'}`);
 });
 document.getElementById('btn-edit')?.addEventListener('click', () => {
   alert("Редагувати — зробимо далі");
