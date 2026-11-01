@@ -11,8 +11,7 @@ import {
 import { 
   getFirestore, 
   collection, 
-  getDocs, 
-  addDoc 
+  getDocs
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -30,38 +29,94 @@ const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
 
 document.addEventListener("DOMContentLoaded", () => {
-  // Елементи
+  // Словник перекладів
+  const dict = {
+    uk: {
+      site_title: "Косплей Галерея",
+      login_btn: "Вхід",
+      register_btn: "Реєстрація",
+      google_btn: "Увійти через Google",
+      logout_btn: "Вийти",
+      modal_title_login: "Вхід",
+      modal_title_register: "Реєстрація",
+      modal_submit_login: "Увійти",
+      modal_submit_register: "Зареєструватися",
+      email_placeholder: "Email",
+      password_placeholder: "Пароль",
+      err_invalid: "Невірний email або пароль.",
+      err_reg: "Помилка реєстрації. Перевірте дані."
+    },
+    en: {
+      site_title: "Cosplay Gallery",
+      login_btn: "Login",
+      register_btn: "Register",
+      google_btn: "Login with Google",
+      logout_btn: "Logout",
+      modal_title_login: "Login",
+      modal_title_register: "Register",
+      modal_submit_login: "Login",
+      modal_submit_register: "Register",
+      email_placeholder: "Email",
+      password_placeholder: "Password",
+      err_invalid: "Invalid email or password.",
+      err_reg: "Registration error. Check your data."
+    }
+  };
+
+  let currentLang = localStorage.getItem('appLang') || 'uk';
+  let isLoginMode = true;
+
+  const modalTitle = document.getElementById('modal-title');
+  const authSubmitBtn = document.getElementById('auth-submit-btn');
+  const errorContainer = document.getElementById('error-container');
+
+  // Оновлення текстів на сторінці
+  const updateLangUI = () => {
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.getAttribute('data-i18n');
+      if (dict[currentLang][key]) el.textContent = dict[currentLang][key];
+    });
+    
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+      const key = el.getAttribute('data-i18n-placeholder');
+      if (dict[currentLang][key]) el.placeholder = dict[currentLang][key];
+    });
+
+    // Динамічні тексти модалки
+    if (modalTitle) modalTitle.textContent = isLoginMode ? dict[currentLang].modal_title_login : dict[currentLang].modal_title_register;
+    if (authSubmitBtn) authSubmitBtn.textContent = isLoginMode ? dict[currentLang].modal_submit_login : dict[currentLang].modal_submit_register;
+
+    // Перемикання стилів кнопок мови
+    document.getElementById('lang-uk').classList.toggle('active', currentLang === 'uk');
+    document.getElementById('lang-en').classList.toggle('active', currentLang === 'en');
+  };
+
+  // Кліки по мовах
+  document.getElementById('lang-uk').addEventListener('click', () => { currentLang = 'uk'; localStorage.setItem('appLang', 'uk'); updateLangUI(); });
+  document.getElementById('lang-en').addEventListener('click', () => { currentLang = 'en'; localStorage.setItem('appLang', 'en'); updateLangUI(); });
+
+  // Ініціалізація мови при завантаженні
+  updateLangUI();
+
+  // Елементи DOM
   const guestControls = document.getElementById('guest-controls');
   const userControls = document.getElementById('user-controls');
   const appSection = document.getElementById('app-section');
-  const userInfo = document.getElementById('user-info');
-  
   const btnLogin = document.getElementById('btn-login');
   const btnRegister = document.getElementById('btn-register');
   const btnGoogle = document.getElementById('btn-google');
   const btnLogout = document.getElementById('btn-logout');
-
   const authModal = document.getElementById('auth-modal');
   const closeModalBtn = document.getElementById('close-modal-btn');
-  const modalTitle = document.getElementById('modal-title');
   const authForm = document.getElementById('auth-form');
-  const authSubmitBtn = document.getElementById('auth-submit-btn');
-  const errorContainer = document.getElementById('error-container');
-
-  const galleryEl = document.getElementById('gallery');
-  const imageUrlInput = document.getElementById('image-url-input');
-  const addImageBtn = document.getElementById('add-image-btn');
-
-  let isLoginMode = true;
 
   // Логіка модального вікна
   const openModal = (mode) => {
     isLoginMode = mode === 'login';
-    if (modalTitle) modalTitle.textContent = isLoginMode ? 'Вхід' : 'Реєстрація';
-    if (authSubmitBtn) authSubmitBtn.textContent = isLoginMode ? 'Увійти' : 'Зареєструватися';
-    if (errorContainer) errorContainer.textContent = '';
-    if (authForm) authForm.reset();
-    if (authModal) authModal.classList.remove('hidden');
+    errorContainer.textContent = '';
+    authForm.reset();
+    updateLangUI();
+    authModal.classList.remove('hidden');
   };
 
   if (btnLogin) btnLogin.addEventListener('click', () => openModal('login'));
@@ -73,14 +128,14 @@ document.addEventListener("DOMContentLoaded", () => {
   if (btnGoogle) {
     btnGoogle.addEventListener('click', async () => {
       try { await signInWithPopup(auth, provider); } 
-      catch (error) { console.error(error); alert("Помилка входу через Google"); }
+      catch (error) { console.error(error); }
     });
   }
 
   if (authForm) {
     authForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      if (errorContainer) errorContainer.textContent = '';
+      errorContainer.textContent = '';
       const email = document.getElementById('auth-email').value;
       const password = document.getElementById('auth-password').value;
 
@@ -90,9 +145,9 @@ document.addEventListener("DOMContentLoaded", () => {
         } else {
           await createUserWithEmailAndPassword(auth, email, password);
         }
-        if (authModal) authModal.classList.add('hidden');
+        authModal.classList.add('hidden');
       } catch (error) {
-        if (errorContainer) errorContainer.textContent = isLoginMode ? "Невірний email або пароль." : "Помилка реєстрації. Перевірте дані.";
+        errorContainer.textContent = isLoginMode ? dict[currentLang].err_invalid : dict[currentLang].err_reg;
       }
     });
   }
@@ -103,65 +158,16 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // --- ГОЛОВНА ЛОГІКА ХОВАННЯ КНОПОК ---
+  // --- Стан користувача ---
   onAuthStateChanged(auth, (user) => {
     if (user) {
-      if (guestControls) guestControls.classList.add('hidden');
-      if (userControls) userControls.classList.remove('hidden');
-      if (appSection) appSection.classList.remove('hidden');
-      if (userInfo) userInfo.textContent = user.email;
-      loadGalleryFromFirestore();
+      guestControls.classList.add('hidden');
+      userControls.classList.remove('hidden');
+      appSection.classList.remove('hidden');
     } else {
-      if (guestControls) guestControls.classList.remove('hidden');
-      if (userControls) userControls.classList.add('hidden');
-      if (appSection) appSection.classList.add('hidden');
-      if (galleryEl) galleryEl.innerHTML = '';
+      guestControls.classList.remove('hidden');
+      userControls.classList.add('hidden');
+      appSection.classList.add('hidden');
     }
   });
-
-  // База даних
-  if (addImageBtn && imageUrlInput) {
-    addImageBtn.addEventListener('click', async () => {
-      const url = imageUrlInput.value.trim();
-      if (!url) return;
-      try {
-        await addDoc(collection(db, "cosplays"), { url: url, createdAt: new Date() });
-        imageUrlInput.value = '';
-        loadGalleryFromFirestore();
-      } catch (error) { console.error(error); alert("Помилка додавання."); }
-    });
-  }
-
-  function extractGoogleDriveFileId(url) {
-    if (!url) return null;
-    const patterns = [ /\/file\/d\/([a-zA-Z0-9_-]+)/, /[?&]id=([a-zA-Z0-9_-]+)/, /\/d\/([a-zA-Z0-9_-]+)/ ];
-    for (const pattern of patterns) {
-      const match = url.match(pattern);
-      if (match && match[1]) return match[1];
-    }
-    return null;
-  }
-
-  async function loadGalleryFromFirestore() {
-    if (!galleryEl) return;
-    galleryEl.innerHTML = '<p style="color: #aaa;">Завантаження...</p>';
-    try {
-      const querySnapshot = await getDocs(collection(db, "cosplays"));
-      galleryEl.innerHTML = '';
-      if (querySnapshot.empty) { galleryEl.innerHTML = '<p style="color: #aaa;">Галерея порожня.</p>'; return; }
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        if (data.url) {
-          const fileId = extractGoogleDriveFileId(data.url);
-          if (fileId) {
-            const imageUrl = `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000`;
-            const card = document.createElement('div');
-            card.className = 'card';
-            card.innerHTML = `<img src="${imageUrl}" loading="lazy" referrerpolicy="no-referrer" alt="Cosplay photo">`;
-            galleryEl.appendChild(card);
-          }
-        }
-      });
-    } catch (error) { galleryEl.innerHTML = '<p style="color: #d93025;">Помилка завантаження даних.</p>'; }
-  }
 });
