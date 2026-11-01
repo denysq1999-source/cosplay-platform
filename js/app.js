@@ -97,6 +97,24 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  function applyButtonColors(primary, secondary, google) {
+    if (primary) {
+      document.querySelectorAll(".btn-primary").forEach(el => {
+        el.style.background = primary;
+      });
+    }
+    if (secondary) {
+      document.querySelectorAll(".btn-secondary").forEach(el => {
+        el.style.background = secondary;
+      });
+    }
+    if (google) {
+      document.querySelectorAll(".btn-google").forEach(el => {
+        el.style.background = google;
+      });
+    }
+  }
+
   const updateLangUI = () => {
     document.querySelectorAll("[data-i18n]").forEach(el => {
       const key = el.getAttribute("data-i18n");
@@ -263,8 +281,21 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  async function loadButtonColors() {
+    try {
+      const snap = await getDoc(doc(db, "settings", "button_colors"));
+      if (snap.exists()) {
+        const data = snap.data();
+        applyButtonColors(data.primary, data.secondary, data.google);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
   loadEmptyText();
   loadSiteTitle();
+  loadButtonColors();
 
   onAuthStateChanged(auth, (user) => {
     currentUser = user;
