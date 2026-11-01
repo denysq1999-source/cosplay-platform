@@ -74,9 +74,7 @@
             transform: translateY(-1px);
             box-shadow: 0 0 18px rgba(156, 39, 176, 0.25);
         }
-        .admin-btn:active {
-            transform: translateY(0);
-        }
+        .admin-btn:active { transform: translateY(0); }
 
         .admin-btn.primary {
             background: #9c27b0;
@@ -97,6 +95,39 @@
             box-shadow: 0 0 18px rgba(217, 48, 37, 0.3);
         }
 
+        .albums-section {
+            background: #161616;
+            border: 1px solid #2a2a2a;
+            border-radius: 14px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .albums-section label {
+            font-size: 13px;
+            color: #aaa;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .albums-section input, .albums-section select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #333;
+            background: #1e1e1e;
+            color: #fff;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        .albums-section input:focus, .albums-section select:focus {
+            outline: none;
+            border-color: #9c27b0;
+            box-shadow: 0 0 0 2px rgba(156, 39, 176, 0.2);
+        }
+
         .status {
             margin-top: 30px;
             color: #888;
@@ -113,9 +144,27 @@
 
     <div id="admin-content" class="admin-panel hidden">
         <button class="admin-btn primary" id="btn-albums">Альбоми</button>
-        <button class="admin-btn" id="btn-add-photo">Додати фото до вибраного альбому</button>
-        <button class="admin-btn" id="btn-edit">Редагувати</button>
-        <button class="admin-btn danger" id="btn-delete">Видалити</button>
+
+        <div id="albums-section" class="albums-section hidden">
+            <div>
+                <label>Instagram-розмір зображення</label>
+                <select id="instagram-size">
+                    <option value="square">Квадрат 1:1 (1080×1080)</option>
+                    <option value="portrait">Портрет 4:5 (1080×1350)</option>
+                    <option value="landscape">Ландшафт 1.91:1 (1080×566)</option>
+                </select>
+            </div>
+
+            <div>
+                <label>Посилання на зображення з Google Диска</label>
+                <input type="text" id="drive-url" placeholder="https://drive.google.com/file/d/...">
+            </div>
+
+            <button class="admin-btn" id="btn-add-photo">Додати фото до вибраного альбому</button>
+            <button class="admin-btn" id="btn-edit">Редагувати</button>
+            <button class="admin-btn danger" id="btn-delete">Видалити</button>
+        </div>
+
         <button class="admin-btn" id="btn-publish">Опублікувати</button>
     </div>
 
