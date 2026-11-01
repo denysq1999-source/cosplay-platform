@@ -6,117 +6,75 @@
 <title>Альбом косплеєра</title>
 <style>
   :root{
-    --ink:#2b2230; --paper:#fbf6ee; --sakura:#f3a8c3; --wine:#3a1630; --gold:#d8b46a;
-    --pw:380px; --ph:520px;
+    --ink:#2b2230; --paper:#fbf6ee;
+    --sakura:#f3a8c3; --wine:#3a1630;
+    --pw:400px; --ph:540px;
   }
   *{ box-sizing:border-box; }
-  body{ margin:0; background:#150f1c; color:#f6eef3; font-family:system-ui,sans-serif; display:flex; flex-direction:column; height:100vh; }
+  body{ margin:0; background:#150f1c; color:#f6eef3; font-family:system-ui,sans-serif; height:100vh; display:flex; flex-direction:column; }
   .top{ display:flex; justify-content:space-between; align-items:center; padding:14px 20px; }
-  .stage{ flex:1; display:flex; align-items:center; justify-content:center; position:relative; }
-  .book{ position:relative; width:calc(var(--pw)*2); height:var(--ph); perspective:2000px; }
-  .page{
-    position:absolute; width:var(--pw); height:100%; background:var(--paper); color:var(--ink);
-    border-radius:0 8px 8px 0; box-shadow:0 10px 30px rgba(0,0,0,.4);
-    padding:24px; display:flex; flex-direction:column;
-  }
-  .page.left{ left:0; border-radius:8px 0 0 8px; }
-  .page.right{ left:var(--pw); }
-  .page img{ width:100%; height:280px; object-fit:cover; border-radius:6px; margin-bottom:12px; }
-  .ctrl{ display:flex; justify-content:center; gap:20px; padding:16px; }
-  .btn{ background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.2); color:#fff; padding:8px 16px; border-radius:999px; cursor:pointer; }
-  .btn:disabled{ opacity:.4; cursor:default; }
+  .stage{ flex:1; display:flex; align-items:center; justify-content:center; }
+  .book{ position:relative; width:calc(var(--pw)*2); height:var(--ph); perspective:1800px; }
+  .spread{ display:flex; height:100%; box-shadow:0 20px 50px rgba(0,0,0,.5); border-radius:8px; overflow:hidden; }
+  .page{ width:var(--pw); height:100%; background:var(--paper); color:var(--ink); padding:20px; display:flex; flex-direction:column; }
+  .page img{ width:100%; height:300px; object-fit:cover; border-radius:4px; margin-bottom:12px; }
+  .ctrl{ display:flex; justify-content:center; gap:16px; padding:16px; }
+  .btn{ background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.2); color:#fff; padding:8px 14px; border-radius:999px; cursor:pointer; }
+  .btn:disabled{ opacity:.35; }
 </style>
 </head>
 <body>
-
 <header class="top">
-  <div>
-    <h1 id="albumTitle" style="margin:0; font-size:22px;">Альбом косплеєра</h1>
-    <p style="margin:4px 0 0; font-size:13px; color:#bfb2c6;">Перегляд альбому</p>
-  </div>
+  <h1 id="albumTitle" style="margin:0; font-size:22px;">Альбом косплеєра</h1>
   <a href="index.html" class="btn">← На галерею</a>
 </header>
-
 <main class="stage">
-  <div class="book" id="book">
-    <div class="page left" id="page-left"></div>
-    <div class="page right" id="page-right"></div>
+  <div class="book">
+    <div class="spread">
+      <div class="page" id="left"></div>
+      <div class="page" id="right"></div>
+    </div>
   </div>
 </main>
-
 <footer class="ctrl">
-  <button class="btn" id="prev">‹ Попередня</button>
-  <span id="label" style="align-self:center; color:#aaa;"></span>
-  <button class="btn" id="next">Наступна ›</button>
+  <button class="btn" id="prev">‹</button>
+  <span id="label"></span>
+  <button class="btn" id="next">›</button>
 </footer>
-
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyBnS9-bQngWjNxM1rKz_qRbrQopSd1aAqA",
-  authDomain: "cosplay-platform.firebaseapp.com",
-  projectId: "cosplay-platform",
-  storageBucket: "cosplay-platform.firebasestorage.app",
-  messagingSenderId: "524210919675",
-  appId: "1:524210919675:web:929740053092247656f85e"
-};
-
+const firebaseConfig = { apiKey:"AIzaSyBnS9-bQngWjNxM1rKz_qRbrQopSd1aAqA", authDomain:"cosplay-platform.firebaseapp.com", projectId:"cosplay-platform", storageBucket:"cosplay-platform.firebasestorage.app", messagingSenderId:"524210919675", appId:"1:524210919675:web:929740053092247656f85e" };
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-
-let pages = [];
-let current = 0;
-
-function extractId(url) {
-  if (!url) return null;
-  const m = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/id=([a-zA-Z0-9_-]+)/);
-  return m ? m[1] : null;
+let pages = [], cur = 0;
+function extractId(url){ if(!url) return null; const m = url.match(/\/d\/([a-zA-Z0-9_-]+)/)||url.match(/id=([a-zA-Z0-9_-]+)/); return m?m[1]:null; }
+function renderPage(el, p){
+  if(!p){ el.innerHTML = '<div style="height:100%;display:flex;align-items:center;justify-content:center;color:#999">—</div>'; return; }
+  const id = extractId(p.src);
+  const img = id ? `<img src="https://drive.google.com/thumbnail?id=${id}&sz=w800">` : '<div style="height:300px;background:#eee;border-radius:4px;display:flex;align-items:center;justify-content:center">Немає фото</div>';
+  el.innerHTML = `${img}<h3 style="margin:0 0 4px">${p.title||"Без назви"}</h3><p style="margin:0;font-style:italic;color:#6d5d72">${p.series||""}</p><p style="margin:4px 0 0;font-size:14px">Косплеєр: ${p.cosplayer||"—"}</p>`;
 }
-
-function renderPage(el, p) {
-  if (!p) { el.innerHTML = '<div style="height:100%; display:flex; align-items:center; justify-content:center; color:#999;">—</div>'; return; }
-  const fileId = extractId(p.src);
-  const img = fileId 
-    ? `<img src="https://drive.google.com/thumbnail?id=${fileId}&sz=w800" alt="${p.title}">`
-    : `<div style="height:280px; background:#eee; border-radius:6px; display:flex; align-items:center; justify-content:center; color:#999;">Немає фото</div>`;
-
-  el.innerHTML = `
-    ${img}
-    <h3 style="margin:0 0 4px;">${p.title || "Без назви"}</h3>
-    <p style="margin:0; font-style:italic; color:#6d5d72;">${p.series || ""}</p>
-    <p style="margin:4px 0 0; font-size:14px;">Косплеєр: ${p.cosplayer || "—"}</p>
-  `;
+function render(){
+  renderPage(document.getElementById("left"), pages[cur*2]);
+  renderPage(document.getElementById("right"), pages[cur*2+1]);
+  document.getElementById("label").textContent = pages.length ? `${cur+1} / ${Math.ceil(pages.length/2)}` : "Порожній";
+  document.getElementById("prev").disabled = cur<=0;
+  document.getElementById("next").disabled = cur >= Math.ceil(pages.length/2)-1;
 }
-
-function render() {
-  const left = pages[current * 2];
-  const right = pages[current * 2 + 1];
-  renderPage(document.getElementById("page-left"), left);
-  renderPage(document.getElementById("page-right"), right);
-  document.getElementById("label").textContent = pages.length ? `${current + 1} / ${Math.ceil(pages.length / 2)}` : "Порожній";
-  document.getElementById("prev").disabled = current <= 0;
-  document.getElementById("next").disabled = current >= Math.ceil(pages.length / 2) - 1;
-}
-
-document.getElementById("prev").onclick = () => { if (current > 0) { current--; render(); } };
-document.getElementById("next").onclick = () => { if (current < Math.ceil(pages.length / 2) - 1) { current++; render(); } };
-
-async function load() {
-  try {
-    const snap = await getDoc(doc(db, "settings", "album"));
-    if (snap.exists()) {
-      const data = snap.data();
-      document.getElementById("albumTitle").textContent = data.title || "Альбом";
-      pages = data.pages || [];
+document.getElementById("prev").onclick = () => { if(cur>0){ cur--; render(); } };
+document.getElementById("next").onclick = () => { if(cur < Math.ceil(pages.length/2)-1){ cur++; render(); } };
+async function load(){
+  try{
+    const snap = await getDoc(doc(db,"settings","album"));
+    if(snap.exists()){
+      const d = snap.data();
+      document.getElementById("albumTitle").textContent = d.title || "Альбом";
+      pages = d.pages || [];
     }
-  } catch (err) {
-    console.error(err);
-  }
+  }catch(e){ console.error(e); }
   render();
 }
-
 load();
 </script>
 </body>
