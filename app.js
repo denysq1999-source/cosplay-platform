@@ -50,9 +50,6 @@ document.addEventListener("DOMContentLoaded", () => {
       password_placeholder: "Пароль",
       err_invalid: "Невірний email або пароль.",
       err_reg: "Помилка реєстрації. Перевірте дані.",
-      admin_panel_title: "Панель Адміністратора",
-      url_placeholder: "Посилання на картинку з Google Диска...",
-      add_btn: "Додати",
       delete_btn: "Видалити",
       empty_gallery: "Галерея порожня."
     },
@@ -71,9 +68,6 @@ document.addEventListener("DOMContentLoaded", () => {
       password_placeholder: "Password",
       err_invalid: "Invalid email or password.",
       err_reg: "Registration error. Check your data.",
-      admin_panel_title: "Admin Panel",
-      url_placeholder: "Google Drive image URL...",
-      add_btn: "Add",
       delete_btn: "Delete",
       empty_gallery: "Gallery is empty."
     }
@@ -87,11 +81,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const authSubmitBtn = document.getElementById('auth-submit-btn');
   const errorContainer = document.getElementById('error-container');
   const btnAdmin = document.getElementById('btn-admin');
-  const adminModal = document.getElementById('admin-modal');
-  const closeAdminModalBtn = document.getElementById('close-admin-modal-btn');
   const galleryEl = document.getElementById('gallery');
-  const imageUrlInput = document.getElementById('image-url-input');
-  const addImageBtn = document.getElementById('add-image-btn');
 
   const updateLangUI = () => {
     document.querySelectorAll('[data-i18n]').forEach(el => {
@@ -139,11 +129,6 @@ document.addEventListener("DOMContentLoaded", () => {
   if (btnRegister) btnRegister.addEventListener('click', () => openModal('register'));
   if (closeModalBtn) closeModalBtn.addEventListener('click', () => authModal.classList.add('hidden'));
   if (authModal) authModal.addEventListener('click', (e) => { if (e.target === authModal) authModal.classList.add('hidden'); });
-
-  // Керування кнопкою та модалкою адмінки
-  if (btnAdmin) btnAdmin.addEventListener('click', () => adminModal.classList.remove('hidden'));
-  if (closeAdminModalBtn) closeAdminModalBtn.addEventListener('click', () => adminModal.classList.add('hidden'));
-  if (adminModal) adminModal.addEventListener('click', (e) => { if (e.target === adminModal) adminModal.classList.add('hidden'); });
 
   if (btnGoogle) {
     btnGoogle.addEventListener('click', async () => {
@@ -199,22 +184,6 @@ document.addEventListener("DOMContentLoaded", () => {
       btnAdmin.classList.add('hidden');
     }
   });
-
-  if (addImageBtn && imageUrlInput) {
-    addImageBtn.addEventListener('click', async () => {
-      const url = imageUrlInput.value.trim();
-      if (!url) return;
-      try {
-        await addDoc(collection(db, "cosplays"), { url: url, createdAt: new Date() });
-        imageUrlInput.value = '';
-        adminModal.classList.add('hidden');
-        loadGalleryFromFirestore();
-      } catch (error) { 
-        console.error(error); 
-        alert("Помилка доступу."); 
-      }
-    });
-  }
 
   function extractGoogleDriveFileId(url) {
     if (!url) return null;
