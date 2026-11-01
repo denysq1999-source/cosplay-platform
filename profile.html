@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Особистий кабінет — Косплей Галерея</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <header class="header">
+    <h1 data-i18n="profile_title">Особистий кабінет</h1>
+    <div style="display:flex; align-items:center; gap:16px;">
+      <div class="lang-switcher" data-lang="uk">
+        <button id="lang-uk" class="lang-btn active">UK</button>
+        <button id="lang-en" class="lang-btn">EN</button>
+      </div>
+      <a href="index.html" class="btn btn-secondary" data-i18n="back_btn">← На галерею</a>
+    </div>
+  </header>
+
+  <div id="profile-content" class="admin-layout hidden" style="max-width: 520px; margin: 0 auto;">
+    <div class="albums-section" style="width:100%;">
+      <div>
+        <label data-i18n="email_label">Email</label>
+        <div id="user-email" style="padding:10px; background:rgba(0,0,0,.25); border-radius:8px; font-size:14px;"></div>
+      </div>
+
+      <div style="margin-top: 20px;">
+        <label data-i18n="providers_label">Способи входу</label>
+        <div id="providers-list" style="font-size:14px; color:#ccc;"></div>
+      </div>
+
+      <div id="link-password-section" style="margin-top: 24px;">
+        <label data-i18n="set_password_label">Встановити пароль (для входу без Google)</label>
+        <input type="password" id="new-password" data-i18n-placeholder="password_placeholder" placeholder="Новий пароль" style="width:100%; margin-top:6px;">
+        <input type="password" id="confirm-password" placeholder="Підтвердіть пароль" style="width:100%; margin-top:8px;">
+        <button class="admin-btn" id="btn-set-password" style="margin-top:12px;" data-i18n="set_password_btn">Встановити пароль</button>
+      </div>
+
+      <div id="profile-status" style="font-size:13px; margin-top:16px; color:#aaa;"></div>
+    </div>
+  </div>
+
+  <div id="status" style="margin-top:40px; text-align:center; color:#888;" data-i18n="checking_access">Перевірка...</div>
+
+  <script type="module" src="js/profile.js?v=1"></script>
+</body>
+</html>
