@@ -1,9 +1,14 @@
-// Імпортуємо необхідні модулі Firebase (використовуємо CDN)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { getFirestore, collection, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { 
+  getAuth, 
+  GoogleAuthProvider, 
+  signInWithPopup, 
+  signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword, 
+  signOut, 
+  onAuthStateChanged 
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-// Твої реальні налаштування Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyBnS9-bQngWjNxM1rKz_qRbrQopSd1aAqA",
   authDomain: "cosplay-platform.firebaseapp.com",
@@ -13,103 +18,107 @@ const firebaseConfig = {
   appId: "1:524210919675:web:929740053092247656f85e"
 };
 
-// Ініціалізація Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
 
-// Елементи сторінки
+// Елементи інтерфейсу
 const authSection = document.getElementById('auth-section');
 const appSection = document.getElementById('app-section');
-const loginBtn = document.getElementById('login-btn');
+const tabLogin = document.getElementById('tab-login');
+const tabRegister = document.getElementById('tab-register');
+const loginForm = document.getElementById('login-form');
+const registerForm = document.getElementById('register-form');
+const googleLoginBtn = document.getElementById('google-login-btn');
 const logoutBtn = document.getElementById('logout-btn');
 const userInfo = document.getElementById('user-info');
-const galleryEl = document.getElementById('gallery');
+const errorContainer = document.getElementById('error-container');
 
-// 1. Кнопка входу через Google
-loginBtn.addEventListener('click', async () => {
-  try {
-    await signInWithPopup(auth, provider);
-  } catch (error) {
-    console.error("Помилка входу:", error);
-    alert("Не вдалося увійти через Google.");
-  }
-});
+// Перемикання вкладок із перевіркою
+if (tabLogin && tabRegister) {
+  tabLogin.addEventListener('click', () => {
+    tabLogin.classList.add('active');
+    tabRegister.classList.remove('active');
+    if (loginForm) loginForm.classList.remove('hidden');
+    if (registerForm) registerForm.classList.add('hidden');
+    if (errorContainer) errorContainer.textContent = '';
+  });
 
-// 2. Кнопка виходу
-logoutBtn.addEventListener('click', async () => {
-  try {
-    await signOut(auth);
-  } catch (error) {
-    console.error("Помилка виходу:", error);
-  }
-});
+  tabRegister.addEventListener('click', () => {
+    tabRegister.classList.add('active');
+    tabLogin.classList.remove('active');
+    if (registerForm) registerForm.classList.remove('hidden');
+    if (loginForm) loginForm.classList.add('hidden');
+    if (errorContainer) errorContainer.textContent = '';
+  });
+}
 
-// 3. Відстеження стану користувача
+// Реєстрація
+if (registerForm) {
+  registerForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (errorContainer) errorContainer.textContent = '';
+    const email = document.getElementById('reg-email').value;
+    const password = document.getElementById('reg-password').value;
+
+    try {
+      await createUserWithEmailAndPassword(auth, email, password);
+    } catch (error) {
+      console.error("Помилка реєстрації:", error);
+      if (errorContainer) errorContainer.textContent = "Помилка реєстрації: перевірте введені дані.";
+    }
+  });
+}
+
+// Вхід за поштою
+if (loginForm) {
+  loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (errorContainer) errorContainer.textContent = '';
+    const email = document.getElementById('login-email').value;
+    const password = document.getElementById('login-password').value;
+
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+    } catch (error) {
+      console.error("Помилка входу:", error);
+      if (errorContainer) errorContainer.textContent = "Невірний email або пароль.";
+    }
+  });
+}
+
+// Вхід через Google
+if (googleLoginBtn) {
+  googleLoginBtn.addEventListener('click', async () => {
+    if (errorContainer) errorContainer.textContent = '';
+    try {
+      await signInWithPopup(auth, provider);
+    } catch (error) {
+      console.error("Помилка входу через Google:", error);
+      if (errorContainer) errorContainer.textContent = "Не вдалося увійти через Google.";
+    }
+  });
+}
+
+// Вихід
+if (logoutBtn) {
+  logoutBtn.addEventListener('click', async () => {
+    try {
+      await signOut(auth);
+    } catch (error) {
+      console.error("Помилка виходу:", error);
+    }
+  });
+}
+
+// Статус користувача
 onAuthStateChanged(auth, (user) => {
   if (user) {
-    authSection.classList.add('hidden');
-    appSection.classList.remove('hidden');
-    userInfo.textContent = user.email;
-    
-    // Завантажуємо галерею з бази даних
-    loadGalleryFromFirestore();
+    if (authSection) authSection.classList.add('hidden');
+    if (appSection) appSection.classList.remove('hidden');
+    if (userInfo) userInfo.textContent = user.email;
   } else {
-    authSection.classList.remove('hidden');
-    appSection.classList.add('hidden');
-    galleryEl.innerHTML = '';
+    if (authSection) authSection.classList.remove('hidden');
+    if (appSection) appSection.classList.add('hidden');
   }
 });
-
-// --- Функції для Google Диска ---
-
-function extractGoogleDriveFileId(url) {
-  if (!url) return null;
-  const patterns = [
-    /\/file\/d\/([a-zA-Z0-9_-]+)/,
-    /[?&]id=([a-zA-Z0-9_-]+)/,
-    /\/d\/([a-zA-Z0-9_-]+)/
-  ];
-  for (const pattern of patterns) {
-    const match = url.match(pattern);
-    if (match && match[1]) return match[1];
-  }
-  return null;
-}
-
-function getDriveImageUrl(url, size = 1000) {
-  const fileId = extractGoogleDriveFileId(url);
-  if (!fileId) return '';
-  return `https://drive.google.com/thumbnail?id=${fileId}&sz=w${size}`;
-}
-
-// Завантаження картинок із Firestore (колекція cosplays)
-async function loadGalleryFromFirestore() {
-  galleryEl.innerHTML = '<p style="color: #aaa;">Завантаження галереї...</p>';
-  try {
-    const querySnapshot = await getDocs(collection(db, "cosplays"));
-    galleryEl.innerHTML = '';
-    
-    if (querySnapshot.empty) {
-      galleryEl.innerHTML = '<p style="color: #aaa;">Поки що немає жодного посилання в базі.</p>';
-      return;
-    }
-
-    querySnapshot.forEach((doc) => {
-      const data = doc.data();
-      if (data.url) {
-        const imageUrl = getDriveImageUrl(data.url, 1000);
-        if (imageUrl) {
-          const card = document.createElement('div');
-          card.className = 'card';
-          card.innerHTML = `<img src="${imageUrl}" loading="lazy" referrerpolicy="no-referrer" alt="Cosplay photo">`;
-          galleryEl.appendChild(card);
-        }
-      }
-    });
-  } catch (error) {
-    console.error("Помилка завантаження бази:", error);
-    galleryEl.innerHTML = '<p style="color: #d93025;">Помилка завантаження даних з бази.</p>';
-  }
-}
