@@ -6,9 +6,7 @@ import {
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
   signOut, 
-  onAuthStateChanged,
-  linkWithCredential,
-  EmailAuthProvider
+  onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { 
   getFirestore, 
@@ -90,7 +88,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let siteTitle = dict[currentLang].site_title;
   let shadowColor = "#000000";
   let albumPages = [];
-  let albumIndex = 0;
+  let flipIndex = 0;
 
   const modalTitle = document.getElementById("modal-title");
   const authSubmitBtn = document.getElementById("auth-submit-btn");
@@ -100,10 +98,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const rememberCheckbox = document.getElementById("remember-password");
   const siteTitleEl = document.querySelector("header h1");
   const langSwitcher = document.querySelector(".lang-switcher");
-  const albumSection = document.getElementById("album-section");
-  const albumPageEl = document.getElementById("album-page");
-  const albumTitleDisplay = document.getElementById("album-title-display");
-  const albumLabel = document.getElementById("album-label");
+  const albumPreview = document.getElementById("album-preview");
+  const albumCover = document.getElementById("album-cover");
+  const albumPreviewTitle = document.getElementById("album-preview-title");
+  const flipModal = document.getElementById("flipbook-modal");
+  const flipLeft = document.getElementById("flip-left");
+  const flipRight = document.getElementById("flip-right");
+  const flipLabel = document.getElementById("flip-label");
 
   function applyTitleStyle() {
     if (siteTitleEl) {
@@ -290,49 +291,63 @@ document.addEventListener("DOMContentLoaded", () => {
     return m ? m[1] : null;
   }
 
-  function renderAlbumPage() {
-    if (!albumPages.length || !albumPageEl) return;
-    const p = albumPages[albumIndex];
+  function renderFlipPage(el, p) {
+    if (!p) { el.innerHTML = '<div style="height:100%; display:flex; align-items:center; justify-content:center; color:#999;">—</div>'; return; }
     const fileId = extractGoogleDriveFileId(p.src);
     const img = fileId 
       ? `<img src="https://drive.google.com/thumbnail?id=${fileId}&sz=w800" alt="${p.title}">`
-      : `<div style="width:220px;height:300px;background:#333;border-radius:8px;display:flex;align-items:center;justify-content:center;">Немає фото</div>`;
-
-    albumPageEl.innerHTML = `
-      ${img}
-      <div>
-        <h3 style="margin:0 0 8px;">${p.title || "Без назви"}</h3>
-        <p style="margin:0; color:#aaa; font-style:italic;">${p.series || ""}</p>
-        <p style="margin:6px 0 0; font-size:14px;">Косплеєр: ${p.cosplayer || "—"}</p>
-        <div style="margin-top:10px;">${(p.tags || []).map(t => `<span style="background:#f3a8c3;color:#3a1630;padding:2px 8px;border-radius:12px;font-size:12px;margin-right:4px;">${t}</span>`).join("")}</div>
-      </div>
-    `;
-    if (albumLabel) albumLabel.textContent = `${albumIndex + 1} / ${albumPages.length}`;
+      : `<div style="height:340px; background:#eee; border-radius:4px; display:flex; align-items:center; justify-content:center; color:#999;">Немає фото</div>`;
+    el.innerHTML = `${img}<h3 style="margin:0 0 4px;">${p.title || "Без назви"}</h3><p style="margin:0; font-style:italic; color:#6d5d72;">${p.series || ""}</p><p style="margin:4px 0 0; font-size:14px;">Косплеєр: ${p.cosplayer || "—"}</p>`;
   }
 
-  async function loadAlbum() {
+  function renderFlip() {
+    const left = albumPages[flipIndex * 2];
+    const right = albumPages[flipIndex * 2 + 1];
+    renderFlipPage(flipLeft, left);
+    renderFlipPage(flipRight, right);
+    if (flipLabel) flipLabel.textContent = albumPages.length ? `${flipIndex + 1} / ${Math.ceil(albumPages.length / 2)}` : "";
+    document.getElementById("flip-prev").disabled = flipIndex <= 0;
+    document.getElementById("flip-next").disabled = flipIndex >= Math.ceil(albumPages.length / 2) - 1;
+  }
+
+  async function loadAlbumPreview() {
     try {
       const snap = await getDoc(doc(db, "settings", "album"));
       if (snap.exists() && snap.data().pages?.length) {
         const data = snap.data();
         albumPages = data.pages;
-        albumIndex = 0;
-        if (albumTitleDisplay) albumTitleDisplay.textContent = data.title || "Альбом";
-        albumSection?.classList.remove("hidden");
-        renderAlbumPage();
+        const first = albumPages[0];
+        const fileId = extractGoogleDriveFileId(first?.src);
+        if (fileId && albumCover) {
+          albumCover.src = `https://drive.google.com/thumbnail?id=${fileId}&sz=w600`;
+        }
+        if (albumPreviewTitle) albumPreviewTitle.textContent = data.title || "Альбом";
+        albumPreview.style.display = "block";
       } else {
-        albumSection?.classList.add("hidden");
+        albumPreview.style.display = "none";
       }
     } catch (err) {
       console.error(err);
     }
   }
 
-  document.getElementById("album-prev")?.addEventListener("click", () => {
-    if (albumIndex > 0) { albumIndex--; renderAlbumPage(); }
+  albumPreview?.addEventListener("click", () => {
+    if (!albumPages.length) return;
+    flipIndex = 0;
+    renderFlip();
+    flipModal.classList.add("open");
   });
-  document.getElementById("album-next")?.addEventListener("click", () => {
-    if (albumIndex < albumPages.length - 1) { albumIndex++; renderAlbumPage(); }
+
+  document.getElementById("close-flip")?.addEventListener("click", () => {
+    flipModal.classList.remove("open");
+  });
+
+  document.getElementById("flip-prev")?.addEventListener("click", () => {
+    if (flipIndex > 0) { flipIndex--; renderFlip(); }
+  });
+
+  document.getElementById("flip-next")?.addEventListener("click", () => {
+    if (flipIndex < Math.ceil(albumPages.length / 2) - 1) { flipIndex++; renderFlip(); }
   });
 
   loadEmptyText();
@@ -349,7 +364,7 @@ document.addEventListener("DOMContentLoaded", () => {
       updateAdminButton(user);
       applyBackground(true);
       loadGallery();
-      loadAlbum();
+      loadAlbumPreview();
     } else {
       guestControls.classList.remove("hidden");
       userControls.classList.add("hidden");
