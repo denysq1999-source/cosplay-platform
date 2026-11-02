@@ -175,18 +175,74 @@ function resolveBackgroundImage(url, size = "w1920") {
   }
 }
 
+function getImageCandidates(source, size = "w1200") {
+  const raw = String(source || "").trim();
+  if (!raw) return [];
+  const fileId = extractGoogleDriveFileId(raw) || (/^[a-zA-Z0-9_-]{20,}$/.test(raw) ? raw : "");
+  if (fileId) {
+    const id = encodeURIComponent(fileId);
+    return [
+      `https://drive.google.com/thumbnail?id=${id}&sz=${size}`,
+      `https://lh3.googleusercontent.com/d/${id}=w${size.replace("w","")}`,
+      `https://drive.google.com/uc?export=view&id=${id}`
+    ];
+  }
+  try {
+    const parsed = new URL(raw);
+    return ["http:", "https:"].includes(parsed.protocol) ? [raw] : [];
+  } catch {
+    return [];
+  }
+}
+
 function setPreview(elId, source, size = "w800") {
   const el = document.getElementById(elId);
   if (!el) return;
-  const raw = String(source || "").trim();
-  const imageUrl = !raw ? "" : (
-    /^https?:\/\//i.test(raw)
-      ? resolveBackgroundImage(raw, size)
-      : `https://drive.google.com/thumbnail?id=${encodeURIComponent(raw)}&sz=${size}`
-  );
-  el.style.backgroundImage = imageUrl ? `url(${JSON.stringify(imageUrl)})` : "none";
+  el.innerHTML = "";
+  el.style.backgroundImage = "none";
+  const candidates = getImageCandidates(source, size);
+  if (!candidates.length) return;
+
+  const img = document.createElement("img");
+  img.alt = "Background image preview";
+  img.style.cssText = "width:100%;height:100%;display:block;object-fit:contain;border-radius:8px;";
+  let attempt = 0;
+  img.onerror = () => {
+    attempt += 1;
+    if (attempt < candidates.length) {
+      img.src = candidates[attempt];
+    } else {
+      img.remove();
+      const note = document.createElement("span");
+      note.textContent = currentLang === "en"
+        ? "Image unavailable — check Google Drive sharing access"
+        : "Зображення недоступне — перевір доступ до файлу Google Drive";
+      note.style.cssText = "display:flex;width:100%;height:100%;align-items:center;justify-content:center;padding:8px;box-sizing:border-box;color:#bbb;font-size:12px;text-align:center;";
+      el.appendChild(note);
+    }
+  };
+  img.src = candidates[0];
+  el.appendChild(img);
 }
 
+function applyAdminBackground(source, size = "w1920") {
+  const candidates = getImageCandidates(source, size);
+  if (!candidates.length) return;
+  const probe = new Image();
+  let attempt = 0;
+  probe.onload = () => {
+    document.body.style.backgroundImage = `url(${JSON.stringify(probe.src)})`;
+    document.body.style.backgroundSize = "cover";
+    document.body.style.backgroundPosition = "center";
+    document.body.style.backgroundAttachment = "fixed";
+  };
+  probe.onerror = () => {
+    attempt += 1;
+    if (attempt < candidates.length) probe.src = candidates[attempt];
+    else console.warn("Admin background could not be loaded. Check image URL and sharing permissions.");
+  };
+  probe.src = candidates[0];
+}
 function applyAdminButtonColors() {
   const root = document.documentElement;
   root.style.setProperty("--btn-primary", document.getElementById("primary-color")?.value || "#9c27b0");
@@ -226,13 +282,7 @@ async function loadAllSettings() {
       document.getElementById("bg-admin-url").value = bgUrl;
       if (bgData.size) document.getElementById("size-admin").value = bgData.size;
       setPreview("preview-admin", bgData.fileId || bgUrl, bgData.size || "w800");
-      const adminBackgroundUrl = resolveBackgroundImage(bgData.fileId || bgUrl, bgData.size || "w1920");
-      if (adminBackgroundUrl) {
-        document.body.style.backgroundImage = `url(${JSON.stringify(adminBackgroundUrl)})`;
-        document.body.style.backgroundSize = "cover";
-        document.body.style.backgroundPosition = "center";
-        document.body.style.backgroundAttachment = "fixed";
-      }
+      applyAdminBackground(bgData.fileId || bgUrl, bgData.size || "w1920");
     }
 
     const emptySnap = await getDoc(doc(db, "settings", "empty_text"));
@@ -483,7 +533,8 @@ document.getElementById("btn-reset-settings")?.addEventListener("click", async (
     const fileId = extractGoogleDriveFileId(url);
     try {
       await setDoc(doc(db, "settings", `background_${type}`), { url, imageUrl, fileId: fileId || "", size });
-      setPreview(`preview-${type}`, imageUrl, size);
+      setPreview(`preview-${type}`, fileId || url, size);
+      if (type === "admin") applyAdminBackground(fileId || url, size);
       alert(t("background_saved"));
     } catch (err) {
       console.error(err);
