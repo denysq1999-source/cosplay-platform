@@ -105,7 +105,7 @@
     position:relative; flex:1; min-height:0; margin:0 0 4.5%; padding:.55em; background:#fff; cursor:zoom-in;
     box-shadow:0 .25em .9em rgba(60,30,40,.28); transform:rotate(var(--tilt,0deg));
   }
-  .photo img, .ph{ width:100%; height:100%; display:block; object-fit:cover; background:#e9dfe6; }
+  .photo img, .ph{ width:100%; height:100%; display:block; object-fit:contain; background:#e9dfe6; }
   .ph{
     display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.4em; color:rgba(255,255,255,.92);
     background:linear-gradient(150deg, var(--g1), var(--g2));
@@ -323,7 +323,7 @@ const hue = i => (i * 47 + 330) % 360;
 function photoFace(p, side, faceIndex) {
   const i = PHOTOS.indexOf(p);
   const media = safeSrc(p.src)
-    ? `<img src="${esc(safeSrc(p.src))}" alt="${esc(p.title)}" draggable="false" decoding="async">`
+    ? `<img src="${esc(safeSrc(p.src))}" alt="${esc(p.title)}" draggable="false" decoding="async" style="object-fit:contain">`
     : `<div class="ph" style="--g1:hsl(${hue(i)} 52% 42%);--g2:hsl(${hue(i) + 40} 55% 28%)"><b>${esc(p.title.slice(0, 1))}</b><small>Додай фото в PHOTOS</small></div>`;
   const tilt = (i % 2 ? .7 : -.7).toFixed(1);
   return `<div class="sheet" data-photo="${esc(p.id)}">
@@ -657,7 +657,7 @@ async function loadAlbum() {
         cosplayer: p.cosplayer || '—',
         tags: Array.isArray(p.tags) ? p.tags : [],
         likes: Number(p.likes || 0),
-        src: p.src || ''
+        src: p.src || p.url || p.imageUrl || p.image || ''
       })) : [];
     } else {
       console.warn('Документ settings/album не знайдено у Firestore.');
