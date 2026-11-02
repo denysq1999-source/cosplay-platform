@@ -114,6 +114,18 @@ function setPreview(elId, fileId, size = "w800") {
   }
 }
 
+function applyAdminButtonColors() {
+  const root = document.documentElement;
+  root.style.setProperty("--btn-primary", document.getElementById("primary-color")?.value || "#9c27b0");
+  root.style.setProperty("--btn-secondary", document.getElementById("secondary-color")?.value || "#222222");
+  root.style.setProperty("--btn-google", document.getElementById("google-color")?.value || "#4285F4");
+  root.style.setProperty("--btn-text", document.getElementById("btn-text-color")?.value || "#ffffff");
+}
+
+["primary-color", "secondary-color", "google-color", "btn-text-color"].forEach(id => {
+  document.getElementById(id)?.addEventListener("input", applyAdminButtonColors);
+});
+
 async function loadAllSettings() {
   try {
     const guestSnap = await getDoc(doc(db, "settings", "background_guest"));
@@ -156,6 +168,7 @@ async function loadAllSettings() {
       if (data.google) document.getElementById("google-color").value = data.google;
       if (data.textColor) document.getElementById("btn-text-color").value = data.textColor;
     }
+    applyAdminButtonColors();
   } catch (err) {
     console.error(err);
   }
@@ -320,6 +333,7 @@ document.getElementById("btn-reset-settings")?.addEventListener("click", async (
     document.getElementById("secondary-color").value = "#222222";
     document.getElementById("google-color").value = "#4285F4";
     document.getElementById("btn-text-color").value = "#ffffff";
+    applyAdminButtonColors();
     document.getElementById("settings-status").textContent = "Кольори скинуто";
   } catch (err) {
     console.error(err);
