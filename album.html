@@ -90,15 +90,6 @@
   .face.back::before{ background:linear-gradient(to left, rgba(40,20,20,.30), rgba(40,20,20,0) 15%); }
   .shade{ position:absolute; inset:0; background:#000; opacity:0; pointer-events:none; z-index:4; }
 
-  /* м'який аркуш: під час гортання сторінка складається з вузьких смужок, що гнуться одна відносно одної */
-  .leaf.moving{ visibility:hidden; }
-  .curl{ position:absolute; left:50%; top:0; width:var(--pw); height:100%; transform-style:preserve-3d; pointer-events:none; }
-  .strip{ position:absolute; top:0; height:100%; transform-origin:left center; transform-style:preserve-3d; }
-  .sf{ position:absolute; inset:0; overflow:hidden; backface-visibility:hidden; -webkit-backface-visibility:hidden; box-shadow:0 12px 26px rgba(0,0,0,.14); }
-  .sf.back{ transform:rotateY(180deg); }
-  .si{ position:absolute; top:0; height:100%; }
-  .face.flat{ transform:none; backface-visibility:visible; -webkit-backface-visibility:visible; box-shadow:none; transition:none; }
-
   /* сторінка з фото */
   .sheet{ position:absolute; inset:0; padding:5.5% 7% 5%; display:flex; flex-direction:column; }
   .photo{
@@ -382,7 +373,6 @@ function applyAngle(i, a) {
 }
 function setShift(p) { book.style.setProperty('--shift', shiftFor(p, N, PW).toFixed(1) + 'px'); }
 function layout() {
-  dropCurl();
   leaves.forEach((l, i) => { l.style.zIndex = zFor(i, cur, N); applyAngle(i, i < cur ? 180 : 0); });
   setShift(cur);
 }
@@ -391,70 +381,13 @@ function updateUI() {
   $('prev').disabled = cur <= 0; $('next').disabled = cur >= N;
 }
 
-/* ===================== М'ЯКИЙ АРКУШ (згин сторінки) ===================== */
-const K = 10;                       // на скільки смужок ділиться аркуш під час гортання
-let curl = null;
-function sliceFace(face, which, j) {
-  const sf = document.createElement('div'); sf.className = 'sf ' + which;
-  const inner = document.createElement('div'); inner.className = 'si';
-  const offset = which === 'front' ? j : (K - 1 - j);        // задня сторінка дзеркальна, тому порядок смужок зворотний
-  inner.style.width = (K * 100) + '%'; inner.style.left = (-offset * 100) + '%';
-  const clone = face.cloneNode(true);
-  clone.classList.add('flat');
-  clone.querySelectorAll('.shade').forEach(n => n.remove());
-  inner.appendChild(clone); sf.appendChild(inner);
-  const sh = document.createElement('div'); sh.className = 'shade'; sf.appendChild(sh);
-  return sf;
-}
-function startCurl(idx) {
-  if (curl && curl.idx === idx) return curl;
-  dropCurl();
-  const leaf = leaves[idx];
-  const front = leaf.querySelector('.face.front'), back = leaf.querySelector('.face.back');
-  const root = document.createElement('div'); root.className = 'curl'; root.style.zIndex = 1000;
-  const strips = []; let parent = root;
-  for (let j = 0; j < K; j++) {
-    const s = document.createElement('div'); s.className = 'strip';
-    s.style.width = j === 0 ? (100 / K) + '%' : '100%';
-    s.style.left = j === 0 ? '0' : '100%';
-    s.appendChild(sliceFace(front, 'front', j)); s.appendChild(sliceFace(back, 'back', j));
-    parent.appendChild(s); strips.push(s); parent = s;
-  }
-  book.appendChild(root); leaf.classList.add('moving');
-  curl = { idx, root, strips, c: 0, lastA: null, lastT: 0 };
-  return curl;
-}
-function dropCurl() {
-  if (!curl) return;
-  curl.root.remove(); leaves[curl.idx] && leaves[curl.idx].classList.remove('moving');
-  curl = null;
-}
-// a — кут біля корінця; dir — куди тягнуть (+1 вперед, -1 назад): вільний край трохи випереджає корінець
-function moveLeaf(idx, a, dir) {
-  const c = startCurl(idx), now = performance.now();
-  if (c.lastA !== null) {
-    const v = (a - c.lastA) / Math.max(1, now - c.lastT);          // градусів за мс
-    c.c += (clamp(v * 40 + dir * 10, -30, 30) - c.c) * .25;          // плавно, щоб згин не смикався
-  } else c.c = dir * 6;
-  c.lastA = a; c.lastT = now;
-  const env = Math.min(1, 4 * Math.sin(a * Math.PI / 180));          // біля краю ходу згин зникає
-  let prev = 0;
-  c.strips.forEach((el, j) => {
-    const th = clamp(a + c.c * env * Math.pow(j / (K - 1), 1.4), 0, 180);
-    el.style.transform = `rotateY(${-(th - prev)}deg)`; prev = th;
-    const op = (Math.sin(th * Math.PI / 180) * .5).toFixed(3);       // освітлення міняється вздовж згину
-    el.children[0].lastChild.style.opacity = op; el.children[1].lastChild.style.opacity = op;
-  });
-  setShift(idx + a / 180);
-}
-
 /* ===================== АНІМАЦІЯ ===================== */
 function tween(idx, from, to, dur, ease, done) {
   busy = true; leaves[idx].style.zIndex = 1000;
   const t0 = performance.now(), d = reduceMotion ? 1 : dur;
   (function f(now) {
     const k = Math.min(1, (now - t0) / d), a = from + (to - from) * ease(k);
-    moveLeaf(idx, a, to > from ? 1 : -1);
+    applyAngle(idx, a);
     if (k < 1) requestAnimationFrame(f); else { busy = false; done && done(); }
   })(t0);
 }
@@ -478,11 +411,11 @@ book.addEventListener('pointermove', e => {
   if (!drag) return;
   if (!drag.moved) {
     if (Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0) < 6) return;
-    drag.moved = true; book.classList.add('grabbing'); startCurl(drag.idx); swish(.8);
+    drag.moved = true; book.classList.add('grabbing'); swish(.8);
   }
   const far = drag.side === 'r' ? drag.spineX - drag.pw : drag.spineX + drag.pw;
   drag.a = drag.side === 'r' ? angleForward(drag.x0, e.clientX, far) : angleBackward(drag.x0, e.clientX, far);
-  moveLeaf(drag.idx, drag.a, drag.side === 'r' ? 1 : -1);
+  applyAngle(drag.idx, drag.a);
   drag.hist.push({ x: e.clientX, t: performance.now() }); if (drag.hist.length > 5) drag.hist.shift();
 });
 function endDrag(e, cancelled) {
