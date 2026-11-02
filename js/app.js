@@ -306,25 +306,46 @@ document.addEventListener("DOMContentLoaded", () => {
         albumPreview.style.display = "none";
         return;
       }
+
+      // The outside cover is shown on the gallery shelf. The intro text remains
+      // inside the book and is only visible after opening the magazine.
       const first = pages[0] || {};
-      const imageUrl = first.src || first.url || first.imageUrl || first.image || "";
-      const fileId = extractGoogleDriveFileId(imageUrl);
-      if (albumCover) {
-        albumCover.src = fileId
-          ? `https://drive.google.com/thumbnail?id=${fileId}&sz=w600`
-          : imageUrl;
-        albumCover.alt = data.title || "Обкладинка альбому";
-        albumCover.onerror = () => { albumCover.removeAttribute("src"); };
+      const coverSource = data.coverImage || data.frontCoverImage || data.introImage ||
+        data.firstPageImage || first.src || first.url || first.imageUrl || first.image || "";
+      const fileId = extractGoogleDriveFileId(coverSource);
+      const coverUrl = fileId
+        ? `https://drive.google.com/thumbnail?id=${fileId}&sz=w1200`
+        : coverSource;
+
+      const format = ["4:5","3:4","2:3","1:1","16:9"].includes(data.pageFormat)
+        ? data.pageFormat : "4:5";
+      const [ratioW, ratioH] = format.split(":").map(Number);
+      const albumCard = document.getElementById("album-card");
+      if (albumCard) {
+        albumCard.style.setProperty("--album-ratio", `${ratioW} / ${ratioH}`);
+        albumCard.setAttribute("aria-label", data.title
+          ? `Відкрити журнал: ${data.title}`
+          : "Відкрити журнал");
       }
-      if (albumPreviewTitle) albumPreviewTitle.textContent = data.title || "Альбом";
-      if (albumPreviewCount) albumPreviewCount.textContent = `${pages.length} фото · Відкрити книжковий альбом →`;
+
+      if (albumCover) {
+        albumCover.onload = () => { albumCover.style.visibility = "visible"; };
+        albumCover.onerror = () => {
+          albumCover.removeAttribute("src");
+          albumCover.style.visibility = "hidden";
+          console.warn("Не вдалося завантажити обкладинку журналу. Перевір посилання та доступ Google Drive.");
+        };
+        albumCover.style.visibility = "hidden";
+        albumCover.src = coverUrl;
+        albumCover.alt = data.title ? `Обкладинка журналу «${data.title}»` : "Обкладинка журналу";
+      }
+
       albumPreview.style.display = "block";
     } catch (err) {
       console.error("Не вдалося завантажити прев'ю альбому:", err);
       albumPreview.style.display = "none";
     }
   }
-
   loadEmptyText();
   loadSiteTitle();
   loadButtonColors();
