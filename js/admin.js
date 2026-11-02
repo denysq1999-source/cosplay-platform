@@ -196,7 +196,7 @@ function updateIntroImagePreview() {
   const preview = document.getElementById("album-intro-preview");
   if (!input || !preview) return;
   const raw = input.value.trim();
-  const match = raw.match(/drive\\.google\\.com\\/file\\/d\\/([a-zA-Z0-9_-]+)/) || raw.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  const match = raw.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/) || raw.match(/[?&]id=([a-zA-Z0-9_-]+)/);
   const src = raw.includes("drive.google.com") && match
     ? `https://drive.google.com/thumbnail?id=${match[1]}&sz=w600`
     : raw;
