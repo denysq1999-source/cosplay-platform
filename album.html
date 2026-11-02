@@ -6,76 +6,676 @@
 <title>Альбом косплеєра</title>
 <style>
   :root{
-    --ink:#2b2230; --paper:#fbf6ee;
-    --sakura:#f3a8c3; --wine:#3a1630;
-    --pw:400px; --ph:540px;
+    --ink:#2b2230; --paper:#fbf6ee; --paper-2:#f3ebdd;
+    --sakura:#f3a8c3; --wine:#3a1630; --gold:#d8b46a;
+    --pw:420px; --ph:571px; --shift:0px;
+    color-scheme: dark;
   }
   *{ box-sizing:border-box; }
-  body{ margin:0; background:#150f1c; color:#f6eef3; font-family:system-ui,sans-serif; height:100vh; display:flex; flex-direction:column; }
-  .top{ display:flex; justify-content:space-between; align-items:center; padding:14px 20px; }
-  .stage{ flex:1; display:flex; align-items:center; justify-content:center; }
-  .book{ position:relative; width:calc(var(--pw)*2); height:var(--ph); perspective:1800px; }
-  .spread{ display:flex; height:100%; box-shadow:0 20px 50px rgba(0,0,0,.5); border-radius:8px; overflow:hidden; }
-  .page{ width:var(--pw); height:100%; background:var(--paper); color:var(--ink); padding:20px; display:flex; flex-direction:column; }
-  .page img{ width:100%; height:300px; object-fit:cover; border-radius:4px; margin-bottom:12px; }
-  .ctrl{ display:flex; justify-content:center; gap:16px; padding:16px; }
-  .btn{ background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.2); color:#fff; padding:8px 14px; border-radius:999px; cursor:pointer; }
-  .btn:disabled{ opacity:.35; }
+  html,body{ height:100%; margin:0; }
+  body{
+    display:flex; flex-direction:column; overflow:hidden;
+    font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;
+    color:#f6eef3; background:#150f1c;
+  }
+  button{ font:inherit; color:inherit; }
+
+  /* ---------- верхня панель ---------- */
+  .top{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 20px 6px; }
+  .top h1{ margin:0; font:600 22px/1.2 "Palatino Linotype","Book Antiqua",Palatino,Georgia,serif; letter-spacing:.01em; }
+  .top p{ margin:3px 0 0; font-size:13px; color:#bfb2c6; max-width:60ch; }
+  .iconbtn{
+    height:40px; min-width:40px; padding:0 12px; border-radius:999px; cursor:pointer;
+    border:1px solid rgba(255,255,255,.16); background:rgba(255,255,255,.07);
+    backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+    transition:background .18s, border-color .18s, transform .18s;
+  }
+  .iconbtn:hover{ background:rgba(255,255,255,.14); border-color:rgba(255,255,255,.32); }
+  .iconbtn:active{ transform:scale(.96); }
+  .iconbtn:disabled{ opacity:.35; cursor:default; }
+  .iconbtn:focus-visible, .chip:focus-visible, .like:focus-visible, .lb button:focus-visible{ outline:2px solid var(--sakura); outline-offset:3px; }
+
+  /* ---------- фільтр за тегами ---------- */
+  .tagbar{ display:flex; gap:8px; padding:6px 20px 8px; overflow-x:auto; scrollbar-width:none; }
+  .tagbar::-webkit-scrollbar{ display:none; }
+  .chip{
+    flex:none; height:32px; padding:0 14px; border-radius:999px; cursor:pointer; font-size:13px; font-weight:600;
+    border:1px solid rgba(255,255,255,.16); background:rgba(255,255,255,.06); color:#e8dcee; transition:all .18s;
+  }
+  .chip:hover{ border-color:rgba(255,255,255,.34); }
+  .chip[aria-pressed="true"]{ background:rgba(243,168,195,.22); border-color:var(--sakura); color:#ffe3ee; }
+
+  /* ---------- стіл і книга ---------- */
+  .stage{
+    position:relative; flex:1; min-height:0;
+    background:
+      radial-gradient(ellipse 60% 55% at 50% 38%, rgba(255,214,235,.20), transparent 70%),
+      repeating-linear-gradient(95deg, rgba(255,255,255,.012) 0 2px, transparent 2px 7px),
+      linear-gradient(#1d1426, #120c18);
+  }
+  .book{
+    position:absolute; left:50%; top:50%;
+    width:calc(var(--pw) * 2); height:var(--ph);
+    margin-left:calc(var(--pw) * -1 + var(--shift));
+    margin-top:calc(var(--ph) / -2);
+    perspective:2600px;
+    touch-action:none; user-select:none; -webkit-user-select:none; cursor:grab;
+  }
+  .book.grabbing{ cursor:grabbing; }
+  .book::before{                       /* тінь книги на столі */
+    content:""; position:absolute; left:2%; right:2%; bottom:-22px; height:40px;
+    background:radial-gradient(ellipse at center, rgba(0,0,0,.55), transparent 70%); filter:blur(8px); pointer-events:none;
+  }
+  .leaf{
+    position:absolute; left:50%; top:0; width:var(--pw); height:100%;
+    transform-origin:left center; transform-style:preserve-3d;
+  }
+  .face{
+    position:absolute; inset:0; overflow:hidden;
+    backface-visibility:hidden; -webkit-backface-visibility:hidden;
+    background-color:var(--paper);
+    background-image:radial-gradient(rgba(110,80,50,.05) 1px, transparent 1.2px);
+    background-size:6px 6px;
+    color:var(--ink);
+    font-size:calc(var(--pw) * .034);
+    box-shadow:0 1px 2px rgba(0,0,0,.3);
+    transition:box-shadow .15s;
+  }
+  .face.back{ transform:rotateY(180deg); }
+  .leaf.lift .face{ box-shadow:0 20px 46px rgba(0,0,0,.5); }
+  .face::before{                         /* тінь у корінці книги */
+    content:""; position:absolute; inset:0; pointer-events:none; z-index:3;
+    background:linear-gradient(to right, rgba(40,20,20,.30), rgba(40,20,20,0) 15%);
+  }
+  .face.back::before{ background:linear-gradient(to left, rgba(40,20,20,.30), rgba(40,20,20,0) 15%); }
+  .shade{ position:absolute; inset:0; background:#000; opacity:0; pointer-events:none; z-index:4; }
+
+  /* м'який аркуш: під час гортання сторінка складається з вузьких смужок, що гнуться одна відносно одної */
+  .leaf.moving{ visibility:hidden; }
+  .curl{ position:absolute; left:50%; top:0; width:var(--pw); height:100%; transform-style:preserve-3d; pointer-events:none; }
+  .strip{ position:absolute; top:0; height:100%; transform-origin:left center; transform-style:preserve-3d; }
+  .sf{ position:absolute; inset:0; overflow:hidden; backface-visibility:hidden; -webkit-backface-visibility:hidden; box-shadow:0 12px 26px rgba(0,0,0,.14); }
+  .sf.back{ transform:rotateY(180deg); }
+  .si{ position:absolute; top:0; height:100%; }
+  .face.flat{ transform:none; backface-visibility:visible; -webkit-backface-visibility:visible; box-shadow:none; transition:none; }
+
+  /* сторінка з фото */
+  .sheet{ position:absolute; inset:0; padding:5.5% 7% 5%; display:flex; flex-direction:column; }
+  .photo{
+    position:relative; flex:1; min-height:0; margin:0 0 4.5%; padding:.55em; background:#fff; cursor:zoom-in;
+    box-shadow:0 .25em .9em rgba(60,30,40,.28); transform:rotate(var(--tilt,0deg));
+  }
+  .photo img, .ph{ width:100%; height:100%; display:block; object-fit:cover; background:#e9dfe6; }
+  .ph{
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.4em; color:rgba(255,255,255,.92);
+    background:linear-gradient(150deg, var(--g1), var(--g2));
+  }
+  .ph b{ font:600 5.2em/1 "Palatino Linotype","Book Antiqua",Georgia,serif; opacity:.9; }
+  .ph small{ font-size:.9em; opacity:.75; }
+  .tape{ position:absolute; width:22%; height:6%; background:rgba(243,168,195,.55); box-shadow:0 1px 3px rgba(0,0,0,.15); }
+  .tape.t1{ top:-3%; left:-5%; transform:rotate(-38deg); }
+  .tape.t2{ top:-3%; right:-5%; transform:rotate(38deg); }
+  .cap h3{ margin:0; font:600 1.75em/1.15 "Palatino Linotype","Book Antiqua",Palatino,Georgia,serif; }
+  .cap .series{ margin:.15em 0 0; font-style:italic; color:#6d5d72; }
+  .cap .by{ margin:.1em 0 0; font-size:.92em; color:#8a7a8f; }
+  .row{ display:flex; align-items:center; justify-content:space-between; gap:.6em; margin-top:.7em; }
+  .tags{ display:flex; flex-wrap:wrap; gap:.4em; }
+  .tag{
+    padding:.2em .7em; border-radius:999px; font-size:.85em; cursor:pointer; border:1px solid #d8c9d6; background:#fff7fb; color:#6a4a62;
+  }
+  .tag:hover{ background:#ffe9f2; border-color:var(--sakura); }
+  .like{
+    flex:none; display:inline-flex; align-items:center; gap:.4em; padding:.35em .85em; border-radius:999px; cursor:pointer;
+    border:1px solid #e0c9d6; background:#fff; color:#a2557a; font-weight:700; transition:transform .15s, background .15s;
+  }
+  .like:hover{ background:#fff0f6; }
+  .like:active{ transform:scale(.94); }
+  .like[aria-pressed="true"]{ background:#f3a8c3; border-color:#f3a8c3; color:#fff; }
+  .pno{ position:absolute; bottom:1.2%; font-size:.8em; color:#a898ad; }
+  .face.front .pno{ right:6%; }  .face.back .pno{ left:6%; }
+
+  /* куточок-підказка «потягни» */
+  .corner{
+    position:absolute; bottom:0; width:7%; aspect-ratio:1; z-index:2; transition:width .2s;
+    pointer-events:none;
+  }
+  .face.front .corner{ right:0; background:linear-gradient(315deg, #cdbfa8 0 50%, rgba(0,0,0,0) 50%); box-shadow:-2px -2px 6px rgba(0,0,0,.18); }
+  .face.back  .corner{ left:0;  background:linear-gradient(45deg,  #cdbfa8 0 50%, rgba(0,0,0,0) 50%); box-shadow:2px -2px 6px rgba(0,0,0,.18); }
+  .book:hover .face .corner{ width:10%; }
+
+  /* обкладинка, вступ, кінець */
+  .face.cover{ background:radial-gradient(120% 90% at 30% 20%, #5b2349, var(--wine) 60%, #220c1d); color:#f3dfb2; background-image:none; }
+  .face.cover::after{ content:""; position:absolute; inset:4.5%; border:2px solid rgba(216,180,106,.65); border-radius:4px; pointer-events:none; }
+  .face.cover::before{ background:linear-gradient(to right, rgba(0,0,0,.4), rgba(0,0,0,0) 12%); }
+  .face.cover.back::before{ background:linear-gradient(to left, rgba(0,0,0,.4), rgba(0,0,0,0) 12%); }
+  .cv{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:14%; gap:.9em; }
+  .cv h2{ margin:0; font:600 2.4em/1.15 "Palatino Linotype","Book Antiqua",Palatino,Georgia,serif; text-shadow:0 1px 0 rgba(0,0,0,.4); }
+  .cv .rule{ width:34%; height:2px; background:linear-gradient(90deg, transparent, var(--gold), transparent); }
+  .cv p{ margin:0; font-size:1.05em; color:#e6cf9b; }
+  .page-note{ position:absolute; inset:0; padding:10% 9%; display:flex; flex-direction:column; gap:.7em; }
+  .page-note h3{ margin:0; font:600 1.9em/1.15 "Palatino Linotype","Book Antiqua",Palatino,Georgia,serif; }
+  .page-note p{ margin:0; line-height:1.55; color:#5b4b60; }
+  .page-note ul{ margin:.2em 0 0; padding-left:1.1em; color:#5b4b60; line-height:1.6; }
+  .page-note.center{ align-items:center; justify-content:center; text-align:center; }
+
+  /* ---------- нижня панель ---------- */
+  .ctrl{ display:flex; align-items:center; justify-content:center; gap:16px; padding:10px 20px 16px; }
+  .ctrl span{ min-width:170px; text-align:center; font-size:14px; color:#cdbfd3; }
+
+  /* ---------- перегляд на весь екран ---------- */
+  .lb{ position:fixed; inset:0; z-index:50; display:flex; align-items:center; justify-content:center; padding:20px; background:rgba(10,6,14,.88); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); }
+  .lb[hidden]{ display:none; }
+  .lb-card{ display:flex; flex-direction:column; gap:12px; max-width:min(92vw,1000px); max-height:94vh; }
+  .lb-img{ max-height:72vh; min-height:200px; min-width:min(80vw,420px); display:flex; justify-content:center; }
+  .lb-img img{ max-width:100%; max-height:72vh; border-radius:6px; box-shadow:0 20px 60px rgba(0,0,0,.6); }
+  .lb-img .ph{ width:min(70vw,420px); aspect-ratio:3/4; height:auto; border-radius:6px; font-size:16px; }
+  .lb-cap{ display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+  .lb-cap h3{ margin:0; font:600 22px/1.2 "Palatino Linotype","Book Antiqua",Palatino,Georgia,serif; }
+  .lb-cap p{ margin:2px 0 0; color:#bfb2c6; font-size:14px; }
+  .lb .like{ font-size:15px; }
+  .lb-nav{ position:absolute; top:50%; transform:translateY(-50%); }
+  .lb-nav.prev{ left:18px; } .lb-nav.next{ right:18px; }
+  .lb-close{ position:absolute; top:16px; right:18px; }
+
+  @media (max-width:640px){
+    .top p{ display:none; }
+    .ctrl span{ min-width:120px; font-size:13px; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .face, .iconbtn, .chip, .like, .corner{ transition:none; }
+  }
 </style>
 </head>
 <body>
+
 <header class="top">
-  <h1 id="albumTitle" style="margin:0; font-size:22px;">Альбом косплеєра</h1>
-  <a href="index.html" class="btn">← На галерею</a>
+  <div>
+    <h1 id="albumTitle">Альбом косплеєра</h1>
+    <p>Потягни кут сторінки мишкою, як у справжньому альбомі, або користуйся стрілками. Клік по фото відкриває його на весь екран.</p>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;flex:none"><a class="iconbtn" href="index.html" style="display:inline-flex;align-items:center;text-decoration:none">← На галерею</a><button class="iconbtn" id="snd" type="button" aria-pressed="true" aria-label="Звук гортання" title="Звук гортання">🔊</button></div>
 </header>
-<main class="stage">
-  <div class="book">
-    <div class="spread">
-      <div class="page" id="left"></div>
-      <div class="page" id="right"></div>
+
+<nav class="tagbar" id="tags" aria-label="Фільтр за тегами"></nav>
+
+<main class="stage" id="stage">
+  <div class="book" id="book"></div>
+</main>
+
+<footer class="ctrl">
+  <button class="iconbtn" id="prev" type="button" aria-label="Попередня сторінка">‹</button>
+  <span id="label" aria-live="polite"></span>
+  <button class="iconbtn" id="next" type="button" aria-label="Наступна сторінка">›</button>
+</footer>
+
+<div class="lb" id="lb" hidden role="dialog" aria-modal="true" aria-label="Фото на весь екран">
+  <button class="iconbtn lb-close" id="lbClose" type="button" aria-label="Закрити">✕</button>
+  <button class="iconbtn lb-nav prev" id="lbPrev" type="button" aria-label="Попереднє фото">‹</button>
+  <div class="lb-card">
+    <div class="lb-img" id="lbImg"></div>
+    <div class="lb-cap">
+      <div><h3 id="lbTitle"></h3><p id="lbMeta"></p></div>
+      <button class="like" id="lbLike" type="button" aria-pressed="false">♥ <span></span></button>
     </div>
   </div>
-</main>
-<footer class="ctrl">
-  <button class="btn" id="prev">‹</button>
-  <span id="label"></span>
-  <button class="btn" id="next">›</button>
-</footer>
+  <button class="iconbtn lb-nav next" id="lbNext" type="button" aria-label="Наступне фото">›</button>
+</div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-const firebaseConfig = { apiKey:"AIzaSyBnS9-bQngWjNxM1rKz_qRbrQopSd1aAqA", authDomain:"cosplay-platform.firebaseapp.com", projectId:"cosplay-platform", storageBucket:"cosplay-platform.firebasestorage.app", messagingSenderId:"524210919675", appId:"1:524210919675:web:929740053092247656f85e" };
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-let pages = [], cur = 0;
-function extractId(url){ if(!url) return null; const m = url.match(/\/d\/([a-zA-Z0-9_-]+)/)||url.match(/id=([a-zA-Z0-9_-]+)/); return m?m[1]:null; }
-function renderPage(el, p){
-  if(!p){ el.innerHTML = '<div style="height:100%;display:flex;align-items:center;justify-content:center;color:#999">—</div>'; return; }
-  const id = extractId(p.src);
-  const img = id ? `<img src="https://drive.google.com/thumbnail?id=${id}&sz=w800">` : '<div style="height:300px;background:#eee;border-radius:4px;display:flex;align-items:center;justify-content:center">Немає фото</div>';
-  el.innerHTML = `${img}<h3 style="margin:0 0 4px">${p.title||"Без назви"}</h3><p style="margin:0;font-style:italic;color:#6d5d72">${p.series||""}</p><p style="margin:4px 0 0;font-size:14px">Косплеєр: ${p.cosplayer||"—"}</p>`;
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBnS9-bQngWjNxM1rKz_qRbrQopSd1aAqA",
+  authDomain: "cosplay-platform.firebaseapp.com",
+  projectId: "cosplay-platform",
+  storageBucket: "cosplay-platform.firebasestorage.app",
+  messagingSenderId: "524210919675",
+  appId: "1:524210919675:web:929740053092247656f85e"
+};
+const firebaseApp = initializeApp(firebaseConfig);
+const db = getFirestore(firebaseApp);
+
+/* =====================================================================
+   НАЛАШТУВАННЯ: тут міняєш назву альбому та додаєш свої фото
+   ---------------------------------------------------------------------
+   src      — посилання на фото (шлях на сайті або повна адреса).
+              Порожній src показує кольорову заглушку з літерою.
+   tags     — теги персонажа/серії; за ними працює фільтр зверху.
+   likes    — стартова кількість лайків.
+   ===================================================================== */
+let ALBUM = { title: 'Альбом косплеєра', owner: 'Нікнейм косплеєра', year: '2026' };
+
+let PHOTOS = [];
+
+const LS_LIKES = 'cosplay:album:likes:v1';
+const LS_SOUND = 'cosplay:album:sound:v1';
+
+/* ===================== ЧИСТА ЛОГІКА (її перевіряють тести) ===================== */
+//#pure-start
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const toDeg = r => r * 180 / Math.PI;
+const easeInOut = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+const easeOut = t => 1 - Math.pow(1 - t, 3);
+
+// Тягнемо праву сторінку вліво: від точки захвату (кут 0) до лівого краю книги (кут 180).
+function angleForward(grabX, x, farX) {
+  const t = clamp((grabX - x) / Math.max(1, grabX - farX), 0, 1);
+  return toDeg(Math.acos(1 - 2 * t));
 }
-function render(){
-  renderPage(document.getElementById("left"), pages[cur*2]);
-  renderPage(document.getElementById("right"), pages[cur*2+1]);
-  document.getElementById("label").textContent = pages.length ? `${cur+1} / ${Math.ceil(pages.length/2)}` : "Порожній";
-  document.getElementById("prev").disabled = cur<=0;
-  document.getElementById("next").disabled = cur >= Math.ceil(pages.length/2)-1;
+// Тягнемо ліву сторінку вправо: від 180 до 0.
+function angleBackward(grabX, x, farX) {
+  const t = clamp((x - grabX) / Math.max(1, farX - grabX), 0, 1);
+  return 180 - toDeg(Math.acos(1 - 2 * t));
 }
-document.getElementById("prev").onclick = () => { if(cur>0){ cur--; render(); } };
-document.getElementById("next").onclick = () => { if(cur < Math.ceil(pages.length/2)-1){ cur++; render(); } };
-async function load(){
-  try{
-    const snap = await getDoc(doc(db,"settings","album"));
-    if(snap.exists()){
-      const d = snap.data();
-      document.getElementById("albumTitle").textContent = d.title || "Альбом";
-      pages = d.pages || [];
+// Зсув книги: закрита обкладинка по центру, відкрита книга по центру, задня обкладинка по центру.
+function shiftFor(p, N, pw) {
+  const a = clamp(p, 0, 1), b = clamp(p - (N - 1), 0, 1);
+  return -pw / 2 * (1 - a) + pw / 2 * b;
+}
+const zFor = (i, cur, N) => i < cur ? i : N - i;
+
+// Сторінки книги: обкладинка, вступ, фото, (порожня для парності), кінець, задня обкладинка.
+function buildFaces(photos) {
+  const faces = [{ kind: 'cover' }, { kind: 'intro' }];
+  photos.forEach(p => faces.push({ kind: 'photo', photo: p }));
+  if ((photos.length + 4) % 2 === 1) faces.push({ kind: 'blank' });
+  faces.push({ kind: 'end' }, { kind: 'back' });
+  return faces;
+}
+function pageLabel(cur, N) {
+  if (cur === 0) return 'Обкладинка';
+  if (cur === N) return 'Задня обкладинка';
+  return 'Сторінки ' + (2 * cur - 1) + '–' + (2 * cur);
+}
+function visiblePhotos(all, tag) { return tag ? all.filter(p => p.tags.includes(tag)) : all; }
+function topTags(all, max) {
+  const n = new Map();
+  all.forEach(p => p.tags.forEach(t => n.set(t, (n.get(t) || 0) + 1)));
+  return [...n.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'uk')).slice(0, max).map(e => e[0]);
+}
+const esc = (v = '') => String(v).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;');
+function safeSrc(u) {
+  const s = String(u || '').trim();
+  if (!s) return '';
+  const driveId = s.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/) || s.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if (s.includes('drive.google.com') && driveId) {
+    return `https://drive.google.com/thumbnail?id=${driveId[1]}&sz=w1200`;
+  }
+  return /^(https?:\/\/|\/(?!\/)|\.\/|\.\.\/|[\w-]+\/(?!\/)|data:image\/)/.test(s) ? s : '';
+}
+//#pure-end
+
+/* ===================== СТАН ===================== */
+const $ = id => document.getElementById(id);
+const book = $('book'), stage = $('stage');
+let faces = [], N = 0, leaves = [], cur = 0, PW = 420, PH = 571;
+let busy = false, drag = null, tag = '';
+const likes = new Set(JSON.parse(localStorage.getItem(LS_LIKES) || '[]'));
+let soundOn = localStorage.getItem(LS_SOUND) !== '0';
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+const likeCount = p => p.likes + (likes.has(p.id) ? 1 : 0);
+const photoById = id => PHOTOS.find(p => p.id === id);
+const hue = i => (i * 47 + 330) % 360;
+
+/* ===================== РЕНДЕР СТОРІНОК ===================== */
+function photoFace(p, side, faceIndex) {
+  const i = PHOTOS.indexOf(p);
+  const media = safeSrc(p.src)
+    ? `<img src="${esc(safeSrc(p.src))}" alt="${esc(p.title)}" draggable="false" decoding="async">`
+    : `<div class="ph" style="--g1:hsl(${hue(i)} 52% 42%);--g2:hsl(${hue(i) + 40} 55% 28%)"><b>${esc(p.title.slice(0, 1))}</b><small>Додай фото в PHOTOS</small></div>`;
+  const tilt = (i % 2 ? .7 : -.7).toFixed(1);
+  return `<div class="sheet" data-photo="${esc(p.id)}">
+    <div class="photo" data-open="${esc(p.id)}" style="--tilt:${tilt}deg">${media}<i class="tape t1"></i><i class="tape t2"></i></div>
+    <div class="cap"><h3>${esc(p.title)}</h3><p class="series">${esc(p.series)}</p><p class="by">Косплеєр: ${esc(p.cosplayer)}</p>
+      <div class="row"><div class="tags">${p.tags.map(t => `<button class="tag" type="button" data-tag="${esc(t)}">${esc(t)}</button>`).join('')}</div>
+      <button class="like" type="button" data-like="${esc(p.id)}" aria-pressed="false">♥ <span>${likeCount(p)}</span></button></div></div>
+    <span class="pno">${faceIndex}</span></div><i class="corner"></i>`;
+}
+function faceHTML(f, faceIndex) {
+  switch (f.kind) {
+    case 'cover':
+      return `<div class="cv"><h2>${esc(ALBUM.title)}</h2><div class="rule"></div><p>${esc(ALBUM.owner)}</p><p>${esc(ALBUM.year)}</p></div><i class="corner"></i>`;
+    case 'intro': {
+      const t = topTags(PHOTOS, 12);
+      return `<div class="page-note"><h3>Про альбом</h3>
+        <p>Тут зібрані роботи косплеєра: образи, персонажі та закадрові історії.</p>
+        <ul><li>Потягни кут сторінки або натискай ‹ ›</li><li>Клік по фото відкриває його на весь екран</li><li>Тег на сторінці залишає в альбомі лише ці фото</li></ul>
+        <p>Усього фото: <b>${PHOTOS.length}</b>. Теги: ${t.map(esc).join(', ')}.</p></div><span class="pno">${faceIndex}</span>`;
     }
-  }catch(e){ console.error(e); }
-  render();
+    case 'photo': return photoFace(f.photo, faceIndex % 2 ? 'l' : 'r', faceIndex);
+    case 'blank':
+      return `<div class="page-note center"><p>Місце для нових фото</p></div><span class="pno">${faceIndex}</span><i class="corner"></i>`;
+    case 'end':
+      return `<div class="page-note center"><h3>Дякую, що заглянули</h3><p>Нові образи додаються після кожного фестивалю.</p></div><span class="pno">${faceIndex}</span>`;
+    default: // back cover
+      return `<div class="cv"><div class="rule"></div><p>${esc(ALBUM.owner)}</p></div>`;
+  }
 }
-load();
+
+function build() {
+  faces = buildFaces(visiblePhotos(PHOTOS, tag));
+  N = faces.length / 2; cur = 0; busy = false;
+  book.innerHTML = '';
+  leaves = faces.reduce((acc, _, i) => {
+    if (i % 2) return acc;
+    const front = faces[i], back = faces[i + 1];
+    const el = document.createElement('div');
+    el.className = 'leaf';
+    el.innerHTML =
+      `<div class="face front ${front.kind === 'cover' ? 'cover' : ''}">${faceHTML(front, i)}<div class="shade"></div></div>` +
+      `<div class="face back ${back.kind === 'back' ? 'cover' : ''}">${faceHTML(back, i + 1)}<div class="shade"></div></div>`;
+    book.appendChild(el); acc.push(el); return acc;
+  }, []);
+  refreshLikes(); layout(); updateUI();
+}
+
+/* ===================== ПОЛОЖЕННЯ АРКУШІВ ===================== */
+function applyAngle(i, a) {
+  const l = leaves[i], s = Math.sin(a * Math.PI / 180);
+  l.style.transform = `rotateY(${-a}deg)`;
+  const sh = l.querySelectorAll('.shade');
+  sh[0].style.opacity = (s * .5).toFixed(3);
+  sh[1].style.opacity = (s * .5).toFixed(3);
+  l.classList.toggle('lift', a > 2 && a < 178);
+}
+function setShift(p) { book.style.setProperty('--shift', shiftFor(p, N, PW).toFixed(1) + 'px'); }
+function layout() {
+  dropCurl();
+  leaves.forEach((l, i) => { l.style.zIndex = zFor(i, cur, N); applyAngle(i, i < cur ? 180 : 0); });
+  setShift(cur);
+}
+function updateUI() {
+  $('label').textContent = pageLabel(cur, N);
+  $('prev').disabled = cur <= 0; $('next').disabled = cur >= N;
+}
+
+/* ===================== М'ЯКИЙ АРКУШ (згин сторінки) ===================== */
+const K = 10;                       // на скільки смужок ділиться аркуш під час гортання
+let curl = null;
+function sliceFace(face, which, j) {
+  const sf = document.createElement('div'); sf.className = 'sf ' + which;
+  const inner = document.createElement('div'); inner.className = 'si';
+  const offset = which === 'front' ? j : (K - 1 - j);        // задня сторінка дзеркальна, тому порядок смужок зворотний
+  inner.style.width = (K * 100) + '%'; inner.style.left = (-offset * 100) + '%';
+  const clone = face.cloneNode(true);
+  clone.classList.add('flat');
+  clone.querySelectorAll('.shade').forEach(n => n.remove());
+  inner.appendChild(clone); sf.appendChild(inner);
+  const sh = document.createElement('div'); sh.className = 'shade'; sf.appendChild(sh);
+  return sf;
+}
+function startCurl(idx) {
+  if (curl && curl.idx === idx) return curl;
+  dropCurl();
+  const leaf = leaves[idx];
+  const front = leaf.querySelector('.face.front'), back = leaf.querySelector('.face.back');
+  const root = document.createElement('div'); root.className = 'curl'; root.style.zIndex = 1000;
+  const strips = []; let parent = root;
+  for (let j = 0; j < K; j++) {
+    const s = document.createElement('div'); s.className = 'strip';
+    s.style.width = j === 0 ? (100 / K) + '%' : '100%';
+    s.style.left = j === 0 ? '0' : '100%';
+    s.appendChild(sliceFace(front, 'front', j)); s.appendChild(sliceFace(back, 'back', j));
+    parent.appendChild(s); strips.push(s); parent = s;
+  }
+  book.appendChild(root); leaf.classList.add('moving');
+  curl = { idx, root, strips, c: 0, lastA: null, lastT: 0 };
+  return curl;
+}
+function dropCurl() {
+  if (!curl) return;
+  curl.root.remove(); leaves[curl.idx] && leaves[curl.idx].classList.remove('moving');
+  curl = null;
+}
+// a — кут біля корінця; dir — куди тягнуть (+1 вперед, -1 назад): вільний край трохи випереджає корінець
+function moveLeaf(idx, a, dir) {
+  const c = startCurl(idx), now = performance.now();
+  if (c.lastA !== null) {
+    const v = (a - c.lastA) / Math.max(1, now - c.lastT);          // градусів за мс
+    c.c += (clamp(v * 40 + dir * 10, -30, 30) - c.c) * .25;          // плавно, щоб згин не смикався
+  } else c.c = dir * 6;
+  c.lastA = a; c.lastT = now;
+  const env = Math.min(1, 4 * Math.sin(a * Math.PI / 180));          // біля краю ходу згин зникає
+  let prev = 0;
+  c.strips.forEach((el, j) => {
+    const th = clamp(a + c.c * env * Math.pow(j / (K - 1), 1.4), 0, 180);
+    el.style.transform = `rotateY(${-(th - prev)}deg)`; prev = th;
+    const op = (Math.sin(th * Math.PI / 180) * .5).toFixed(3);       // освітлення міняється вздовж згину
+    el.children[0].lastChild.style.opacity = op; el.children[1].lastChild.style.opacity = op;
+  });
+  setShift(idx + a / 180);
+}
+
+/* ===================== АНІМАЦІЯ ===================== */
+function tween(idx, from, to, dur, ease, done) {
+  busy = true; leaves[idx].style.zIndex = 1000;
+  const t0 = performance.now(), d = reduceMotion ? 1 : dur;
+  (function f(now) {
+    const k = Math.min(1, (now - t0) / d), a = from + (to - from) * ease(k);
+    moveLeaf(idx, a, to > from ? 1 : -1);
+    if (k < 1) requestAnimationFrame(f); else { busy = false; done && done(); }
+  })(t0);
+}
+function flip(dir) {
+  if (busy) return;
+  if (dir > 0 && cur < N) { const i = cur; swish(1); tween(i, 0, 180, 850, easeInOut, () => { cur++; layout(); updateUI(); thud(.8); }); }
+  else if (dir < 0 && cur > 0) { const i = cur - 1; swish(1); tween(i, 180, 0, 850, easeInOut, () => { cur--; layout(); updateUI(); thud(.8); }); }
+}
+
+/* ===================== ГОРТАННЯ МИШКОЮ ===================== */
+book.addEventListener('pointerdown', e => {
+  if (busy || (e.pointerType === 'mouse' && e.button !== 0)) return;
+  const r = book.getBoundingClientRect(), spineX = r.left + r.width / 2, pw = r.width / 2;
+  const side = e.clientX >= spineX ? 'r' : 'l';
+  drag = { side, x0: e.clientX, y0: e.clientY, spineX, pw, moved: false, a: side === 'r' ? 0 : 180,
+           idx: side === 'r' ? cur : cur - 1, target: e.target, hist: [{ x: e.clientX, t: performance.now() }] };
+  if (drag.idx < 0 || drag.idx >= N) { drag = null; return; }
+  book.setPointerCapture(e.pointerId); ensureAudio();
+});
+book.addEventListener('pointermove', e => {
+  if (!drag) return;
+  if (!drag.moved) {
+    if (Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0) < 6) return;
+    drag.moved = true; book.classList.add('grabbing'); startCurl(drag.idx); swish(.8);
+  }
+  const far = drag.side === 'r' ? drag.spineX - drag.pw : drag.spineX + drag.pw;
+  drag.a = drag.side === 'r' ? angleForward(drag.x0, e.clientX, far) : angleBackward(drag.x0, e.clientX, far);
+  moveLeaf(drag.idx, drag.a, drag.side === 'r' ? 1 : -1);
+  drag.hist.push({ x: e.clientX, t: performance.now() }); if (drag.hist.length > 5) drag.hist.shift();
+});
+function endDrag(e, cancelled) {
+  if (!drag) return;
+  const d = drag; drag = null; book.classList.remove('grabbing');
+  if (!d.moved) { if (!cancelled) handleClick(d, e); return; }
+  const h = d.hist, v = h.length > 1 ? (h[h.length - 1].x - h[0].x) / Math.max(1, h[h.length - 1].t - h[0].t) : 0;
+  let complete = d.side === 'r' ? (d.a > 90 || v < -.45) : (d.a < 90 || v > .45);
+  if (cancelled) complete = false;
+  const target = d.side === 'r' ? (complete ? 180 : 0) : (complete ? 0 : 180);
+  const dur = 220 + Math.abs(target - d.a) / 180 * 420;
+  tween(d.idx, d.a, target, dur, easeOut, () => {
+    if (complete) { cur += d.side === 'r' ? 1 : -1; thud(.7); }
+    layout(); updateUI();
+  });
+}
+book.addEventListener('pointerup', e => endDrag(e, false));
+book.addEventListener('pointercancel', e => endDrag(e, true));
+
+book.addEventListener('click', e => {
+  if (e.detail !== 0) return;               // detail 0 = натиснули Enter/Space на кнопці
+  handleClick({ target: e.target, spineX: 0, pw: 1, side: 'r' }, { clientX: 0 });
+});
+
+function handleClick(d, e) {
+  const t = d.target;
+  const like = t.closest && t.closest('[data-like]');
+  if (like) { toggleLike(like.dataset.like); return; }
+  const tg = t.closest && t.closest('[data-tag]');
+  if (tg) { setTag(tg.dataset.tag); return; }
+  const ph = t.closest && t.closest('[data-open]');
+  if (ph) { openLB(ph.dataset.open); return; }
+  // клік по зовнішньому краю сторінки гортає її
+  const x = (e.clientX - (d.spineX - d.pw * (d.side === 'r' ? 0 : 1))) / d.pw;
+  const edge = d.side === 'r' ? x > .82 : x < .18;
+  if (edge) flip(d.side === 'r' ? 1 : -1);
+}
+
+$('next').onclick = () => flip(1);
+$('prev').onclick = () => flip(-1);
+addEventListener('keydown', e => {
+  if (!$('lb').hidden) {
+    if (e.key === 'Escape') closeLB(); else if (e.key === 'ArrowRight') stepLB(1); else if (e.key === 'ArrowLeft') stepLB(-1);
+    return;
+  }
+  if (e.key === 'ArrowRight') flip(1); else if (e.key === 'ArrowLeft') flip(-1);
+});
+
+/* ===================== ТЕГИ ===================== */
+function renderTags() {
+  const bar = $('tags');
+  bar.innerHTML = '';
+  ['', ...topTags(PHOTOS, 10)].forEach(t => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'chip'; b.textContent = t || 'Усі фото';
+    b.setAttribute('aria-pressed', String(t === tag));
+    b.onclick = () => setTag(t);
+    bar.appendChild(b);
+  });
+}
+function setTag(t) { tag = (t === tag) ? '' : t; renderTags(); build(); fit(); }
+
+/* ===================== ЛАЙКИ ===================== */
+function refreshLikes() {
+  document.querySelectorAll('[data-like]').forEach(b => {
+    const p = photoById(b.dataset.like); if (!p) return;
+    b.setAttribute('aria-pressed', String(likes.has(p.id)));
+    b.querySelector('span').textContent = likeCount(p);
+  });
+}
+function toggleLike(id) {
+  likes.has(id) ? likes.delete(id) : likes.add(id);
+  localStorage.setItem(LS_LIKES, JSON.stringify([...likes]));
+  refreshLikes();
+}
+$('lbLike').onclick = () => lbId && toggleLike(lbId);
+
+/* ===================== ПЕРЕГЛЯД НА ВЕСЬ ЕКРАН ===================== */
+let lbId = null;
+function openLB(id) {
+  const list = visiblePhotos(PHOTOS, tag), p = list.find(x => x.id === id) || photoById(id);
+  if (!p) return;
+  lbId = p.id;
+  const i = PHOTOS.indexOf(p);
+  $('lbImg').innerHTML = safeSrc(p.src)
+    ? `<img src="${esc(safeSrc(p.src))}" alt="${esc(p.title)}">`
+    : `<div class="ph" style="--g1:hsl(${hue(i)} 52% 42%);--g2:hsl(${hue(i) + 40} 55% 28%)"><b>${esc(p.title.slice(0, 1))}</b><small>Додай фото в PHOTOS</small></div>`;
+  $('lbTitle').textContent = p.title;
+  $('lbMeta').textContent = p.series + ' · косплеєр ' + p.cosplayer;
+  $('lbLike').dataset.like = p.id;
+  $('lb').hidden = false;
+  refreshLikes();
+}
+function closeLB() { $('lb').hidden = true; lbId = null; }
+function stepLB(d) {
+  const list = visiblePhotos(PHOTOS, tag), i = list.findIndex(x => x.id === lbId);
+  if (i < 0 || !list.length) return;
+  openLB(list[(i + d + list.length) % list.length].id);
+}
+$('lbClose').onclick = closeLB;
+$('lbNext').onclick = () => stepLB(1);
+$('lbPrev').onclick = () => stepLB(-1);
+$('lb').addEventListener('click', e => { if (e.target === $('lb')) closeLB(); });
+
+/* ===================== ЗВУК ГОРТАННЯ ЖУРНАЛУ ===================== */
+/* Звук створюється в браузері: шелест глянцевого паперу з легким тріском і глухий «ляпас», коли сторінка лягає.
+   Хочеш справжній запис — поклади mp3 поруч і впиши шлях у SOUND_FILE (наприклад 'sounds/page-turn.mp3'). */
+const SOUND_FILE = '';
+let ctx = null, bufRustle = null, bufThud = null, bufFile = null;
+function makeBuffers() {
+  const sr = ctx.sampleRate;
+  const n = Math.floor(sr * .55); bufRustle = ctx.createBuffer(1, n, sr);
+  const d = bufRustle.getChannelData(0); let lp = 0;
+  for (let i = 0; i < n; i++) {
+    const t = i / n, env = Math.pow(Math.sin(Math.PI * Math.min(1, t * 1.15)), 1.4) * (1 - t * .35);
+    const crack = Math.random() < .035 ? (Math.random() * 2 - 1) * 1.6 : 0;   // глянцевий папір тріщить
+    lp += ((Math.random() * 2 - 1) - lp) * .55;                              // трохи притлумлений шум
+    d[i] = (lp * .55 + crack) * env;
+  }
+  const m = Math.floor(sr * .14); bufThud = ctx.createBuffer(1, m, sr);
+  const e = bufThud.getChannelData(0);
+  for (let i = 0; i < m; i++) e[i] = ((Math.random() * 2 - 1) * .5 + Math.sin(i / sr * 2 * Math.PI * 95) * .8) * Math.pow(1 - i / m, 3);
+}
+function ensureAudio() {
+  if (ctx || !soundOn) return;
+  try {
+    ctx = new (window.AudioContext || window.webkitAudioContext)();
+    makeBuffers();
+    if (SOUND_FILE) fetch(SOUND_FILE).then(r => r.arrayBuffer()).then(b => ctx.decodeAudioData(b)).then(buf => { bufFile = buf; }).catch(() => {});
+  } catch { ctx = null; }
+}
+function play(buf, gain, rate, filterType, f0, f1) {
+  if (!soundOn) return; ensureAudio(); if (!ctx || !buf) return;
+  if (ctx.state === 'suspended') ctx.resume();
+  const t = ctx.currentTime, src = ctx.createBufferSource(); src.buffer = buf; src.playbackRate.value = rate;
+  const f = ctx.createBiquadFilter(); f.type = filterType; f.Q.value = .7;
+  f.frequency.setValueAtTime(f0, t); if (f1) f.frequency.exponentialRampToValueAtTime(f1, t + buf.duration / rate);
+  const g = ctx.createGain(); g.gain.value = gain;
+  src.connect(f); f.connect(g); g.connect(ctx.destination); src.start(t);
+}
+function swish(power) { ensureAudio(); play(bufFile || bufRustle, (bufFile ? .6 : .3) * power, bufFile ? 1 : .8 + Math.random() * .25, 'bandpass', 4200, 1600); }
+function thud(power) { ensureAudio(); if (!bufFile) play(bufThud, .5 * power, .95 + Math.random() * .1, 'lowpass', 500); }
+function paintSound() { const b = $('snd'); b.textContent = soundOn ? '🔊' : '🔈'; b.setAttribute('aria-pressed', String(soundOn)); }
+$('snd').onclick = () => { soundOn = !soundOn; localStorage.setItem(LS_SOUND, soundOn ? '1' : '0'); paintSound(); };
+
+/* ===================== РОЗМІР ПІД ЕКРАН ===================== */
+function fit() {
+  const w = stage.clientWidth, h = stage.clientHeight;
+  PW = Math.round(clamp(Math.min((w - 24) / 2, (h - 56) / 1.36, 480), 120, 480));
+  PH = Math.round(PW * 1.36);
+  const root = document.documentElement.style;
+  root.setProperty('--pw', PW + 'px'); root.setProperty('--ph', PH + 'px');
+  if (leaves.length) setShift(cur);
+}
+addEventListener('resize', fit);
+
+/* ===================== ЗАВАНТАЖЕННЯ АЛЬБОМУ З FIRESTORE ===================== */
+async function loadAlbum() {
+  try {
+    const snap = await getDoc(doc(db, 'settings', 'album'));
+    if (snap.exists()) {
+      const data = snap.data() || {};
+      ALBUM = {
+        title: data.title || 'Альбом косплеєра',
+        owner: data.owner || data.cosplayer || 'Косплеєр',
+        year: data.year || '2026'
+      };
+      PHOTOS = Array.isArray(data.pages) ? data.pages.map((p, i) => ({
+        id: String(p.id || `photo-${i + 1}`),
+        title: p.title || 'Без назви',
+        series: p.series || '',
+        cosplayer: p.cosplayer || '—',
+        tags: Array.isArray(p.tags) ? p.tags : [],
+        likes: Number(p.likes || 0),
+        src: p.src || ''
+      })) : [];
+    } else {
+      console.warn('Документ settings/album не знайдено у Firestore.');
+    }
+  } catch (error) {
+    console.error('Не вдалося завантажити альбом з Firestore:', error);
+    $('label').textContent = 'Не вдалося завантажити альбом';
+  }
+
+  $('albumTitle').textContent = ALBUM.title;
+  paintSound();
+  renderTags();
+  fit();
+  build();
+  fit();
+}
+
+loadAlbum();
 </script>
 </body>
 </html>
