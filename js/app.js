@@ -87,8 +87,6 @@ document.addEventListener("DOMContentLoaded", () => {
   let emptyText = dict[currentLang].empty_gallery;
   let siteTitle = dict[currentLang].site_title;
   let shadowColor = "#000000";
-  let albumPages = [];
-  let flipIndex = 0;
 
   const modalTitle = document.getElementById("modal-title");
   const authSubmitBtn = document.getElementById("auth-submit-btn");
@@ -101,10 +99,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const albumPreview = document.getElementById("album-preview");
   const albumCover = document.getElementById("album-cover");
   const albumPreviewTitle = document.getElementById("album-preview-title");
-  const flipModal = document.getElementById("flipbook-modal");
-  const flipLeft = document.getElementById("flip-left");
-  const flipRight = document.getElementById("flip-right");
-  const flipLabel = document.getElementById("flip-label");
+  const albumPreviewCount = document.getElementById("album-preview-count");
 
   function applyTitleStyle() {
     if (siteTitleEl) {
@@ -291,64 +286,43 @@ document.addEventListener("DOMContentLoaded", () => {
     return m ? m[1] : null;
   }
 
-  function renderFlipPage(el, p) {
-    if (!p) { el.innerHTML = '<div style="height:100%; display:flex; align-items:center; justify-content:center; color:#999;">—</div>'; return; }
-    const fileId = extractGoogleDriveFileId(p.src);
-    const img = fileId 
-      ? `<img src="https://drive.google.com/thumbnail?id=${fileId}&sz=w800" alt="${p.title}">`
-      : `<div style="height:340px; background:#eee; border-radius:4px; display:flex; align-items:center; justify-content:center; color:#999;">Немає фото</div>`;
-    el.innerHTML = `${img}<h3 style="margin:0 0 4px;">${p.title || "Без назви"}</h3><p style="margin:0; font-style:italic; color:#6d5d72;">${p.series || ""}</p><p style="margin:4px 0 0; font-size:14px;">Косплеєр: ${p.cosplayer || "—"}</p>`;
-  }
-
-  function renderFlip() {
-    const left = albumPages[flipIndex * 2];
-    const right = albumPages[flipIndex * 2 + 1];
-    renderFlipPage(flipLeft, left);
-    renderFlipPage(flipRight, right);
-    if (flipLabel) flipLabel.textContent = albumPages.length ? `${flipIndex + 1} / ${Math.ceil(albumPages.length / 2)}` : "";
-    document.getElementById("flip-prev").disabled = flipIndex <= 0;
-    document.getElementById("flip-next").disabled = flipIndex >= Math.ceil(albumPages.length / 2) - 1;
+  function extractGoogleDriveFileId(url) {
+    if (!url) return null;
+    const m = String(url).match(/\\/d\\/([a-zA-Z0-9_-]+)/) || String(url).match(/[?&]id=([a-zA-Z0-9_-]+)/);
+    return m ? m[1] : null;
   }
 
   async function loadAlbumPreview() {
     try {
       const snap = await getDoc(doc(db, "settings", "album"));
-      if (snap.exists() && snap.data().pages?.length) {
-        const data = snap.data();
-        albumPages = data.pages;
-        const first = albumPages[0];
-        const fileId = extractGoogleDriveFileId(first?.src);
-        if (fileId && albumCover) {
-          albumCover.src = `https://drive.google.com/thumbnail?id=${fileId}&sz=w600`;
-        }
-        if (albumPreviewTitle) albumPreviewTitle.textContent = data.title || "Альбом";
-        albumPreview.style.display = "block";
-      } else {
+      if (!snap.exists()) {
         albumPreview.style.display = "none";
+        return;
       }
+      const data = snap.data() || {};
+      const pages = Array.isArray(data.pages) ? data.pages : [];
+      if (!pages.length) {
+        albumPreview.style.display = "none";
+        return;
+      }
+      const first = pages[0] || {};
+      const imageUrl = first.src || first.url || first.imageUrl || first.image || "";
+      const fileId = extractGoogleDriveFileId(imageUrl);
+      if (albumCover) {
+        albumCover.src = fileId
+          ? `https://drive.google.com/thumbnail?id=${fileId}&sz=w600`
+          : imageUrl;
+        albumCover.alt = data.title || "Обкладинка альбому";
+        albumCover.onerror = () => { albumCover.removeAttribute("src"); };
+      }
+      if (albumPreviewTitle) albumPreviewTitle.textContent = data.title || "Альбом";
+      if (albumPreviewCount) albumPreviewCount.textContent = `${pages.length} фото · Відкрити книжковий альбом →`;
+      albumPreview.style.display = "block";
     } catch (err) {
-      console.error(err);
+      console.error("Не вдалося завантажити прев'ю альбому:", err);
+      albumPreview.style.display = "none";
     }
   }
-
-  albumPreview?.addEventListener("click", () => {
-    if (!albumPages.length) return;
-    flipIndex = 0;
-    renderFlip();
-    flipModal.classList.add("open");
-  });
-
-  document.getElementById("close-flip")?.addEventListener("click", () => {
-    flipModal.classList.remove("open");
-  });
-
-  document.getElementById("flip-prev")?.addEventListener("click", () => {
-    if (flipIndex > 0) { flipIndex--; renderFlip(); }
-  });
-
-  document.getElementById("flip-next")?.addEventListener("click", () => {
-    if (flipIndex < Math.ceil(albumPages.length / 2) - 1) { flipIndex++; renderFlip(); }
-  });
 
   loadEmptyText();
   loadSiteTitle();
