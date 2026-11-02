@@ -416,6 +416,14 @@ function applyLanguage() {
   $('lang-uk').setAttribute('aria-pressed', String(currentLang === 'uk'));
   $('lang-en').setAttribute('aria-pressed', String(currentLang === 'en'));
   $('snd').title = tr('sound'); $('snd').setAttribute('aria-label', tr('sound'));
+  $('reader-total-label').textContent = currentLang === 'en' ? 'photos in this journal' : 'фотографій у журналі';
+  $('reader-section-label').textContent = currentLang === 'en' ? 'NOW READING' : 'ЗАРАЗ ВІДКРИТО';
+  $('reader-page-help').textContent = currentLang === 'en'
+    ? 'Turn the pages to explore all the looks.'
+    : 'Перегортай сторінки, щоб переглянути всі образи.';
+  $('reader-hint-text').textContent = currentLang === 'en'
+    ? 'Drag a page corner or use the arrows below.'
+    : 'Потягни куточок сторінки або скористайся стрілками внизу.';
   renderTags();
   build();
   updateUI();
