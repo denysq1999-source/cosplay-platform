@@ -28,11 +28,18 @@
     height:40px; min-width:40px; padding:0 12px; border-radius:999px; cursor:pointer;
     border:1px solid rgba(255,255,255,.16); background:rgba(255,255,255,.07);
     backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
-    transition:background .18s, border-color .18s, transform .18s;
+    transition:background-color .34s cubic-bezier(.2,.75,.25,1), border-color .34s ease,
+      color .34s ease, box-shadow .34s ease, transform .2s cubic-bezier(.2,.75,.25,1);
   }
   .iconbtn:hover{ background:rgba(255,255,255,.14); border-color:rgba(255,255,255,.32); }
   .iconbtn:active{ transform:scale(.96); }
-  .iconbtn:disabled{ opacity:.35; cursor:default; }
+  .iconbtn:disabled{ opacity:.35; cursor:default; transform:none; }
+  .iconbtn:focus-visible, .chip:focus-visible, .tag:focus-visible, .like:focus-visible {
+    outline:2px solid var(--sakura); outline-offset:3px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .iconbtn, .chip, .tag, .like, .corner { transition-duration:.01ms !important; }
+  }
   .iconbtn:focus-visible, .chip:focus-visible, .like:focus-visible, .lb button:focus-visible{ outline:2px solid var(--sakura); outline-offset:3px; }
 
   /* ---------- фільтр за тегами ---------- */
@@ -40,7 +47,7 @@
   .tagbar::-webkit-scrollbar{ display:none; }
   .chip{
     flex:none; height:32px; padding:0 14px; border-radius:999px; cursor:pointer; font-size:13px; font-weight:600;
-    border:1px solid rgba(255,255,255,.16); background:rgba(255,255,255,.06); color:#e8dcee; transition:all .18s;
+    border:1px solid rgba(255,255,255,.16); background:rgba(255,255,255,.06); color:#e8dcee; transition:background-color .34s ease, border-color .34s ease, color .34s ease, transform .2s ease;
   }
   .chip:hover{ border-color:rgba(255,255,255,.34); }
   .chip[aria-pressed="true"]{ background:rgba(243,168,195,.22); border-color:var(--sakura); color:#ffe3ee; }
@@ -114,12 +121,12 @@
   .tag{
     padding:.2em .7em; border-radius:999px; font-size:.85em; cursor:pointer; border:1px solid #d8c9d6; background:#fff7fb; color:#6a4a62;
   }
-  .tag:hover{ background:#ffe9f2; border-color:var(--sakura); }
+  .tag:hover{ background:#ffe9f2; border-color:var(--sakura); color:#57334d; }
   .like{
     flex:none; display:inline-flex; align-items:center; gap:.4em; padding:.35em .85em; border-radius:999px; cursor:pointer;
-    border:1px solid #e0c9d6; background:#fff; color:#a2557a; font-weight:700; transition:transform .15s, background .15s;
+    border:1px solid #e0c9d6; background:#fff; color:#a2557a; font-weight:700; transition:transform .2s ease, background-color .34s ease, border-color .34s ease, color .34s ease, box-shadow .34s ease;
   }
-  .like:hover{ background:#fff0f6; }
+  .like:hover{ background:#fff0f6; border-color:#f3a8c3; box-shadow:0 4px 12px rgba(162,85,122,.14); }
   .like:active{ transform:scale(.94); }
   .like[aria-pressed="true"]{ background:#f3a8c3; border-color:#f3a8c3; color:#fff; }
   .pno{ position:absolute; bottom:1.2%; font-size:.8em; color:#a898ad; }
@@ -127,7 +134,7 @@
 
   /* куточок-підказка «потягни» */
   .corner{
-    position:absolute; bottom:0; width:7%; aspect-ratio:1; z-index:2; transition:width .2s;
+    position:absolute; bottom:0; width:7%; aspect-ratio:1; z-index:2; transition:width .28s ease;
     pointer-events:none;
   }
   .face.front .corner{ right:0; background:linear-gradient(315deg, #cdbfa8 0 50%, rgba(0,0,0,0) 50%); box-shadow:-2px -2px 6px rgba(0,0,0,.18); }
