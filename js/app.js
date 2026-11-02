@@ -286,12 +286,6 @@ document.addEventListener("DOMContentLoaded", () => {
     return m ? m[1] : null;
   }
 
-  function extractGoogleDriveFileId(url) {
-    if (!url) return null;
-    const m = String(url).match(/\\/d\\/([a-zA-Z0-9_-]+)/) || String(url).match(/[?&]id=([a-zA-Z0-9_-]+)/);
-    return m ? m[1] : null;
-  }
-
   async function loadAlbumPreview() {
     try {
       const snap = await getDoc(doc(db, "settings", "album"));
