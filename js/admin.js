@@ -19,29 +19,87 @@ const ADMIN_EMAIL = "denysq1999@gmail.com";
 
 const dict = {
   uk: {
-    admin_title: "Панель адміністратора",
-    back_btn: "← На галерею",
-    albums_btn: "Альбоми",
-    settings_btn: "Налаштування сайту",
-    checking_access: "Перевірка доступу...",
-    access_denied: "Доступ заборонено. Перенаправлення..."
+    admin_title:"Панель адміністратора", back_btn:"← На галерею", albums_btn:"Альбоми", settings_btn:"Налаштування сайту",
+    checking_access:"Перевірка доступу...", access_denied:"Доступ заборонено. Перенаправлення...",
+    album_manage:"Керування альбомом (журнал)", album_name:"Назва альбому", album_title_placeholder:"Альбом косплеєра",
+    album_owner:"Власник / нік", owner_placeholder:"Нікнейм косплеєра", page_format:"Формат сторінок журналу",
+    ratio_45:"4:5 — portrait (social)", ratio_34:"3:4 — classic portrait", ratio_23:"2:3 — vertical photo", ratio_11:"1:1 — square", ratio_169:"16:9 — landscape / widescreen",
+    format_help:"Розмір обох сторінок і всієї книжки автоматично підлаштується під вибрані пропорції та екран. Самі фотографії не обрізаються.",
+    front_cover:"Зображення лицьової обкладинки журналу (перша сторінка)", image_link_placeholder:"Посилання на зображення або Google Drive",
+    front_cover_help:"Фото стане зовнішньою лицьовою обкладинкою журналу — її видно першою, ще до гортання сторінок. Пропорції зображення зберігаються.",
+    front_preview:"Попередній перегляд лицьової обкладинки", back_cover:"Зображення задньої обкладинки журналу",
+    back_cover_help:"Це буде зовнішня задня обкладинка, яку побачать після перегортання всіх сторінок.", back_preview:"Попередній перегляд задньої обкладинки",
+    page_edit_heading:"Додати / редагувати сторінку", look_title_placeholder:"Назва образу", series_placeholder:"Серія",
+    cosplayer_placeholder:"Косплеєр", tags_placeholder:"Теги через кому", photo_link_placeholder:"Посилання Google Drive",
+    add_page:"Додати сторінку", update_page:"Оновити сторінку", cancel:"Скасувати", save_album:"Зберегти альбом",
+    view_album:"Переглянути альбом", delete_album:"Видалити альбом", settings_title:"Налаштування сайту",
+    site_title_label:"Назва сайту (в шапці)", site_title_placeholder:"Косплей Галерея", shadow_color_label:"Колір тіні тексту",
+    empty_text_label:"Текст, коли галерея порожня", empty_placeholder:"Галерея порожня.", bg_guest_label:"Фон до входу",
+    bg_user_label:"Фон після входу", admin_background_label:"Зображення в адмінці", size_label:"Розмір",
+    full_hd_1920:"Full HD (1920)", hd_1280:"HD (1280)", medium_800:"Середній (800)",
+    set_image:"Встановити", remove_image:"Видалити", primary_button_color:"Колір основних кнопок (Адмінка)",
+    secondary_button_color:"Колір звичайних кнопок", google_button_color:"Колір кнопки Google", button_text_color:"Колір тексту кнопок",
+    save_all:"Зберегти все", reset_colors:"Скинути кольори", page_title_fallback:t("page_title_fallback"), edit_short:t("edit_short"),
+    delete_short:t("delete_short"), no_pages:t("no_pages"), confirm_delete_page:"Видалити цю сторінку?",
+    enter_title:"Вкажи назву", album_saved:t("album_saved"), save_error:t("save_error"),
+    confirm_delete_album:"Видалити весь альбом?", album_deleted:t("album_deleted"), saved:t("saved"),
+    error:t("error"), colors_reset:t("colors_reset"), image_link_needed:"Встав посилання на зображення або Google Drive.",
+    background_saved:"Зображення заставки збережено", background_save_error:"Не вдалося зберегти заставку. Перевір права доступу адміністратора.",
+    background_delete_error:"Не вдалося видалити заставку."
   },
   en: {
-    admin_title: "Admin Panel",
-    back_btn: "← Back to Gallery",
-    albums_btn: "Albums",
-    settings_btn: "Site Settings",
-    checking_access: "Checking access...",
-    access_denied: "Access denied. Redirecting..."
+    admin_title:"Admin Panel", back_btn:"← Back to Gallery", albums_btn:"Albums", settings_btn:"Site Settings",
+    checking_access:"Checking access...", access_denied:"Access denied. Redirecting...",
+    album_manage:"Album management (magazine)", album_name:"Album title", album_title_placeholder:"Cosplayer album",
+    album_owner:"Owner / nickname", owner_placeholder:"Cosplayer nickname", page_format:"Magazine page format",
+    ratio_45:"4:5 — portrait (social)", ratio_34:"3:4 — classic portrait", ratio_23:"2:3 — vertical photo", ratio_11:"1:1 — square", ratio_169:"16:9 — landscape / widescreen",
+    format_help:"Both pages and the full book automatically fit the selected proportions and screen. Photos are never cropped.",
+    front_cover:"Magazine front cover image", image_link_placeholder:"Image URL or Google Drive link",
+    front_cover_help:"This image becomes the outside front cover, visible before opening the magazine. Image proportions are preserved.",
+    front_preview:"Front cover preview", back_cover:"Magazine back cover image",
+    back_cover_help:"This is the outside back cover, shown after turning all pages.", back_preview:"Back cover preview",
+    page_edit_heading:"Add / edit a page", look_title_placeholder:"Cosplay / look title", series_placeholder:"Series",
+    cosplayer_placeholder:"Cosplayer", tags_placeholder:"Tags separated by commas", photo_link_placeholder:"Google Drive image link",
+    add_page:"Add page", update_page:"Update page", cancel:"Cancel", save_album:"Save album",
+    view_album:"Preview album", delete_album:"Delete album", settings_title:"Site Settings",
+    site_title_label:"Website name (header)", site_title_placeholder:"Cosplay Gallery", shadow_color_label:"Text shadow color",
+    empty_text_label:"Text shown when the gallery is empty", empty_placeholder:"Gallery is empty.", bg_guest_label:"Background before login",
+    bg_user_label:"Background after login", admin_background_label:"Admin panel background", size_label:"Image size",
+    full_hd_1920:"Full HD (1920)", hd_1280:"HD (1280)", medium_800:"Medium (800)",
+    set_image:"Apply", remove_image:"Remove", primary_button_color:"Primary button color (Admin)",
+    secondary_button_color:"Secondary button color", google_button_color:"Google button color", button_text_color:"Button text color",
+    save_all:"Save all settings", reset_colors:"Reset colors", page_title_fallback:"Untitled", edit_short:"Edit",
+    delete_short:"Del.", no_pages:"No pages", confirm_delete_page:"Delete this page?",
+    enter_title:"Enter a title", album_saved:"Album saved", save_error:"Save error",
+    confirm_delete_album:"Delete the entire album?", album_deleted:"Album deleted", saved:"Saved",
+    error:"Error", colors_reset:"Colors reset", image_link_needed:"Enter an image URL or Google Drive link.",
+    background_saved:"Background image saved", background_save_error:"Could not save the background. Check administrator permissions.",
+    background_delete_error:"Could not delete the background."
   }
 };
 
 let currentLang = localStorage.getItem("appLang") || "uk";
+if (!["uk","en"].includes(currentLang)) currentLang = "uk";
+const t = key => dict[currentLang]?.[key] || dict.uk[key] || key;
 let albumPages = [];
 let editingIndex = -1;
 
 function updateLangUI() {
+  document.documentElement.lang = currentLang;
+  document.title = currentLang === "en" ? "Admin Panel — Cosplay Gallery" : "Адмінка — Косплей Галерея";
   document.querySelectorAll("[data-i18n]").forEach(el => {
+    const key = el.getAttribute("data-i18n");
+    if (dict[currentLang][key]) el.textContent = dict[currentLang][key];
+  });
+  document.querySelectorAll("[data-i18n-placeholder]").forEach(el => {
+    const key = el.getAttribute("data-i18n-placeholder");
+    if (dict[currentLang][key]) el.placeholder = dict[currentLang][key];
+  });
+  document.querySelectorAll("[data-i18n-alt]").forEach(el => {
+    const key = el.getAttribute("data-i18n-alt");
+    if (dict[currentLang][key]) el.alt = dict[currentLang][key];
+  });
+  document.querySelectorAll("option[data-i18n]").forEach(el => {
     const key = el.getAttribute("data-i18n");
     if (dict[currentLang][key]) el.textContent = dict[currentLang][key];
   });
@@ -49,8 +107,8 @@ function updateLangUI() {
   document.getElementById("lang-en")?.classList.toggle("active", currentLang === "en");
   const langSwitcher = document.querySelector(".lang-switcher");
   if (langSwitcher) langSwitcher.dataset.lang = currentLang;
+  if (typeof renderPagesList === "function") renderPagesList();
 }
-
 document.getElementById("lang-uk")?.addEventListener("click", () => {
   currentLang = "uk";
   localStorage.setItem("appLang", "uk");
@@ -120,11 +178,12 @@ function resolveBackgroundImage(url, size = "w1920") {
 function setPreview(elId, source, size = "w800") {
   const el = document.getElementById(elId);
   if (!el) return;
-  const imageUrl = source
-    ? (String(source).startsWith("http") && !extractGoogleDriveFileId(source)
-        ? source
-        : resolveBackgroundImage(source, size))
-    : "";
+  const raw = String(source || "").trim();
+  const imageUrl = !raw ? "" : (
+    /^https?:\/\//i.test(raw)
+      ? resolveBackgroundImage(raw, size)
+      : `https://drive.google.com/thumbnail?id=${encodeURIComponent(raw)}&sz=${size}`
+  );
   el.style.backgroundImage = imageUrl ? `url(${JSON.stringify(imageUrl)})` : "none";
 }
 
@@ -255,7 +314,7 @@ function renderPagesList() {
   list.innerHTML = albumPages.length ? albumPages.map((p, i) => `
     <div style="background:#1e1e1e; padding:10px; border-radius:8px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
       <div>
-        <strong>${p.title || "Без назви"}</strong><br>
+        <strong>${p.title || t("page_title_fallback")}</strong><br>
         <small style="color:#aaa;">${p.series || ""} · ${p.cosplayer || ""}</small>
       </div>
       <div style="display:flex; gap:6px;">
@@ -280,7 +339,7 @@ window.editPage = (i) => {
 };
 
 window.deletePage = (i) => {
-  if (confirm("Видалити цю сторінку?")) {
+  if (confirm(t("confirm_delete_page"))) {
     albumPages.splice(i, 1);
     renderPagesList();
   }
@@ -307,7 +366,7 @@ document.getElementById("btn-add-page")?.addEventListener("click", () => {
     src: document.getElementById("page-url").value.trim(),
     likes: 0
   };
-  if (!page.title) return alert("Вкажи назву");
+  if (!page.title) return alert(t("enter_title"));
   albumPages.push(page);
   renderPagesList();
   clearPageForm();
@@ -341,17 +400,17 @@ document.getElementById("btn-save-album")?.addEventListener("click", async () =>
       backCoverImage: document.getElementById("album-back-cover-image").value.trim(),
       pages: albumPages
     });
-    status.textContent = "Альбом збережено";
+    status.textContent = t("album_saved");
     status.style.color = "#4caf50";
   } catch (err) {
     console.error(err);
-    status.textContent = "Помилка збереження";
+    status.textContent = t("save_error");
     status.style.color = "#d93025";
   }
 });
 
 document.getElementById("btn-delete-album")?.addEventListener("click", async () => {
-  if (!confirm("Видалити весь альбом?")) return;
+  if (!confirm(t("confirm_delete_album"))) return;
   try {
     await deleteDoc(doc(db, "settings", "album"));
     albumPages = [];
@@ -362,7 +421,7 @@ document.getElementById("btn-delete-album")?.addEventListener("click", async () 
     updateIntroImagePreview();
     updateBackCoverPreview();
     renderPagesList();
-    document.getElementById("album-status").textContent = "Альбом видалено";
+    document.getElementById("album-status").textContent = t("album_deleted");
   } catch (err) {
     console.error(err);
   }
@@ -384,11 +443,11 @@ document.getElementById("btn-save-settings")?.addEventListener("click", async ()
     if (emptyText) await setDoc(doc(db, "settings", "empty_text"), { text: emptyText });
     await setDoc(doc(db, "settings", "button_colors"), { primary, secondary, google, textColor });
 
-    status.textContent = "Збережено";
+    status.textContent = t("saved");
     status.style.color = "#4caf50";
   } catch (err) {
     console.error(err);
-    status.textContent = "Помилка";
+    status.textContent = t("error");
     status.style.color = "#d93025";
   }
 });
@@ -401,7 +460,7 @@ document.getElementById("btn-reset-settings")?.addEventListener("click", async (
     document.getElementById("google-color").value = "#4285F4";
     document.getElementById("btn-text-color").value = "#ffffff";
     applyAdminButtonColors();
-    document.getElementById("settings-status").textContent = "Кольори скинуто";
+    document.getElementById("settings-status").textContent = t("colors_reset");
   } catch (err) {
     console.error(err);
   }
@@ -413,15 +472,15 @@ document.getElementById("btn-reset-settings")?.addEventListener("click", async (
     const url = document.getElementById(`bg-${type}-url`)?.value.trim() || "";
     const size = document.getElementById(`size-${type}`)?.value || "w1920";
     const imageUrl = resolveBackgroundImage(url, size);
-    if (!imageUrl) return alert("Встав посилання на зображення або Google Drive.");
+    if (!imageUrl) return alert(t("image_link_needed"));
     const fileId = extractGoogleDriveFileId(url);
     try {
       await setDoc(doc(db, "settings", `background_${type}`), { url, imageUrl, fileId: fileId || "", size });
       setPreview(`preview-${type}`, imageUrl, size);
-      alert("Зображення заставки збережено");
+      alert(t("background_saved"));
     } catch (err) {
       console.error(err);
-      alert("Не вдалося зберегти заставку. Перевір права доступу адміністратора.");
+      alert(t("background_save_error"));
     }
   });
   document.getElementById(`btn-del-${type}`)?.addEventListener("click", async () => {
@@ -431,7 +490,7 @@ document.getElementById("btn-reset-settings")?.addEventListener("click", async (
       setPreview(`preview-${type}`, null);
     } catch (err) {
       console.error(err);
-      alert("Не вдалося видалити заставку.");
+      alert(t("background_delete_error"));
     }
   });
 });
