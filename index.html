@@ -8,36 +8,66 @@
   <style>
     #album-preview {
       display: none;
-      margin: 30px auto;
-      max-width: 280px;
+      width: min(100% - 40px, 1120px);
+      margin: 26px auto 30px;
       cursor: pointer;
-      text-align: center;
     }
-    #album-preview img {
-      width: 100%;
-      height: 360px;
-      object-fit: cover;
-      border-radius: 12px;
-      box-shadow: 0 10px 30px rgba(0,0,0,.4);
-      transition: transform .2s;
+    .album-shelf {
+      display: flex;
+      align-items: stretch;
+      gap: 18px;
+      overflow-x: auto;
+      padding: 8px 4px 16px;
+      scrollbar-width: thin;
     }
-    #album-preview:hover img { transform: scale(1.03); }
-    #album-preview h3 { margin: 10px 0 0; font-size: 16px; }
-
-    #flipbook-modal {
-      position: fixed; inset: 0; background: rgba(10,6,14,.92);
-      z-index: 100; display: none; align-items: center; justify-content: center;
-      flex-direction: column;
+    .album-card {
+      flex: 0 0 260px;
+      display: grid;
+      grid-template-columns: 88px minmax(0,1fr);
+      align-items: center;
+      gap: 14px;
+      min-height: 126px;
+      padding: 12px;
+      color: #f8edf5;
+      text-align: left;
+      text-decoration: none;
+      border: 1px solid rgba(255,255,255,.13);
+      border-radius: 16px;
+      background: linear-gradient(145deg, rgba(76,43,75,.94), rgba(31,23,39,.96));
+      box-shadow: 0 10px 28px rgba(0,0,0,.22);
+      transition: transform .2s, border-color .2s, box-shadow .2s;
     }
-    #flipbook-modal.open { display: flex; }
-    .book-spread {
-      display: flex; width: 800px; height: 520px; background: #fbf6ee;
-      border-radius: 8px; box-shadow: 0 30px 80px rgba(0,0,0,.6); overflow: hidden;
+    .album-card:hover {
+      transform: translateY(-3px);
+      border-color: rgba(243,168,195,.7);
+      box-shadow: 0 15px 34px rgba(0,0,0,.3);
     }
-    .book-page { width: 50%; height: 100%; padding: 20px; color: #2b2230; display: flex; flex-direction: column; }
-    .book-page img { width: 100%; height: 340px; object-fit: cover; border-radius: 4px; margin-bottom: 10px; }
-    .flip-nav { margin-top: 16px; display: flex; gap: 12px; }
-    .close-flip { position: absolute; top: 20px; right: 24px; background: rgba(255,255,255,.1); border: none; color: #fff; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 20px; }
+    .album-card img {
+      display: block;
+      width: 88px;
+      height: 100px;
+      object-fit: contain;
+      background: rgba(255,255,255,.07);
+      border-radius: 9px;
+    }
+    .album-card-copy { min-width: 0; }
+    .album-card-copy strong {
+      display: block;
+      overflow-wrap: anywhere;
+      font: 600 17px/1.25 Georgia,serif;
+    }
+    .album-card-copy span {
+      display: block;
+      margin-top: 7px;
+      color: #cbb9cc;
+      font-size: 12px;
+    }
+    @media (max-width:600px) {
+      #album-preview { width: calc(100% - 24px); margin: 18px auto 22px; }
+      .album-shelf { gap: 12px; }
+      .album-card { flex-basis: 230px; grid-template-columns: 76px minmax(0,1fr); min-height: 112px; }
+      .album-card img { width: 76px; height: 88px; }
+    }
   </style>
 </head>
 <body>
@@ -84,25 +114,18 @@
   </div>
 
   <div id="app-section" class="hidden">
-    <div id="album-preview">
-      <img id="album-cover" src="" alt="Альбом">
-      <h3 id="album-preview-title">Альбом</h3>
-    </div>
+    <section id="album-preview" aria-label="Альбоми">
+      <div class="album-shelf">
+        <a class="album-card" id="album-card" href="album.html">
+          <img id="album-cover" src="" alt="">
+          <span class="album-card-copy">
+            <strong id="album-preview-title">Альбом</strong>
+            <span id="album-preview-count">Відкрити книжковий альбом →</span>
+          </span>
+        </a>
+      </div>
+    </section>
     <div id="gallery" class="gallery"></div>
-  </div>
-
-  <!-- Flipbook modal -->
-  <div id="flipbook-modal">
-    <button class="close-flip" id="close-flip">&times;</button>
-    <div class="book-spread">
-      <div class="book-page" id="flip-left"></div>
-      <div class="book-page" id="flip-right"></div>
-    </div>
-    <div class="flip-nav">
-      <button class="btn" id="flip-prev">‹ Попередня</button>
-      <span id="flip-label" style="color:#aaa; align-self:center;"></span>
-      <button class="btn" id="flip-next">Наступна ›</button>
-    </div>
   </div>
 
   <script type="module" src="js/app.js?v=26"></script>
