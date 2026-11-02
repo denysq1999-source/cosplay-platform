@@ -243,11 +243,11 @@ document.addEventListener("DOMContentLoaded", () => {
       if (snap.exists()) {
         const data = snap.data();
         const size = data.size || "w1920";
-        const fileId = data.fileId || (data.url?.match(/\\/file\\/d\\/([a-zA-Z0-9_-]+)/)?.[1]) || (data.url?.match(/[?&]id=([a-zA-Z0-9_-]+)/)?.[1]);
+        const fileId = data.fileId || (data.url?.match(/\/file\/d\/([a-zA-Z0-9_-]+)/)?.[1]) || (data.url?.match(/[?&]id=([a-zA-Z0-9_-]+)/)?.[1]);
         const imageUrl = fileId
           ? `https://drive.google.com/thumbnail?id=${fileId}&sz=${size}`
           : (data.imageUrl || data.url || "");
-        if (imageUrl && /^https?:\\/\\//i.test(imageUrl)) {
+        if (imageUrl && /^https?:\/\//i.test(imageUrl)) {
           document.body.style.backgroundImage = `url(${JSON.stringify(imageUrl)})`;
           document.body.style.backgroundSize = "cover";
           document.body.style.backgroundPosition = "center";
