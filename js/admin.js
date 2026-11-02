@@ -25,6 +25,11 @@ const dict = {
     album_owner:"Власник / нік", owner_placeholder:"Нікнейм косплеєра", page_format:"Формат сторінок журналу",
     ratio_45:"4:5 — портретний (соцмережі)", ratio_34:"3:4 — класичний портретний", ratio_23:"2:3 — вертикальне фото", ratio_11:"1:1 — квадрат", ratio_169:"16:9 — альбомний / широкий",
     format_help:"Розмір обох сторінок і всієї книжки автоматично підлаштується під вибрані пропорції та екран. Самі фотографії не обрізаються.",
+    corner_custom_title:"Оформлення куточків сторінок", corner_style:"Декор куточків",
+    corner_classic:"Класичний загнутий кутик", corner_star:"Зірочка", corner_bookmark:"Закладка",
+    corner_flower:"Квіточка", corner_color:"Колір декору",
+    corner_help:"Оформлення застосовується до нижніх куточків сторінок журналу.",
+    corner_preview_label:"Сторінка журналу",
     front_cover:"Зображення лицьової обкладинки журналу (перша сторінка)", image_link_placeholder:"Посилання на зображення або Google Drive",
     front_cover_help:"Фото стане зовнішньою лицьовою обкладинкою журналу — її видно першою, ще до гортання сторінок. Пропорції зображення зберігаються.",
     front_preview:"Попередній перегляд лицьової обкладинки", back_cover:"Зображення задньої обкладинки журналу",
@@ -54,6 +59,11 @@ const dict = {
     album_owner:"Owner / nickname", owner_placeholder:"Cosplayer nickname", page_format:"Magazine page format",
     ratio_45:"4:5 — portrait (social)", ratio_34:"3:4 — classic portrait", ratio_23:"2:3 — vertical photo", ratio_11:"1:1 — square", ratio_169:"16:9 — landscape / widescreen",
     format_help:"Both pages and the full book automatically fit the selected proportions and screen. Photos are never cropped.",
+    corner_custom_title:"Page corner decoration", corner_style:"Corner style",
+    corner_classic:"Classic folded corner", corner_star:"Star", corner_bookmark:"Bookmark",
+    corner_flower:"Flower", corner_color:"Decoration color",
+    corner_help:"This decoration is applied to the bottom corners of the magazine pages.",
+    corner_preview_label:"Magazine page",
     front_cover:"Magazine front cover image", image_link_placeholder:"Image URL or Google Drive link",
     front_cover_help:"This image becomes the outside front cover, visible before opening the magazine. Image proportions are preserved.",
     front_preview:"Front cover preview", back_cover:"Magazine back cover image",
@@ -318,6 +328,8 @@ async function loadAlbum() {
       document.getElementById("album-title").value = data.title || "";
       document.getElementById("album-owner").value = data.owner || "";
       document.getElementById("album-page-format").value = data.pageFormat || "4:5";
+      document.getElementById("album-corner-style").value = ["classic","star","bookmark","flower"].includes(data.cornerStyle) ? data.cornerStyle : "classic";
+      document.getElementById("album-corner-color").value = /^#[0-9a-fA-F]{6}$/.test(data.cornerColor || "") ? data.cornerColor : "#cdbfa8";
       document.getElementById("album-intro-image").value = data.coverImage || data.introImage || data.firstPageImage || "";
       document.getElementById("album-back-cover-image").value = data.backCoverImage || data.backCover || "";
       albumPages = data.pages || [];
@@ -325,10 +337,25 @@ async function loadAlbum() {
     renderPagesList();
     updateIntroImagePreview();
     updateBackCoverPreview();
+    updateCornerPreview();
   } catch (err) {
     console.error(err);
   }
 }
+
+function updateCornerPreview() {
+  const style = document.getElementById("album-corner-style")?.value || "classic";
+  const color = document.getElementById("album-corner-color")?.value || "#cdbfa8";
+  const mark = document.getElementById("corner-preview-mark");
+  if (!mark) return;
+  const symbols = { classic:"◢", star:"★", bookmark:"▮", flower:"✿" };
+  mark.textContent = symbols[style] || symbols.classic;
+  mark.style.color = color;
+  mark.style.fontSize = style === "bookmark" ? "42px" : "34px";
+  mark.style.clipPath = style === "bookmark" ? "polygon(0 0,100% 0,100% 100%,50% 76%,0 100%)" : "none";
+}
+document.getElementById("album-corner-style")?.addEventListener("change", updateCornerPreview);
+document.getElementById("album-corner-color")?.addEventListener("input", updateCornerPreview);
 
 function updateIntroImagePreview() {
   const input = document.getElementById("album-intro-image");
@@ -453,6 +480,8 @@ document.getElementById("btn-save-album")?.addEventListener("click", async () =>
       owner: document.getElementById("album-owner").value.trim() || "Косплеєр",
       year: new Date().getFullYear().toString(),
       pageFormat: document.getElementById("album-page-format").value || "4:5",
+      cornerStyle: document.getElementById("album-corner-style").value || "classic",
+      cornerColor: document.getElementById("album-corner-color").value || "#cdbfa8",
       coverImage: document.getElementById("album-intro-image").value.trim(),
       backCoverImage: document.getElementById("album-back-cover-image").value.trim(),
       pages: albumPages
@@ -473,6 +502,9 @@ document.getElementById("btn-delete-album")?.addEventListener("click", async () 
     albumPages = [];
     document.getElementById("album-title").value = "";
     document.getElementById("album-owner").value = "";
+    document.getElementById("album-corner-style").value = "classic";
+    document.getElementById("album-corner-color").value = "#cdbfa8";
+    updateCornerPreview();
     document.getElementById("album-intro-image").value = "";
     document.getElementById("album-back-cover-image").value = "";
     updateIntroImagePreview();
