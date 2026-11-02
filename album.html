@@ -29,8 +29,11 @@
   .lang-btn{height:30px;min-width:38px;padding:0 10px;border:0;border-radius:999px;background:transparent;color:#d8cbdc;font-size:12px;font-weight:700;cursor:pointer;transition:background-color .28s ease,color .28s ease}
   .lang-btn.active{background:rgba(243,168,195,.24);color:#fff;border:1px solid rgba(243,168,195,.65)}
   .lang-btn:focus-visible{outline:2px solid var(--sakura);outline-offset:2px}
-  .back-cover-art{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:radial-gradient(120% 90% at 30% 20%,#5b2349,var(--wine) 60%,#220c1d)}
-  .back-cover-art img{display:block;width:100%;height:100%;object-fit:contain}
+  .back-cover-art,.front-cover-art{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:radial-gradient(120% 90% at 30% 20%,#5b2349,var(--wine) 60%,#220c1d)}
+  .back-cover-art img,.front-cover-art img{display:block;width:100%;height:100%;object-fit:contain}
+  .front-cover-art{background:#24101f}
+  .front-cover-art img{object-fit:contain}
+  .face.cover.has-cover-art::after,.face.cover.has-cover-art::before{display:none}
   .back-cover-empty{position:absolute;inset:8%;border:2px solid rgba(216,180,106,.65);display:flex;align-items:center;justify-content:center;color:#e6cf9b;font:600 1.5em Georgia,serif;text-align:center;padding:10%}
   .iconbtn{
     height:40px; min-width:40px; padding:0 12px; border-radius:999px; cursor:pointer;
@@ -402,8 +405,12 @@ function photoFace(p, side, faceIndex) {
 }
 function faceHTML(f, faceIndex) {
   switch (f.kind) {
-    case 'cover':
-      return `<div class="cv"><h2>${esc(ALBUM.title)}</h2><div class="rule"></div><p>${esc(ALBUM.owner)}</p><p>${esc(ALBUM.year)}</p></div><i class="corner"></i>`;
+    case 'cover': {
+      const cover = safeSrc(ALBUM.coverImage);
+      return cover
+        ? `<div class="front-cover-art"><img src="${esc(cover)}" alt="Обкладинка журналу" draggable="false"></div>`
+        : `<div class="cv"><h2>${esc(ALBUM.title)}</h2><div class="rule"></div><p>${esc(ALBUM.owner)}</p><p>${esc(ALBUM.year)}</p></div><i class="corner"></i>`;
+    }
     case 'intro': {
       const t = topTags(PHOTOS, 12);
       const introImage = safeSrc(ALBUM.introImage);
@@ -440,7 +447,7 @@ function build() {
     const el = document.createElement('div');
     el.className = 'leaf';
     el.innerHTML =
-      `<div class="face front ${front.kind === 'cover' ? 'cover' : ''}">${faceHTML(front, i)}<div class="shade"></div></div>` +
+      `<div class="face front ${front.kind === 'cover' ? 'cover' : ''} ${front.kind === 'cover' && safeSrc(ALBUM.coverImage) ? 'has-cover-art' : ''}">${faceHTML(front, i)}<div class="shade"></div></div>` +
       `<div class="face back ${back.kind === 'back' ? 'cover' : ''}">${faceHTML(back, i + 1)}<div class="shade"></div></div>`;
     book.appendChild(el); acc.push(el); return acc;
   }, []);
@@ -667,7 +674,7 @@ async function loadAlbum() {
         title: data.title || 'Альбом косплеєра',
         owner: data.owner || data.cosplayer || 'Косплеєр',
         year: data.year || '2026',
-        introImage: data.introImage || data.firstPageImage || '',
+        coverImage: data.coverImage || data.introImage || data.firstPageImage || '',
         backCoverImage: data.backCoverImage || data.backCover || ''
       };
       PHOTOS = Array.isArray(data.pages) ? data.pages.map((p, i) => ({
