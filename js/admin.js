@@ -181,13 +181,33 @@ async function loadAlbum() {
       const data = snap.data();
       document.getElementById("album-title").value = data.title || "";
       document.getElementById("album-owner").value = data.owner || "";
+      document.getElementById("album-intro-image").value = data.introImage || data.firstPageImage || "";
       albumPages = data.pages || [];
     }
     renderPagesList();
+    updateIntroImagePreview();
   } catch (err) {
     console.error(err);
   }
 }
+
+function updateIntroImagePreview() {
+  const input = document.getElementById("album-intro-image");
+  const preview = document.getElementById("album-intro-preview");
+  if (!input || !preview) return;
+  const raw = input.value.trim();
+  const match = raw.match(/drive\\.google\\.com\\/file\\/d\\/([a-zA-Z0-9_-]+)/) || raw.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  const src = raw.includes("drive.google.com") && match
+    ? `https://drive.google.com/thumbnail?id=${match[1]}&sz=w600`
+    : raw;
+  if (!src) { preview.removeAttribute("src"); preview.hidden = true; preview.style.display = "none"; return; }
+  preview.src = src;
+  preview.hidden = false;
+  preview.style.display = "block";
+  preview.onerror = () => { preview.hidden = true; preview.style.display = "none"; };
+}
+
+document.getElementById("album-intro-image")?.addEventListener("input", updateIntroImagePreview);
 
 function renderPagesList() {
   const list = document.getElementById("pages-list");
@@ -276,6 +296,7 @@ document.getElementById("btn-save-album")?.addEventListener("click", async () =>
       title: document.getElementById("album-title").value.trim() || "Альбом косплеєра",
       owner: document.getElementById("album-owner").value.trim() || "Косплеєр",
       year: new Date().getFullYear().toString(),
+      introImage: document.getElementById("album-intro-image").value.trim(),
       pages: albumPages
     });
     status.textContent = "Альбом збережено";
@@ -294,6 +315,8 @@ document.getElementById("btn-delete-album")?.addEventListener("click", async () 
     albumPages = [];
     document.getElementById("album-title").value = "";
     document.getElementById("album-owner").value = "";
+    document.getElementById("album-intro-image").value = "";
+    updateIntroImagePreview();
     renderPagesList();
     document.getElementById("album-status").textContent = "Альбом видалено";
   } catch (err) {
