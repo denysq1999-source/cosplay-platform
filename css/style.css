@@ -73,9 +73,12 @@ body {
 
 .btn:hover {
   transform: translateY(-1px);
-  background: rgba(20, 16, 26, .62);
+  background-color: rgba(20, 16, 26, .62);
   border-color: rgba(255, 255, 255, .38);
   box-shadow: inset 0 1px 0 rgba(255,255,255,.2), 0 12px 28px rgba(0,0,0,.34);
+}
+.btn-secondary:hover {
+  background-color: color-mix(in srgb, var(--btn-secondary) 86%, white 14%);
 }
 
 .btn:active {
@@ -331,8 +334,8 @@ body {
   padding: 10px 16px;
   font-size: 14px;
   font-weight: 600;
-  background: rgba(20, 16, 26, .40);
-  color: #f8f2f5;
+  background-color: color-mix(in srgb, var(--btn-secondary) 72%, transparent);
+  color: var(--btn-text);
   border: 1px solid rgba(255, 255, 255, .16);
   border-radius: 999px;
   cursor: pointer;
@@ -347,7 +350,7 @@ body {
 
 .admin-btn:hover {
   transform: translateY(-1px);
-  background: rgba(20, 16, 26, .58);
+  background-color: color-mix(in srgb, var(--btn-secondary) 86%, white 14%);
   border-color: rgba(255, 255, 255, .34);
   box-shadow: inset 0 1px 0 rgba(255,255,255,.2), 0 10px 22px rgba(0,0,0,.32);
 }
@@ -456,13 +459,13 @@ body {
   box-shadow: none;
 }
 .action-btn {
-  border: 1px solid color-mix(in srgb, #4285f4 70%, white 20%);
-  background-color: #4285f4;
+  border: 1px solid color-mix(in srgb, var(--btn-google) 70%, white 20%);
+  background-color: var(--btn-google);
   transition: transform .2s ease, background-color var(--btn-motion) ease,
     border-color var(--btn-motion) ease, box-shadow var(--btn-motion) ease;
 }
 .action-btn:hover {
-  background-color: #5a95f5;
+  background-color: color-mix(in srgb, var(--btn-google) 88%, white 12%);
   transform: translateY(-1px);
 }
 .action-btn:active { transform: scale(.98); }
