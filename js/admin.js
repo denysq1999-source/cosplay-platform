@@ -226,6 +226,13 @@ async function loadAllSettings() {
       document.getElementById("bg-admin-url").value = bgUrl;
       if (bgData.size) document.getElementById("size-admin").value = bgData.size;
       setPreview("preview-admin", bgData.fileId || bgUrl, bgData.size || "w800");
+      const adminBackgroundUrl = resolveBackgroundImage(bgData.fileId || bgUrl, bgData.size || "w1920");
+      if (adminBackgroundUrl) {
+        document.body.style.backgroundImage = `url(${JSON.stringify(adminBackgroundUrl)})`;
+        document.body.style.backgroundSize = "cover";
+        document.body.style.backgroundPosition = "center";
+        document.body.style.backgroundAttachment = "fixed";
+      }
     }
 
     const emptySnap = await getDoc(doc(db, "settings", "empty_text"));
