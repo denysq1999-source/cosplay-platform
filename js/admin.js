@@ -104,14 +104,28 @@ function extractGoogleDriveFileId(url) {
   return null;
 }
 
-function setPreview(elId, fileId, size = "w800") {
+function resolveBackgroundImage(url, size = "w1920") {
+  const raw = (url || "").trim();
+  if (!raw) return "";
+  const fileId = extractGoogleDriveFileId(raw);
+  if (fileId) return `https://drive.google.com/thumbnail?id=${fileId}&sz=${size}`;
+  try {
+    const parsed = new URL(raw);
+    return ["http:", "https:"].includes(parsed.protocol) ? raw : "";
+  } catch {
+    return "";
+  }
+}
+
+function setPreview(elId, source, size = "w800") {
   const el = document.getElementById(elId);
   if (!el) return;
-  if (fileId) {
-    el.style.backgroundImage = `url('https://drive.google.com/thumbnail?id=${fileId}&sz=${size}')`;
-  } else {
-    el.style.backgroundImage = "none";
-  }
+  const imageUrl = source
+    ? (String(source).startsWith("http") && !extractGoogleDriveFileId(source)
+        ? source
+        : resolveBackgroundImage(source, size))
+    : "";
+  el.style.backgroundImage = imageUrl ? `url(${JSON.stringify(imageUrl)})` : "none";
 }
 
 function applyAdminButtonColors() {
@@ -129,24 +143,30 @@ function applyAdminButtonColors() {
 async function loadAllSettings() {
   try {
     const guestSnap = await getDoc(doc(db, "settings", "background_guest"));
-    if (guestSnap.exists() && guestSnap.data().fileId) {
-      document.getElementById("bg-guest-url").value = guestSnap.data().url || "";
-      if (guestSnap.data().size) document.getElementById("size-guest").value = guestSnap.data().size;
-      setPreview("preview-guest", guestSnap.data().fileId, guestSnap.data().size || "w800");
+    if (guestSnap.exists()) {
+      const bgData = guestSnap.data();
+      const bgUrl = bgData.url || bgData.imageUrl || "";
+      document.getElementById("bg-guest-url").value = bgUrl;
+      if (bgData.size) document.getElementById("size-guest").value = bgData.size;
+      setPreview("preview-guest", bgData.fileId || bgUrl, bgData.size || "w800");
     }
 
     const userSnap = await getDoc(doc(db, "settings", "background_user"));
-    if (userSnap.exists() && userSnap.data().fileId) {
-      document.getElementById("bg-user-url").value = userSnap.data().url || "";
-      if (userSnap.data().size) document.getElementById("size-user").value = userSnap.data().size;
-      setPreview("preview-user", userSnap.data().fileId, userSnap.data().size || "w800");
+    if (userSnap.exists()) {
+      const bgData = userSnap.data();
+      const bgUrl = bgData.url || bgData.imageUrl || "";
+      document.getElementById("bg-user-url").value = bgUrl;
+      if (bgData.size) document.getElementById("size-user").value = bgData.size;
+      setPreview("preview-user", bgData.fileId || bgUrl, bgData.size || "w800");
     }
 
     const adminSnap = await getDoc(doc(db, "settings", "background_admin"));
-    if (adminSnap.exists() && adminSnap.data().fileId) {
-      document.getElementById("bg-admin-url").value = adminSnap.data().url || "";
-      if (adminSnap.data().size) document.getElementById("size-admin").value = adminSnap.data().size;
-      setPreview("preview-admin", adminSnap.data().fileId, adminSnap.data().size || "w800");
+    if (adminSnap.exists()) {
+      const bgData = adminSnap.data();
+      const bgUrl = bgData.url || bgData.imageUrl || "";
+      document.getElementById("bg-admin-url").value = bgUrl;
+      if (bgData.size) document.getElementById("size-admin").value = bgData.size;
+      setPreview("preview-admin", bgData.fileId || bgUrl, bgData.size || "w800");
     }
 
     const emptySnap = await getDoc(doc(db, "settings", "empty_text"));
@@ -387,20 +407,31 @@ document.getElementById("btn-reset-settings")?.addEventListener("click", async (
   }
 });
 
-// Background set/delete (minimal)
+// Background images: accept Google Drive share links and direct public image URLs.
 ["guest", "user", "admin"].forEach(type => {
   document.getElementById(`btn-set-${type}`)?.addEventListener("click", async () => {
-    const url = document.getElementById(`bg-${type}-url`)?.value.trim();
+    const url = document.getElementById(`bg-${type}-url`)?.value.trim() || "";
     const size = document.getElementById(`size-${type}`)?.value || "w1920";
+    const imageUrl = resolveBackgroundImage(url, size);
+    if (!imageUrl) return alert("Встав посилання на зображення або Google Drive.");
     const fileId = extractGoogleDriveFileId(url);
-    if (!fileId) return alert("Невірне посилання");
-    await setDoc(doc(db, "settings", `background_${type}`), { url, fileId, size });
-    setPreview(`preview-${type}`, fileId, size);
-    alert("Збережено");
+    try {
+      await setDoc(doc(db, "settings", `background_${type}`), { url, imageUrl, fileId: fileId || "", size });
+      setPreview(`preview-${type}`, imageUrl, size);
+      alert("Зображення заставки збережено");
+    } catch (err) {
+      console.error(err);
+      alert("Не вдалося зберегти заставку. Перевір права доступу адміністратора.");
+    }
   });
   document.getElementById(`btn-del-${type}`)?.addEventListener("click", async () => {
-    await deleteDoc(doc(db, "settings", `background_${type}`));
-    document.getElementById(`bg-${type}-url`).value = "";
-    setPreview(`preview-${type}`, null);
+    try {
+      await deleteDoc(doc(db, "settings", `background_${type}`));
+      document.getElementById(`bg-${type}-url`).value = "";
+      setPreview(`preview-${type}`, null);
+    } catch (err) {
+      console.error(err);
+      alert("Не вдалося видалити заставку.");
+    }
   });
 });
