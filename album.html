@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Альбом косплеєра</title>
+<title>Журнал косплеєра</title>
 <style>
   :root{
     --ink:#2b2230; --paper:#fbf6ee; --paper-2:#f3ebdd;
@@ -174,6 +174,38 @@
   .intro-art{ flex:1 1 auto; min-height:0; width:100%; margin-top:.7em; display:flex; align-items:center; justify-content:center; overflow:hidden; }
   .intro-art img{ display:block; width:100%; height:100%; max-width:100%; max-height:100%; object-fit:contain; border-radius:4px; box-shadow:0 5px 16px rgba(65,45,55,.18); }
 
+  /* ---------- бічні панелі читача: заповнюють широкі екрани ---------- */
+  .reader-side{
+    position:absolute; z-index:5; top:50%; width:clamp(170px,14vw,220px);
+    padding:18px 17px; border:1px solid rgba(255,255,255,.13); border-radius:18px;
+    background:linear-gradient(145deg,rgba(54,37,62,.76),rgba(25,17,32,.70));
+    box-shadow:0 14px 38px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.08);
+    backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+    color:#eee3ef; transform:translateY(-50%);
+  }
+  .reader-side.left{right:calc(50% + var(--pw) + 28px);}
+  .reader-side.right{left:calc(50% + var(--pw) + 28px);}
+  .reader-kicker{margin:0 0 9px;color:#e8aeca;font-size:10px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;}
+  .reader-side h2{margin:0 0 7px;font:600 21px/1.2 "Palatino Linotype","Book Antiqua",Georgia,serif;color:#fff4f8;overflow-wrap:anywhere;}
+  .reader-side p{margin:0;color:#c5b7ca;font-size:12px;line-height:1.55;}
+  .reader-stat{display:flex;align-items:baseline;gap:7px;margin-top:15px;padding-top:13px;border-top:1px solid rgba(255,255,255,.1);}
+  .reader-stat strong{font:600 25px/1 Georgia,serif;color:#f3b4cc;}
+  .reader-stat span{font-size:11px;color:#c5b7ca;}
+  .reader-progress{height:4px;margin:12px 0 8px;overflow:hidden;border-radius:99px;background:rgba(255,255,255,.12);}
+  .reader-progress span{display:block;width:0;height:100%;border-radius:inherit;background:linear-gradient(90deg,#c77da2,#f3c4d7);transition:width .35s ease;}
+  .reader-hint{display:flex;gap:8px;align-items:flex-start;margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.1);font-size:11px;line-height:1.45;color:#bbaec2;}
+  .reader-hint b{color:#f2c3d6;font-size:15px;line-height:1;}
+  @media (min-width:1250px) and (min-height:620px){
+    .stage{background:
+      radial-gradient(ellipse 34% 70% at 50% 48%,rgba(243,168,195,.17),transparent 72%),
+      radial-gradient(ellipse 90% 100% at 50% 50%,rgba(255,255,255,.025),transparent 70%),
+      repeating-linear-gradient(95deg,rgba(255,255,255,.012) 0 2px,transparent 2px 7px),
+      linear-gradient(#1d1426,#120c18);}
+  }
+  @media (max-width:1249px), (max-height:619px){
+    .reader-side{display:none;}
+  }
+
   /* ---------- нижня панель ---------- */
   .ctrl{ display:flex; align-items:center; justify-content:center; gap:16px; padding:10px 20px 16px; }
   .ctrl span{ min-width:170px; text-align:center; font-size:14px; color:#cdbfd3; }
@@ -222,7 +254,21 @@
 <nav class="tagbar" id="tags" aria-label="Фільтр за тегами"></nav>
 
 <main class="stage" id="stage">
+  <div class="reader-side left" aria-label="Інформація про журнал">
+    <p class="reader-kicker">COSPLAY JOURNAL</p>
+    <h2 id="reader-title">Альбом</h2>
+    <p id="reader-owner"></p>
+    <div class="reader-stat"><strong id="reader-total">0</strong><span id="reader-total-label">фотографій у журналі</span></div>
+  </div>
   <div class="book" id="book"></div>
+  <div class="reader-side right" aria-label="Навігація журналом">
+    <p class="reader-kicker" id="reader-section-label">ЗАРАЗ ВІДКРИТО</p>
+    <h2 id="reader-page">Обкладинка</h2>
+    <p id="reader-page-help">Перегортай сторінки, щоб переглянути всі образи.</p>
+    <div class="reader-progress" aria-hidden="true"><span id="reader-progress-fill"></span></div>
+    <p id="reader-progress-text">0% переглянуто</p>
+    <div class="reader-hint"><b>↔</b><span id="reader-hint-text">Потягни куточок сторінки або скористайся стрілками внизу.</span></div>
+  </div>
 </main>
 
 <footer class="ctrl">
@@ -469,8 +515,14 @@ function layout() {
   setShift(cur);
 }
 function updateUI() {
-  $('label').textContent = pageLabel(cur, N);
+  const label = pageLabel(cur, N);
+  $('label').textContent = label;
   $('prev').disabled = cur <= 0; $('next').disabled = cur >= N;
+  const pageTitle = cur === 0 ? tr('cover') : cur === N ? tr('backCover') : label;
+  $('reader-page').textContent = pageTitle;
+  const progress = N ? Math.round(cur / N * 100) : 0;
+  $('reader-progress-fill').style.width = progress + '%';
+  $('reader-progress-text').textContent = progress + '% ' + (currentLang === 'en' ? 'viewed' : 'переглянуто');
 }
 
 /* ===================== АНІМАЦІЯ ===================== */
@@ -699,6 +751,10 @@ async function loadAlbum() {
   }
 
   $('albumTitle').textContent = ALBUM.title;
+  $('reader-title').textContent = ALBUM.title;
+  $('reader-owner').textContent = ALBUM.owner + (ALBUM.year ? ' · ' + ALBUM.year : '');
+  $('reader-total').textContent = PHOTOS.length;
+  $('reader-total-label').textContent = currentLang === 'en' ? 'photos in this journal' : 'фотографій у журналі';
   paintSound();
   applyLanguage();
   renderTags();
