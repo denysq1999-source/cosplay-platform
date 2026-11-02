@@ -349,12 +349,37 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       const snap = await getDocs(collection(db, "cosplays"));
       if (snap.empty) {
-        galleryEl.innerHTML = `
-          <div style="text-align:center; padding:60px 20px; color:#666;">
-            <div style="font-size:48px; margin-bottom:12px;">🖼️</div>
-            <p style="margin:0; font-size:15px;">${emptyText}</p>
-          </div>
-        `;
+        // Do not show the empty-gallery placeholder when at least one album exists.
+        // Check both the legacy single-album document and the newer albums collection.
+        let hasAlbums = false;
+        try {
+          const [legacyAlbumSnap, albumsSnap] = await Promise.all([
+            getDoc(doc(db, "settings", "album")),
+            getDocs(collection(db, "albums"))
+          ]);
+
+          const legacyData = legacyAlbumSnap.exists() ? legacyAlbumSnap.data() || {} : {};
+          const legacyHasPages = Array.isArray(legacyData.pages) && legacyData.pages.length > 0;
+          const collectionHasAlbums = albumsSnap.docs.some(albumDoc => {
+            const albumData = albumDoc.data() || {};
+            return Array.isArray(albumData.pages) && albumData.pages.length > 0;
+          });
+
+          hasAlbums = legacyHasPages || collectionHasAlbums;
+        } catch (albumCheckError) {
+          console.warn("Не вдалося перевірити альбоми перед показом порожньої галереї:", albumCheckError);
+        }
+
+        if (hasAlbums) {
+          galleryEl.innerHTML = "";
+        } else {
+          galleryEl.innerHTML = `
+            <div class="gallery-empty-state" style="text-align:center; padding:60px 20px; color:#666;">
+              <div style="font-size:48px; margin-bottom:12px;">🖼️</div>
+              <p style="margin:0; font-size:15px;">${emptyText}</p>
+            </div>
+          `;
+        }
         return;
       }
       snap.forEach((docSnap) => {
