@@ -162,14 +162,38 @@
   .pno{ position:absolute; bottom:1.2%; font-size:.8em; color:#a898ad; }
   .face.front .pno{ right:6%; }  .face.back .pno{ left:6%; }
 
-  /* куточок-підказка «потягни» */
+  /* Кастомні декоративні куточки журналу */
   .corner{
-    position:absolute; bottom:0; width:7%; aspect-ratio:1; z-index:2; transition:width .28s ease;
-    pointer-events:none;
+    position:absolute;bottom:0;width:7%;aspect-ratio:1;z-index:2;
+    pointer-events:none;transition:width .28s ease,filter .28s ease,transform .28s ease;
   }
-  .face.front .corner{ right:0; background:linear-gradient(315deg, #cdbfa8 0 50%, rgba(0,0,0,0) 50%); box-shadow:-2px -2px 6px rgba(0,0,0,.18); }
-  .face.back  .corner{ left:0;  background:linear-gradient(45deg,  #cdbfa8 0 50%, rgba(0,0,0,0) 50%); box-shadow:2px -2px 6px rgba(0,0,0,.18); }
-  .book:hover .face .corner{ width:10%; }
+  .face.front .corner{
+    right:0;background:linear-gradient(315deg,var(--corner-color,#cdbfa8) 0 50%,transparent 50%);
+    box-shadow:-2px -2px 6px rgba(0,0,0,.18);
+  }
+  .face.back .corner{
+    left:0;background:linear-gradient(45deg,var(--corner-color,#cdbfa8) 0 50%,transparent 50%);
+    box-shadow:2px -2px 6px rgba(0,0,0,.18);
+  }
+  .book:hover .face .corner{width:10%;}
+  .book[data-corner-style="star"] .corner,
+  .book[data-corner-style="flower"] .corner,
+  .book[data-corner-style="bookmark"] .corner{background:none;box-shadow:none;width:10%;}
+  .book[data-corner-style="star"] .corner::after,
+  .book[data-corner-style="flower"] .corner::after{
+    content:"★";position:absolute;inset:0;display:grid;place-items:center;
+    color:var(--corner-color,#e7b85c);font-size:clamp(18px,2.6vw,34px);
+    line-height:1;text-shadow:0 2px 5px rgba(0,0,0,.24);
+  }
+  .book[data-corner-style="flower"] .corner::after{content:"✿";}
+  .book[data-corner-style="bookmark"] .corner{width:8%;aspect-ratio:.72;bottom:0;}
+  .book[data-corner-style="bookmark"] .face.front .corner{right:3%;}
+  .book[data-corner-style="bookmark"] .face.back .corner{left:3%;}
+  .book[data-corner-style="bookmark"] .corner::after{
+    content:"";position:absolute;inset:0;background:var(--corner-color,#e7b85c);
+    clip-path:polygon(0 0,100% 0,100% 100%,50% 76%,0 100%);
+    filter:drop-shadow(0 2px 3px rgba(0,0,0,.25));
+  }
 
   /* обкладинка, вступ, кінець */
   .face.cover{ background:radial-gradient(120% 90% at 30% 20%, #5b2349, var(--wine) 60%, #220c1d); color:#f3dfb2; background-image:none; }
@@ -301,7 +325,7 @@ const db = getFirestore(firebaseApp);
    tags     — теги персонажа/серії; за ними працює фільтр зверху.
    likes    — стартова кількість лайків.
    ===================================================================== */
-let ALBUM = { title: 'Альбом косплеєра', owner: 'Нікнейм косплеєра', year: '2026', pageFormat: '4:5' };
+let ALBUM = { title: 'Альбом косплеєра', owner: 'Нікнейм косплеєра', year: '2026', pageFormat: '4:5', cornerStyle: 'classic', cornerColor: '#cdbfa8' };
 
 let PHOTOS = [];
 
@@ -470,6 +494,11 @@ function faceHTML(f, faceIndex) {
 }
 
 function build() {
+  const allowedCornerStyles = ['classic','star','bookmark','flower'];
+  const cornerStyle = allowedCornerStyles.includes(ALBUM.cornerStyle) ? ALBUM.cornerStyle : 'classic';
+  const cornerColor = /^#[0-9a-fA-F]{6}$/.test(ALBUM.cornerColor || '') ? ALBUM.cornerColor : '#cdbfa8';
+  book.dataset.cornerStyle = cornerStyle;
+  book.style.setProperty('--corner-color', cornerColor);
   faces = buildFaces(visiblePhotos(PHOTOS, tag));
   N = faces.length / 2; cur = 0; busy = false;
   book.innerHTML = '';
@@ -722,7 +751,9 @@ async function loadAlbum() {
         year: data.year || '2026',
         pageFormat: ['4:5','3:4','2:3','1:1','16:9'].includes(data.pageFormat) ? data.pageFormat : '4:5',
         coverImage: data.coverImage || data.introImage || data.firstPageImage || '',
-        backCoverImage: data.backCoverImage || data.backCover || ''
+        backCoverImage: data.backCoverImage || data.backCover || '',
+        cornerStyle: ['classic','star','bookmark','flower'].includes(data.cornerStyle) ? data.cornerStyle : 'classic',
+        cornerColor: /^#[0-9a-fA-F]{6}$/.test(data.cornerColor || '') ? data.cornerColor : '#cdbfa8'
       };
       PHOTOS = Array.isArray(data.pages) ? data.pages.map((p, i) => ({
         id: String(p.id || `photo-${i + 1}`),
