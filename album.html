@@ -267,7 +267,7 @@ const db = getFirestore(firebaseApp);
    tags     — теги персонажа/серії; за ними працює фільтр зверху.
    likes    — стартова кількість лайків.
    ===================================================================== */
-let ALBUM = { title: 'Альбом косплеєра', owner: 'Нікнейм косплеєра', year: '2026' };
+let ALBUM = { title: 'Альбом косплеєра', owner: 'Нікнейм косплеєра', year: '2026', pageFormat: '4:5' };
 
 let PHOTOS = [];
 
@@ -655,12 +655,15 @@ $('snd').onclick = () => { soundOn = !soundOn; localStorage.setItem(LS_SOUND, so
 
 /* ===================== РОЗМІР ПІД ЕКРАН ===================== */
 function fit() {
-  const w = stage.clientWidth, h = stage.clientHeight;
-  PW = Math.round(clamp(Math.min((w - 24) / 2, (h - 56) / 1.36, 480), 120, 480));
-  PH = Math.round(PW * 1.36);
+  const w = Math.max(1, stage.clientWidth), h = Math.max(1, stage.clientHeight);
+  const [rw, rh] = (ALBUM.pageFormat || '4:5').split(':').map(Number);
+  const pageRatio = rw > 0 && rh > 0 ? rw / rh : 4 / 5; // page width / page height
+  // Fit the complete two-page spread inside the stage without distorting the selected ratio.
+  PW = Math.round(clamp(Math.min((w - 24) / 2, (h - 56) * pageRatio, 480), 100, 480));
+  PH = Math.round(PW / pageRatio);
   const root = document.documentElement.style;
   root.setProperty('--pw', PW + 'px'); root.setProperty('--ph', PH + 'px');
-  if (leaves.length) setShift(cur);
+  if (leaves.length) { layout(); }
 }
 addEventListener('resize', fit);
 
@@ -674,6 +677,7 @@ async function loadAlbum() {
         title: data.title || 'Альбом косплеєра',
         owner: data.owner || data.cosplayer || 'Косплеєр',
         year: data.year || '2026',
+        pageFormat: ['4:5','3:4','2:3','1:1','16:9'].includes(data.pageFormat) ? data.pageFormat : '4:5',
         coverImage: data.coverImage || data.introImage || data.firstPageImage || '',
         backCoverImage: data.backCoverImage || data.backCover || ''
       };
