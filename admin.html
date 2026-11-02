@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Адмінка — Косплей Галерея</title>
-  <link rel="stylesheet" href="css/style.css?v=2">
+  <link rel="stylesheet" href="css/style.css?v=3">
 </head>
 <body>
 
@@ -37,6 +37,12 @@
           <div>
             <label>Власник / нік</label>
             <input type="text" id="album-owner" placeholder="Нікнейм косплеєра" style="width:100%; padding:10px; border-radius:8px; border:1px solid #333; background:#1e1e1e; color:#fff;">
+          </div>
+          <div style="grid-column:1 / -1;">
+            <label for="album-intro-image">Зображення першої сторінки (посилання на фото)</label>
+            <input type="url" id="album-intro-image" placeholder="Посилання на зображення або Google Drive" style="width:100%; padding:10px; border-radius:8px; border:1px solid #333; background:#1e1e1e; color:#fff;">
+            <small style="display:block; color:#aaa; margin-top:5px;">Фото з'явиться на першій внутрішній сторінці під текстом «Про альбом». Залиш порожнім, щоб не показувати зображення.</small>
+            <img id="album-intro-preview" alt="Попередній перегляд зображення першої сторінки" hidden style="display:none; max-width:220px; max-height:180px; object-fit:contain; margin-top:10px; border-radius:8px; border:1px solid #555; background:#222; padding:4px;">
           </div>
         </div>
 
@@ -168,6 +174,6 @@
 
   <div id="status" style="margin-top:40px; text-align:center; color:#888;">Перевірка доступу...</div>
 
-  <script type="module" src="js/admin.js?v=18"></script>
+  <script type="module" src="js/admin.js?v=19"></script>
 </body>
 </html>
