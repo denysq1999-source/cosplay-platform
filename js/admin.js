@@ -181,6 +181,7 @@ async function loadAlbum() {
       const data = snap.data();
       document.getElementById("album-title").value = data.title || "";
       document.getElementById("album-owner").value = data.owner || "";
+      document.getElementById("album-page-format").value = data.pageFormat || "4:5";
       document.getElementById("album-intro-image").value = data.coverImage || data.introImage || data.firstPageImage || "";
       document.getElementById("album-back-cover-image").value = data.backCoverImage || data.backCover || "";
       albumPages = data.pages || [];
@@ -315,6 +316,7 @@ document.getElementById("btn-save-album")?.addEventListener("click", async () =>
       title: document.getElementById("album-title").value.trim() || "Альбом косплеєра",
       owner: document.getElementById("album-owner").value.trim() || "Косплеєр",
       year: new Date().getFullYear().toString(),
+      pageFormat: document.getElementById("album-page-format").value || "4:5",
       coverImage: document.getElementById("album-intro-image").value.trim(),
       backCoverImage: document.getElementById("album-back-cover-image").value.trim(),
       pages: albumPages
