@@ -49,6 +49,29 @@
             </select>
             <small style="display:block; color:#aaa; margin-top:5px;" data-i18n="format_help">Розмір обох сторінок і всієї книжки автоматично підлаштується під вибрані пропорції та екран. Самі фотографії не обрізаються.</small>
           </div>
+          <div style="grid-column:1 / -1; padding:14px; border:1px solid #39313e; border-radius:12px; background:#211b25;">
+            <h4 style="margin:0 0 12px;" data-i18n="corner_custom_title">Оформлення куточків сторінок</h4>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+              <div>
+                <label for="album-corner-style" data-i18n="corner_style">Декор</label>
+                <select id="album-corner-style" style="width:100%;padding:10px;border-radius:8px;border:1px solid #48404c;background:#1e1e1e;color:#fff;">
+                  <option value="classic" data-i18n="corner_classic">Класичний загнутий кутик</option>
+                  <option value="star" data-i18n="corner_star">Зірочка</option>
+                  <option value="bookmark" data-i18n="corner_bookmark">Закладка</option>
+                  <option value="flower" data-i18n="corner_flower">Квіточка</option>
+                </select>
+              </div>
+              <div>
+                <label for="album-corner-color" data-i18n="corner_color">Колір декору</label>
+                <input type="color" id="album-corner-color" value="#cdbfa8" style="width:100%;height:42px;padding:4px;border-radius:8px;border:1px solid #48404c;background:#1e1e1e;">
+              </div>
+            </div>
+            <small style="display:block;color:#aaa;margin-top:8px;" data-i18n="corner_help">Оформлення застосовується до нижніх куточків сторінок журналу.</small>
+            <div id="corner-preview" aria-label="Попередній перегляд оформлення" style="height:88px;margin-top:12px;border-radius:8px;background:#f5eddf;display:flex;align-items:center;justify-content:space-between;padding:12px 18px;color:#35283a;">
+              <div style="font-family:Georgia,serif;font-size:14px;" data-i18n="corner_preview_label">Сторінка журналу</div>
+              <span id="corner-preview-mark" style="font-size:34px;line-height:1;color:#cdbfa8;">◢</span>
+            </div>
+          </div>
           <div style="grid-column:1 / -1;">
             <label for="album-intro-image" data-i18n="front_cover">Зображення лицьової обкладинки журналу (перша сторінка)</label>
             <input type="url" id="album-intro-image" placeholder="Посилання на зображення або Google Drive" data-i18n-placeholder="image_link_placeholder" style="width:100%; padding:10px; border-radius:8px; border:1px solid #333; background:#1e1e1e; color:#fff;">
@@ -191,6 +214,6 @@
 
   <div id="status" data-i18n="checking_access" style="margin-top:40px; text-align:center; color:#888;">Перевірка доступу...</div>
 
-  <script type="module" src="js/admin.js?v=28"></script>
+  <script type="module" src="js/admin.js?v=29"></script>
 </body>
 </html>
