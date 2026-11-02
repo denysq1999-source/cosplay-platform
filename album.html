@@ -24,6 +24,14 @@
   .top{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 20px 6px; }
   .top h1{ margin:0; font:600 22px/1.2 "Palatino Linotype","Book Antiqua",Palatino,Georgia,serif; letter-spacing:.01em; }
   .top p{ margin:3px 0 0; font-size:13px; color:#bfb2c6; max-width:60ch; }
+  .top-actions{display:flex;align-items:center;gap:8px;flex:none;flex-wrap:wrap;justify-content:flex-end}
+  .lang-switcher{display:flex;gap:3px;padding:3px;border:1px solid rgba(255,255,255,.18);border-radius:999px;background:rgba(255,255,255,.07);backdrop-filter:blur(12px)}
+  .lang-btn{height:30px;min-width:38px;padding:0 10px;border:0;border-radius:999px;background:transparent;color:#d8cbdc;font-size:12px;font-weight:700;cursor:pointer;transition:background-color .28s ease,color .28s ease}
+  .lang-btn.active{background:rgba(243,168,195,.24);color:#fff;border:1px solid rgba(243,168,195,.65)}
+  .lang-btn:focus-visible{outline:2px solid var(--sakura);outline-offset:2px}
+  .back-cover-art{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:radial-gradient(120% 90% at 30% 20%,#5b2349,var(--wine) 60%,#220c1d)}
+  .back-cover-art img{display:block;width:100%;height:100%;object-fit:contain}
+  .back-cover-empty{position:absolute;inset:8%;border:2px solid rgba(216,180,106,.65);display:flex;align-items:center;justify-content:center;color:#e6cf9b;font:600 1.5em Georgia,serif;text-align:center;padding:10%}
   .iconbtn{
     height:40px; min-width:40px; padding:0 12px; border-radius:999px; cursor:pointer;
     border:1px solid rgba(255,255,255,.16); background:rgba(255,255,255,.07);
@@ -150,6 +158,9 @@
   .cv h2{ margin:0; font:600 2.4em/1.15 "Palatino Linotype","Book Antiqua",Palatino,Georgia,serif; text-shadow:0 1px 0 rgba(0,0,0,.4); }
   .cv .rule{ width:34%; height:2px; background:linear-gradient(90deg, transparent, var(--gold), transparent); }
   .cv p{ margin:0; font-size:1.05em; color:#e6cf9b; }
+  .face.back.cover{background:#24101f;background-image:none}
+  .face.back.cover::after{display:none}
+  .face.back.cover::before{display:none}
   .page-note{ position:absolute; inset:0; padding:10% 9%; display:flex; flex-direction:column; gap:.7em; }
   .page-note h3{ margin:0; font:600 1.9em/1.15 "Palatino Linotype","Book Antiqua",Palatino,Georgia,serif; }
   .page-note p{ margin:0; line-height:1.55; color:#5b4b60; }
@@ -193,9 +204,16 @@
 <header class="top">
   <div>
     <h1 id="albumTitle">Альбом косплеєра</h1>
-    <p>Потягни кут сторінки мишкою, як у справжньому альбомі, або користуйся стрілками. Клік по фото відкриває його на весь екран.</p>
+    <p id="albumDesc">Потягни кут сторінки мишкою, як у справжньому альбомі, або користуйся стрілками. Клік по фото відкриває його на весь екран.</p>
   </div>
-  <div style="display:flex;align-items:center;gap:8px;flex:none"><a class="iconbtn" href="index.html" style="display:inline-flex;align-items:center;text-decoration:none">← На галерею</a><button class="iconbtn" id="snd" type="button" aria-pressed="true" aria-label="Звук гортання" title="Звук гортання">🔊</button></div>
+  <div class="top-actions">
+    <div class="lang-switcher" role="group" aria-label="Language">
+      <button class="lang-btn" id="lang-uk" type="button" aria-pressed="false">UK</button>
+      <button class="lang-btn" id="lang-en" type="button" aria-pressed="false">EN</button>
+    </div>
+    <a class="iconbtn" id="gallery-link" href="index.html" style="display:inline-flex;align-items:center;text-decoration:none">← На галерею</a>
+    <button class="iconbtn" id="snd" type="button" aria-pressed="true" aria-label="Звук гортання" title="Звук гортання">🔊</button>
+  </div>
 </header>
 
 <nav class="tagbar" id="tags" aria-label="Фільтр за тегами"></nav>
@@ -286,9 +304,9 @@ function buildFaces(photos) {
   return faces;
 }
 function pageLabel(cur, N) {
-  if (cur === 0) return 'Обкладинка';
-  if (cur === N) return 'Задня обкладинка';
-  return 'Сторінки ' + (2 * cur - 1) + '–' + (2 * cur);
+  if (cur === 0) return tr('cover');
+  if (cur === N) return tr('backCover');
+  return tr('pages') + ' ' + (2 * cur - 1) + '–' + (2 * cur);
 }
 function visiblePhotos(all, tag) { return tag ? all.filter(p => p.tags.includes(tag)) : all; }
 function topTags(all, max) {
@@ -315,6 +333,53 @@ let faces = [], N = 0, leaves = [], cur = 0, PW = 420, PH = 571;
 let busy = false, drag = null, tag = '';
 const likes = new Set(JSON.parse(localStorage.getItem(LS_LIKES) || '[]'));
 let soundOn = localStorage.getItem(LS_SOUND) !== '0';
+let currentLang = localStorage.getItem('appLang') || 'uk';
+const TXT = {
+  uk: {
+    description:'Потягни кут сторінки мишкою, як у справжньому альбомі, або користуйся стрілками. Клік по фото відкриває його на весь екран.',
+    gallery:'← На галерею', all:'Усі фото', cover:'Обкладинка', backCover:'Задня обкладинка',
+    pages:'Сторінки', about:'Про альбом', aboutText:'Тут зібрані роботи косплеєра: образи, персонажі та закадрові історії.',
+    drag:'Потягни кут сторінки або натискай ‹ ›', zoom:'Клік по фото відкриває його на весь екран',
+    filter:'Тег на сторінці залишає в альбомі лише ці фото', total:'Усього фото:', tags:'Теги:',
+    cosplayer:'Косплеєр:', addPhoto:'Додай фото в PHOTOS', blank:'Місце для нових фото',
+    thanks:'Дякую, що заглянули', more:'Нові образи додаються після кожного фестивалю.',
+    sound:'Звук гортання', loadError:'Не вдалося завантажити альбом'
+  },
+  en: {
+    description:'Drag a page corner like in a real album, or use the arrows. Click a photo to view it full screen.',
+    gallery:'← Back to gallery', all:'All photos', cover:'Cover', backCover:'Back cover',
+    pages:'Pages', about:'About this album', aboutText:'A collection of cosplayer works, characters, and behind-the-scenes stories.',
+    drag:'Drag a page corner or use ‹ ›', zoom:'Click a photo to view it full screen',
+    filter:'Click a tag to show only matching photos in the album', total:'Total photos:', tags:'Tags:',
+    cosplayer:'Cosplayer:', addPhoto:'Add a photo in the admin panel', blank:'Space for new photos',
+    thanks:'Thanks for stopping by', more:'New looks are added after each festival.',
+    sound:'Page-turn sound', loadError:'Could not load the album'
+  }
+};
+const tr = key => TXT[currentLang][key] || TXT.uk[key] || key;
+function applyLanguage() {
+  document.documentElement.lang = currentLang === 'en' ? 'en' : 'uk';
+  $('albumDesc').textContent = tr('description');
+  $('gallery-link').textContent = tr('gallery');
+  $('gallery-link').setAttribute('aria-label', tr('gallery'));
+  $('lang-uk').classList.toggle('active', currentLang === 'uk');
+  $('lang-en').classList.toggle('active', currentLang === 'en');
+  $('lang-uk').setAttribute('aria-pressed', String(currentLang === 'uk'));
+  $('lang-en').setAttribute('aria-pressed', String(currentLang === 'en'));
+  $('snd').title = tr('sound'); $('snd').setAttribute('aria-label', tr('sound'));
+  renderTags();
+  build();
+  updateUI();
+}
+function setLanguage(lang) {
+  if (!TXT[lang]) return;
+  currentLang = lang;
+  localStorage.setItem('appLang', lang);
+  applyLanguage();
+}
+$('lang-uk').addEventListener('click', () => setLanguage('uk'));
+$('lang-en').addEventListener('click', () => setLanguage('en'));
+
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 const likeCount = p => p.likes + (likes.has(p.id) ? 1 : 0);
@@ -326,11 +391,11 @@ function photoFace(p, side, faceIndex) {
   const i = PHOTOS.indexOf(p);
   const media = safeSrc(p.src)
     ? `<img src="${esc(safeSrc(p.src))}" alt="${esc(p.title)}" draggable="false" decoding="async" style="object-fit:contain">`
-    : `<div class="ph" style="--g1:hsl(${hue(i)} 52% 42%);--g2:hsl(${hue(i) + 40} 55% 28%)"><b>${esc(p.title.slice(0, 1))}</b><small>Додай фото в PHOTOS</small></div>`;
+    : `<div class="ph" style="--g1:hsl(${hue(i)} 52% 42%);--g2:hsl(${hue(i) + 40} 55% 28%)"><b>${esc(p.title.slice(0, 1))}</b><small>${tr('addPhoto')}</small></div>`;
   const tilt = (i % 2 ? .7 : -.7).toFixed(1);
   return `<div class="sheet" data-photo="${esc(p.id)}">
     <div class="photo" data-open="${esc(p.id)}" style="--tilt:${tilt}deg">${media}<i class="tape t1"></i><i class="tape t2"></i></div>
-    <div class="cap"><h3>${esc(p.title)}</h3><p class="series">${esc(p.series)}</p><p class="by">Косплеєр: ${esc(p.cosplayer)}</p>
+    <div class="cap"><h3>${esc(p.title)}</h3><p class="series">${esc(p.series)}</p><p class="by">${tr('cosplayer')} ${esc(p.cosplayer)}</p>
       <div class="row"><div class="tags">${p.tags.map(t => `<button class="tag" type="button" data-tag="${esc(t)}">${esc(t)}</button>`).join('')}</div>
       <button class="like" type="button" data-like="${esc(p.id)}" aria-pressed="false">♥ <span>${likeCount(p)}</span></button></div></div>
     <span class="pno">${faceIndex}</span></div><i class="corner"></i>`;
@@ -344,21 +409,24 @@ function faceHTML(f, faceIndex) {
       const introImage = safeSrc(ALBUM.introImage);
       return `<div class="page-note intro-page">
         <div class="intro-copy">
-          <h3>Про альбом</h3>
-          <p>Тут зібрані роботи косплеєра: образи, персонажі та закадрові історії.</p>
-          <ul><li>Потягни кут сторінки або натискай ‹ ›</li><li>Клік по фото відкриває його на весь екран</li><li>Тег на сторінці залишає в альбомі лише ці фото</li></ul>
-          <p>Усього фото: <b>${PHOTOS.length}</b>. Теги: ${t.map(esc).join(', ')}.</p>
+          <h3>${tr('about')}</h3>
+          <p>${tr('aboutText')}</p>
+          <ul><li>${tr('drag')}</li><li>${tr('zoom')}</li><li>${tr('filter')}</li></ul>
+          <p>${tr('total')} <b>${PHOTOS.length}</b>. ${tr('tags')} ${t.map(esc).join(', ')}.</p>
         </div>
         ${introImage ? `<div class="intro-art"><img src="${esc(introImage)}" alt="Зображення першої сторінки" loading="lazy"></div>` : ''}
       </div><span class="pno">${faceIndex}</span>`;
     }
     case 'photo': return photoFace(f.photo, faceIndex % 2 ? 'l' : 'r', faceIndex);
     case 'blank':
-      return `<div class="page-note center"><p>Місце для нових фото</p></div><span class="pno">${faceIndex}</span><i class="corner"></i>`;
+      return `<div class="page-note center"><p>${tr('blank')}</p></div><span class="pno">${faceIndex}</span><i class="corner"></i>`;
     case 'end':
-      return `<div class="page-note center"><h3>Дякую, що заглянули</h3><p>Нові образи додаються після кожного фестивалю.</p></div><span class="pno">${faceIndex}</span>`;
+      return `<div class="page-note center"><h3>${tr('thanks')}</h3><p>${tr('more')}</p></div><span class="pno">${faceIndex}</span>`;
     default: // back cover
-      return `<div class="cv"><div class="rule"></div><p>${esc(ALBUM.owner)}</p></div>`;
+      const backCover = safeSrc(ALBUM.backCoverImage);
+      return backCover
+        ? `<div class="back-cover-art"><img src="${esc(backCover)}" alt="Back cover" draggable="false"></div>`
+        : `<div class="cv back-cover-empty"><div class="rule"></div><p>${esc(ALBUM.owner)}</p></div>`;
   }
 }
 
@@ -487,7 +555,7 @@ function renderTags() {
   bar.innerHTML = '';
   ['', ...topTags(PHOTOS, 10)].forEach(t => {
     const b = document.createElement('button');
-    b.type = 'button'; b.className = 'chip'; b.textContent = t || 'Усі фото';
+    b.type = 'button'; b.className = 'chip'; b.textContent = t || tr('all');
     b.setAttribute('aria-pressed', String(t === tag));
     b.onclick = () => setTag(t);
     bar.appendChild(b);
@@ -599,7 +667,8 @@ async function loadAlbum() {
         title: data.title || 'Альбом косплеєра',
         owner: data.owner || data.cosplayer || 'Косплеєр',
         year: data.year || '2026',
-        introImage: data.introImage || data.firstPageImage || ''
+        introImage: data.introImage || data.firstPageImage || '',
+        backCoverImage: data.backCoverImage || data.backCover || ''
       };
       PHOTOS = Array.isArray(data.pages) ? data.pages.map((p, i) => ({
         id: String(p.id || `photo-${i + 1}`),
@@ -615,11 +684,12 @@ async function loadAlbum() {
     }
   } catch (error) {
     console.error('Не вдалося завантажити альбом з Firestore:', error);
-    $('label').textContent = 'Не вдалося завантажити альбом';
+    $('label').textContent = tr('loadError');
   }
 
   $('albumTitle').textContent = ALBUM.title;
   paintSound();
+  applyLanguage();
   renderTags();
   fit();
   build();
