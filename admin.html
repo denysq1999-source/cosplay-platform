@@ -27,64 +27,64 @@
 
     <div class="admin-main">
       <div id="albums-section" class="albums-section hidden">
-        <h3 style="margin:0 0 12px;">Керування альбомом (журнал)</h3>
+        <h3 style="margin:0 0 12px;" data-i18n="album_manage">Керування альбомом (журнал)</h3>
 
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px;">
           <div>
-            <label>Назва альбому</label>
-            <input type="text" id="album-title" placeholder="Альбом косплеєра" style="width:100%; padding:10px; border-radius:8px; border:1px solid #333; background:#1e1e1e; color:#fff;">
+            <label data-i18n="album_name">Назва альбому</label>
+            <input type="text" id="album-title" placeholder="Альбом косплеєра" data-i18n-placeholder="album_title_placeholder" style="width:100%; padding:10px; border-radius:8px; border:1px solid #333; background:#1e1e1e; color:#fff;">
           </div>
           <div>
-            <label>Власник / нік</label>
-            <input type="text" id="album-owner" placeholder="Нікнейм косплеєра" style="width:100%; padding:10px; border-radius:8px; border:1px solid #333; background:#1e1e1e; color:#fff;">
+            <label data-i18n="album_owner">Власник / нік</label>
+            <input type="text" id="album-owner" placeholder="Нікнейм косплеєра" data-i18n-placeholder="owner_placeholder" style="width:100%; padding:10px; border-radius:8px; border:1px solid #333; background:#1e1e1e; color:#fff;">
           </div>
           <div style="grid-column:1 / -1;">
-            <label for="album-page-format">Формат сторінок журналу</label>
+            <label for="album-page-format" data-i18n="page_format">Формат сторінок журналу</label>
             <select id="album-page-format" style="width:100%; padding:10px; border-radius:8px; border:1px solid #333; background:#1e1e1e; color:#fff;">
-              <option value="4:5">4:5 — портретний (соцмережі)</option>
-              <option value="3:4">3:4 — класичний портретний</option>
-              <option value="2:3">2:3 — вертикальне фото</option>
-              <option value="1:1">1:1 — квадрат</option>
-              <option value="16:9">16:9 — альбомний / широкий</option>
+              <option value="4:5" data-i18n="ratio_45">4:5 — портретний (соцмережі)</option>
+              <option value="3:4" data-i18n="ratio_34">3:4 — класичний портретний</option>
+              <option value="2:3" data-i18n="ratio_23">2:3 — вертикальне фото</option>
+              <option value="1:1" data-i18n="ratio_11">1:1 — квадрат</option>
+              <option value="16:9" data-i18n="ratio_169">16:9 — альбомний / широкий</option>
             </select>
-            <small style="display:block; color:#aaa; margin-top:5px;">Розмір обох сторінок і всієї книжки автоматично підлаштується під вибрані пропорції та екран. Самі фотографії не обрізаються.</small>
+            <small style="display:block; color:#aaa; margin-top:5px;" data-i18n="format_help">Розмір обох сторінок і всієї книжки автоматично підлаштується під вибрані пропорції та екран. Самі фотографії не обрізаються.</small>
           </div>
           <div style="grid-column:1 / -1;">
-            <label for="album-intro-image">Зображення лицьової обкладинки журналу (перша сторінка)</label>
-            <input type="url" id="album-intro-image" placeholder="Посилання на зображення або Google Drive" style="width:100%; padding:10px; border-radius:8px; border:1px solid #333; background:#1e1e1e; color:#fff;">
-            <small style="display:block; color:#aaa; margin-top:5px;">Фото стане зовнішньою лицьовою обкладинкою журналу — її видно першою, ще до гортання сторінок. Пропорції зображення зберігаються.</small>
-            <img id="album-intro-preview" alt="Попередній перегляд зображення першої сторінки" hidden style="display:none; max-width:220px; max-height:180px; object-fit:contain; margin-top:10px; border-radius:8px; border:1px solid #555; background:#222; padding:4px;">
+            <label for="album-intro-image" data-i18n="front_cover">Зображення лицьової обкладинки журналу (перша сторінка)</label>
+            <input type="url" id="album-intro-image" placeholder="Посилання на зображення або Google Drive" data-i18n-placeholder="image_link_placeholder" style="width:100%; padding:10px; border-radius:8px; border:1px solid #333; background:#1e1e1e; color:#fff;">
+            <small style="display:block; color:#aaa; margin-top:5px;" data-i18n="front_cover_help">Фото стане зовнішньою лицьовою обкладинкою журналу — її видно першою, ще до гортання сторінок. Пропорції зображення зберігаються.</small>
+            <img id="album-intro-preview" alt="Попередній перегляд зображення першої сторінки" data-i18n-alt="front_preview" hidden style="display:none; max-width:220px; max-height:180px; object-fit:contain; margin-top:10px; border-radius:8px; border:1px solid #555; background:#222; padding:4px;">
           </div>
           <div style="grid-column:1 / -1;">
-            <label for="album-back-cover-image">Зображення задньої обкладинки журналу</label>
+            <label for="album-back-cover-image" data-i18n="back_cover">Зображення задньої обкладинки журналу</label>
             <input type="url" id="album-back-cover-image" placeholder="Посилання на зображення або Google Drive" style="width:100%; padding:10px; border-radius:8px; border:1px solid #333; background:#1e1e1e; color:#fff;">
-            <small style="display:block; color:#aaa; margin-top:5px;">Це буде зовнішня задня обкладинка, яку побачать після перегортання всіх сторінок.</small>
-            <img id="album-back-cover-preview" alt="Попередній перегляд задньої обкладинки" hidden style="display:none; max-width:220px; max-height:180px; object-fit:contain; margin-top:10px; border-radius:8px; border:1px solid #555; background:#222; padding:4px;">
+            <small style="display:block; color:#aaa; margin-top:5px;" data-i18n="back_cover_help">Це буде зовнішня задня обкладинка, яку побачать після перегортання всіх сторінок.</small>
+            <img id="album-back-cover-preview" alt="Попередній перегляд задньої обкладинки" data-i18n-alt="back_preview" hidden style="display:none; max-width:220px; max-height:180px; object-fit:contain; margin-top:10px; border-radius:8px; border:1px solid #555; background:#222; padding:4px;">
           </div>
         </div>
 
         <hr style="border-color:#333; margin:16px 0;">
 
-        <h4>Додати / редагувати сторінку</h4>
+        <h4 data-i18n="page_edit_heading">Додати / редагувати сторінку</h4>
         <div style="display:grid; gap:10px;">
-          <input type="text" id="page-title" placeholder="Назва образу" style="width:100%; padding:10px; border-radius:8px; border:1px solid #333; background:#1e1e1e; color:#fff;">
-          <input type="text" id="page-series" placeholder="Серія" style="width:100%; padding:10px; border-radius:8px; border:1px solid #333; background:#1e1e1e; color:#fff;">
-          <input type="text" id="page-cosplayer" placeholder="Косплеєр" style="width:100%; padding:10px; border-radius:8px; border:1px solid #333; background:#1e1e1e; color:#fff;">
-          <input type="text" id="page-tags" placeholder="Теги через кому" style="width:100%; padding:10px; border-radius:8px; border:1px solid #333; background:#1e1e1e; color:#fff;">
-          <input type="text" id="page-url" placeholder="Посилання Google Drive" style="width:100%; padding:10px; border-radius:8px; border:1px solid #333; background:#1e1e1e; color:#fff;">
+          <input type="text" id="page-title" placeholder="Назва образу" data-i18n-placeholder="look_title_placeholder" style="width:100%; padding:10px; border-radius:8px; border:1px solid #333; background:#1e1e1e; color:#fff;">
+          <input type="text" id="page-series" placeholder="Серія" data-i18n-placeholder="series_placeholder" style="width:100%; padding:10px; border-radius:8px; border:1px solid #333; background:#1e1e1e; color:#fff;">
+          <input type="text" id="page-cosplayer" placeholder="Косплеєр" data-i18n-placeholder="cosplayer_placeholder" style="width:100%; padding:10px; border-radius:8px; border:1px solid #333; background:#1e1e1e; color:#fff;">
+          <input type="text" id="page-tags" placeholder="Теги через кому" data-i18n-placeholder="tags_placeholder" style="width:100%; padding:10px; border-radius:8px; border:1px solid #333; background:#1e1e1e; color:#fff;">
+          <input type="text" id="page-url" placeholder="Посилання Google Drive" data-i18n-placeholder="photo_link_placeholder" style="width:100%; padding:10px; border-radius:8px; border:1px solid #333; background:#1e1e1e; color:#fff;">
           <div style="display:flex; gap:8px;">
-            <button class="admin-btn" id="btn-add-page">Додати сторінку</button>
-            <button class="admin-btn" id="btn-update-page" style="display:none;">Оновити сторінку</button>
-            <button class="admin-btn danger" id="btn-cancel-edit" style="display:none;">Скасувати</button>
+            <button class="admin-btn" id="btn-add-page" data-i18n="add_page">Додати сторінку</button>
+            <button class="admin-btn" id="btn-update-page" data-i18n="update_page" style="display:none;">Оновити сторінку</button>
+            <button class="admin-btn danger" id="btn-cancel-edit" data-i18n="cancel">Скасувати</button>
           </div>
         </div>
 
         <div id="pages-list" style="margin-top:20px;"></div>
 
         <div style="margin-top:16px; display:flex; gap:8px; flex-wrap:wrap;">
-          <button class="admin-btn" id="btn-save-album">Зберегти альбом</button>
-          <a href="album.html" class="admin-btn" target="_blank">Переглянути альбом</a>
-          <button class="admin-btn danger" id="btn-delete-album">Видалити альбом</button>
+          <button class="admin-btn" id="btn-save-album" data-i18n="save_album">Зберегти альбом</button>
+          <a href="album.html" class="admin-btn" target="_blank" data-i18n="view_album">Переглянути альбом</a>
+          <button class="admin-btn danger" id="btn-delete-album" data-i18n="delete_album">Видалити альбом</button>
         </div>
 
         <div id="album-status" style="font-size:13px; margin-top:12px; color:#aaa;"></div>
@@ -95,7 +95,7 @@
 
         <div>
           <label data-i18n="site_title_label">Назва сайту (в шапці)</label>
-          <input type="text" id="site-title-input" style="width:100%; padding:10px; border-radius:8px; border:1px solid #333; background:#1e1e1e; color:#fff; font-size:14px;" placeholder="Косплей Галерея">
+          <input type="text" id="site-title-input" style="width:100%; padding:10px; border-radius:8px; border:1px solid #333; background:#1e1e1e; color:#fff; font-size:14px;" placeholder="Косплей Галерея" data-i18n-placeholder="site_title_placeholder">
         </div>
 
         <div>
@@ -105,7 +105,7 @@
 
         <div>
           <label data-i18n="empty_text_label">Текст, коли галерея порожня</label>
-          <textarea id="empty-text-input" rows="3" style="width:100%; padding:10px; border-radius:8px; border:1px solid #333; background:#1e1e1e; color:#fff; font-size:14px; resize:vertical;" placeholder="Галерея порожня."></textarea>
+          <textarea id="empty-text-input" rows="3" style="width:100%; padding:10px; border-radius:8px; border:1px solid #333; background:#1e1e1e; color:#fff; font-size:14px; resize:vertical;" placeholder="Галерея порожня." data-i18n-placeholder="empty_placeholder"></textarea>
         </div>
 
         <div style="margin-top: 16px;">
@@ -114,15 +114,15 @@
           <div style="margin-bottom: 8px;">
             <label data-i18n="size_label">Розмір</label>
             <select id="size-guest">
-              <option value="w1920">Full HD (1920)</option>
-              <option value="w1280">HD (1280)</option>
-              <option value="w800">Середній (800)</option>
+              <option value="w1920" data-i18n="full_hd_1920">Full HD (1920)</option>
+              <option value="w1280" data-i18n="hd_1280">HD (1280)</option>
+              <option value="w800" data-i18n="medium_800">Середній (800)</option>
             </select>
           </div>
           <input type="text" id="bg-guest-url" placeholder="https://drive.google.com/file/d/...">
           <div style="display:flex; gap:8px; margin-top:8px;">
-            <button class="admin-btn" id="btn-set-guest">Встановити</button>
-            <button class="admin-btn danger" id="btn-del-guest">Видалити</button>
+            <button class="admin-btn" id="btn-set-guest" data-i18n="set_image">Встановити</button>
+            <button class="admin-btn danger" id="btn-del-guest" data-i18n="remove_image">Видалити</button>
           </div>
         </div>
 
@@ -130,7 +130,7 @@
           <label data-i18n="bg_user_label">Фон після входу</label>
           <div id="preview-user" style="width:100%; height:80px; background:#222; border-radius:8px; margin:8px 0; background-size:cover; background-position:center;"></div>
           <div style="margin-bottom: 8px;">
-            <label>Розмір</label>
+            <label data-i18n="size_label">Розмір</label>
             <select id="size-user">
               <option value="w1920">Full HD (1920)</option>
               <option value="w1280">HD (1280)</option>
@@ -139,13 +139,13 @@
           </div>
           <input type="text" id="bg-user-url" placeholder="https://drive.google.com/file/d/...">
           <div style="display:flex; gap:8px; margin-top:8px;">
-            <button class="admin-btn" id="btn-set-user">Встановити</button>
-            <button class="admin-btn danger" id="btn-del-user">Видалити</button>
+            <button class="admin-btn" id="btn-set-user" data-i18n="set_image">Встановити</button>
+            <button class="admin-btn danger" id="btn-del-user" data-i18n="remove_image">Видалити</button>
           </div>
         </div>
 
         <div style="margin-top: 16px;">
-          <label>Зображення в адмінці</label>
+          <label data-i18n="admin_background_label">Зображення в адмінці</label>
           <div id="preview-admin" style="width:100%; height:80px; background:#222; border-radius:8px; margin:8px 0; background-size:cover; background-position:center;"></div>
           <div style="margin-bottom: 8px;">
             <label>Розмір</label>
@@ -157,31 +157,31 @@
           </div>
           <input type="text" id="bg-admin-url" placeholder="https://drive.google.com/file/d/...">
           <div style="display:flex; gap:8px; margin-top:8px;">
-            <button class="admin-btn" id="btn-set-admin">Встановити</button>
-            <button class="admin-btn danger" id="btn-del-admin">Видалити</button>
+            <button class="admin-btn" id="btn-set-admin" data-i18n="set_image">Встановити</button>
+            <button class="admin-btn danger" id="btn-del-admin" data-i18n="remove_image">Видалити</button>
           </div>
         </div>
 
         <div style="margin-top: 16px;">
-          <label>Колір основних кнопок (Адмінка)</label>
+          <label data-i18n="primary_button_color">Колір основних кнопок (Адмінка)</label>
           <input type="color" id="primary-color" value="#9c27b0" style="width:60px; height:36px; padding:2px; border:none; border-radius:6px; background:#1e1e1e; cursor:pointer;">
         </div>
         <div>
-          <label>Колір звичайних кнопок</label>
+          <label data-i18n="secondary_button_color">Колір звичайних кнопок</label>
           <input type="color" id="secondary-color" value="#222222" style="width:60px; height:36px; padding:2px; border:none; border-radius:6px; background:#1e1e1e; cursor:pointer;">
         </div>
         <div>
-          <label>Колір кнопки Google</label>
+          <label data-i18n="google_button_color">Колір кнопки Google</label>
           <input type="color" id="google-color" value="#4285F4" style="width:60px; height:36px; padding:2px; border:none; border-radius:6px; background:#1e1e1e; cursor:pointer;">
         </div>
         <div>
-          <label>Колір тексту кнопок</label>
+          <label data-i18n="button_text_color">Колір тексту кнопок</label>
           <input type="color" id="btn-text-color" value="#ffffff" style="width:60px; height:36px; padding:2px; border:none; border-radius:6px; background:#1e1e1e; cursor:pointer;">
         </div>
 
         <div style="display:flex; gap:8px; margin-top:16px; flex-wrap:wrap;">
-          <button class="admin-btn" id="btn-save-settings">Зберегти все</button>
-          <button class="admin-btn danger" id="btn-reset-settings">Скинути кольори</button>
+          <button class="admin-btn" id="btn-save-settings" data-i18n="save_all">Зберегти все</button>
+          <button class="admin-btn danger" id="btn-reset-settings" data-i18n="reset_colors">Скинути кольори</button>
         </div>
 
         <div id="settings-status" style="font-size: 13px; margin-top: 12px; color: #aaa;"></div>
@@ -189,8 +189,8 @@
     </div>
   </div>
 
-  <div id="status" style="margin-top:40px; text-align:center; color:#888;">Перевірка доступу...</div>
+  <div id="status" data-i18n="checking_access" style="margin-top:40px; text-align:center; color:#888;">Перевірка доступу...</div>
 
-  <script type="module" src="js/admin.js?v=24"></script>
+  <script type="module" src="js/admin.js?v=26"></script>
 </body>
 </html>
