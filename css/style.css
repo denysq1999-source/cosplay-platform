@@ -484,3 +484,38 @@ body {
     transition-duration: .01ms !important;
   }
 }
+
+
+/* Admin navigation: translucent amethyst glass */
+#btn-admin.btn-admin-glass {
+  min-width: 88px;
+  padding: 0 17px;
+  justify-content: center;
+  text-align: center;
+  font-size: 13.5px;
+  font-weight: 700;
+  letter-spacing: .015em;
+  line-height: 1;
+  color: #fff7ff;
+  background-color: color-mix(in srgb, var(--btn-primary) 34%, rgba(25, 15, 30, .52));
+  border: 1px solid color-mix(in srgb, var(--btn-primary) 58%, rgba(255,255,255,.48));
+  -webkit-backdrop-filter: blur(18px) saturate(165%);
+  backdrop-filter: blur(18px) saturate(165%);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.28),
+    inset 0 -1px 0 rgba(255,255,255,.06),
+    0 7px 20px rgba(0,0,0,.24);
+  text-shadow: 0 1px 8px rgba(0,0,0,.28);
+}
+#btn-admin.btn-admin-glass:hover {
+  color: #fff;
+  background-color: color-mix(in srgb, var(--btn-primary) 48%, rgba(30, 18, 36, .48));
+  border-color: color-mix(in srgb, var(--btn-primary) 66%, white 34%);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.36),
+    0 9px 24px color-mix(in srgb, var(--btn-primary) 22%, transparent);
+  transform: translateY(-1px);
+}
+#btn-admin.btn-admin-glass:active {
+  transform: translateY(0) scale(.97);
+}
