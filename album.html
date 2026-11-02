@@ -429,7 +429,7 @@ function photoFace(p, side, faceIndex) {
     ? `<img src="${esc(safeSrc(p.src))}" alt="${esc(p.title)}" draggable="false" decoding="async" style="object-fit:contain">`
     : `<div class="ph" style="--g1:hsl(${hue(i)} 52% 42%);--g2:hsl(${hue(i) + 40} 55% 28%)"><b>${esc(p.title.slice(0, 1))}</b><small>${tr('addPhoto')}</small></div>`;
   return `<div class="sheet" data-photo="${esc(p.id)}">
-    <div class="photo" data-open="${esc(p.id)}" style="--photo-ratio:${safeSrc(p.src) ? '4 / 5' : '4 / 5'}">${media}<i class="tape t1"></i><i class="tape t2"></i></div>
+    <div class="photo" data-open="${esc(p.id)}">${media}<i class="tape t1"></i><i class="tape t2"></i></div>
     <div class="cap"><h3>${esc(p.title)}</h3><p class="series">${esc(p.series)}</p><p class="by">${tr('cosplayer')} ${esc(p.cosplayer)}</p>
       <div class="row"><div class="tags">${p.tags.map(t => `<button class="tag" type="button" data-tag="${esc(t)}">${esc(t)}</button>`).join('')}</div>
       <button class="like" type="button" data-like="${esc(p.id)}" aria-pressed="false">♥ <span>${likeCount(p)}</span></button></div></div>
@@ -483,6 +483,16 @@ function build() {
       `<div class="face back ${back.kind === 'back' ? 'cover' : ''}">${faceHTML(back, i + 1)}<div class="shade"></div></div>`;
     book.appendChild(el); acc.push(el); return acc;
   }, []);
+  // Match each photo frame to the actual image ratio: no empty inner strips and no crop.
+  book.querySelectorAll('.photo img').forEach(img => {
+    const syncPhotoRatio = () => {
+      if (img.naturalWidth > 0 && img.naturalHeight > 0) {
+        img.parentElement.style.setProperty('--photo-ratio', img.naturalWidth + ' / ' + img.naturalHeight);
+      }
+    };
+    if (img.complete) syncPhotoRatio();
+    else img.addEventListener('load', syncPhotoRatio, { once: true });
+  });
   refreshLikes(); layout(); updateUI();
 }
 
