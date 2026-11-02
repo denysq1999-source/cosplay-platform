@@ -39,9 +39,9 @@
             <input type="text" id="album-owner" placeholder="Нікнейм косплеєра" style="width:100%; padding:10px; border-radius:8px; border:1px solid #333; background:#1e1e1e; color:#fff;">
           </div>
           <div style="grid-column:1 / -1;">
-            <label for="album-intro-image">Зображення першої сторінки (посилання на фото)</label>
+            <label for="album-intro-image">Зображення лицьової обкладинки журналу (перша сторінка)</label>
             <input type="url" id="album-intro-image" placeholder="Посилання на зображення або Google Drive" style="width:100%; padding:10px; border-radius:8px; border:1px solid #333; background:#1e1e1e; color:#fff;">
-            <small style="display:block; color:#aaa; margin-top:5px;">Фото з'явиться на першій внутрішній сторінці під текстом «Про альбом». Залиш порожнім, щоб не показувати зображення.</small>
+            <small style="display:block; color:#aaa; margin-top:5px;">Фото стане зовнішньою лицьовою обкладинкою журналу — її видно першою, ще до гортання сторінок. Пропорції зображення зберігаються.</small>
             <img id="album-intro-preview" alt="Попередній перегляд зображення першої сторінки" hidden style="display:none; max-width:220px; max-height:180px; object-fit:contain; margin-top:10px; border-radius:8px; border:1px solid #555; background:#222; padding:4px;">
           </div>
           <div style="grid-column:1 / -1;">
@@ -180,6 +180,6 @@
 
   <div id="status" style="margin-top:40px; text-align:center; color:#888;">Перевірка доступу...</div>
 
-  <script type="module" src="js/admin.js?v=21"></script>
+  <script type="module" src="js/admin.js?v=22"></script>
 </body>
 </html>
