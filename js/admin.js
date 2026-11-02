@@ -182,10 +182,12 @@ async function loadAlbum() {
       document.getElementById("album-title").value = data.title || "";
       document.getElementById("album-owner").value = data.owner || "";
       document.getElementById("album-intro-image").value = data.introImage || data.firstPageImage || "";
+      document.getElementById("album-back-cover-image").value = data.backCoverImage || data.backCover || "";
       albumPages = data.pages || [];
     }
     renderPagesList();
     updateIntroImagePreview();
+    updateBackCoverPreview();
   } catch (err) {
     console.error(err);
   }
@@ -208,6 +210,23 @@ function updateIntroImagePreview() {
 }
 
 document.getElementById("album-intro-image")?.addEventListener("input", updateIntroImagePreview);
+
+function updateBackCoverPreview() {
+  const input = document.getElementById("album-back-cover-image");
+  const preview = document.getElementById("album-back-cover-preview");
+  if (!input || !preview) return;
+  const raw = input.value.trim();
+  const match = raw.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/) || raw.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  const src = raw.includes("drive.google.com") && match
+    ? `https://drive.google.com/thumbnail?id=${match[1]}&sz=w600`
+    : raw;
+  if (!src) { preview.removeAttribute("src"); preview.hidden = true; preview.style.display = "none"; return; }
+  preview.src = src;
+  preview.hidden = false;
+  preview.style.display = "block";
+  preview.onerror = () => { preview.hidden = true; preview.style.display = "none"; };
+}
+document.getElementById("album-back-cover-image")?.addEventListener("input", updateBackCoverPreview);
 
 function renderPagesList() {
   const list = document.getElementById("pages-list");
@@ -297,6 +316,7 @@ document.getElementById("btn-save-album")?.addEventListener("click", async () =>
       owner: document.getElementById("album-owner").value.trim() || "Косплеєр",
       year: new Date().getFullYear().toString(),
       introImage: document.getElementById("album-intro-image").value.trim(),
+      backCoverImage: document.getElementById("album-back-cover-image").value.trim(),
       pages: albumPages
     });
     status.textContent = "Альбом збережено";
@@ -316,7 +336,9 @@ document.getElementById("btn-delete-album")?.addEventListener("click", async () 
     document.getElementById("album-title").value = "";
     document.getElementById("album-owner").value = "";
     document.getElementById("album-intro-image").value = "";
+    document.getElementById("album-back-cover-image").value = "";
     updateIntroImagePreview();
+    updateBackCoverPreview();
     renderPagesList();
     document.getElementById("album-status").textContent = "Альбом видалено";
   } catch (err) {
