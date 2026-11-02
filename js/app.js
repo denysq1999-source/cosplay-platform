@@ -240,16 +240,22 @@ document.addEventListener("DOMContentLoaded", () => {
     const docId = isLoggedIn ? "background_user" : "background_guest";
     try {
       const snap = await getDoc(doc(db, "settings", docId));
-      if (snap.exists() && snap.data().fileId) {
-        const fileId = snap.data().fileId;
-        const size = snap.data().size || "w1920";
-        document.body.style.backgroundImage = `url('https://drive.google.com/thumbnail?id=${fileId}&sz=${size}')`;
-        document.body.style.backgroundSize = "cover";
-        document.body.style.backgroundPosition = "center";
-        document.body.style.backgroundAttachment = "fixed";
-      } else {
-        document.body.style.backgroundImage = "none";
+      if (snap.exists()) {
+        const data = snap.data();
+        const size = data.size || "w1920";
+        const fileId = data.fileId || (data.url?.match(/\\/file\\/d\\/([a-zA-Z0-9_-]+)/)?.[1]) || (data.url?.match(/[?&]id=([a-zA-Z0-9_-]+)/)?.[1]);
+        const imageUrl = fileId
+          ? `https://drive.google.com/thumbnail?id=${fileId}&sz=${size}`
+          : (data.imageUrl || data.url || "");
+        if (imageUrl && /^https?:\\/\\//i.test(imageUrl)) {
+          document.body.style.backgroundImage = `url(${JSON.stringify(imageUrl)})`;
+          document.body.style.backgroundSize = "cover";
+          document.body.style.backgroundPosition = "center";
+          document.body.style.backgroundAttachment = "fixed";
+          return;
+        }
       }
+      document.body.style.backgroundImage = "none";
     } catch (err) { console.error(err); }
   }
 
