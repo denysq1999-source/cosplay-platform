@@ -109,10 +109,11 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function applyButtonColors(primary, secondary, google, textColor) {
-    if (primary) document.querySelectorAll(".btn-primary").forEach(el => el.style.background = primary);
-    if (secondary) document.querySelectorAll(".btn-secondary").forEach(el => el.style.background = secondary);
-    if (google) document.querySelectorAll(".btn-google").forEach(el => el.style.background = google);
-    if (textColor) document.querySelectorAll(".btn").forEach(el => el.style.color = textColor);
+    const root = document.documentElement;
+    if (primary) root.style.setProperty("--btn-primary", primary);
+    if (secondary) root.style.setProperty("--btn-secondary", secondary);
+    if (google) root.style.setProperty("--btn-google", google);
+    if (textColor) root.style.setProperty("--btn-text", textColor);
   }
 
   const updateLangUI = () => {
