@@ -122,6 +122,7 @@ function updateLangUI() {
   const langSwitcher = document.querySelector(".lang-switcher");
   if (langSwitcher) langSwitcher.dataset.lang = currentLang;
   if (typeof renderPagesList === "function") renderPagesList();
+  if (typeof renderAlbumLibrary === "function") renderAlbumLibrary();
 }
 document.getElementById("lang-uk")?.addEventListener("click", () => {
   currentLang = "uk";
@@ -545,6 +546,8 @@ window.movePage = (index, direction) => {
   const next = index + direction;
   if (next < 0 || next >= albumPages.length) return;
   [albumPages[index], albumPages[next]] = [albumPages[next], albumPages[index]];
+  if (editingIndex === index) editingIndex = next;
+  else if (editingIndex === next) editingIndex = index;
   renderPagesList();
 };
 
@@ -564,6 +567,8 @@ window.editPage = (i) => {
 window.deletePage = (i) => {
   if (confirm(t("confirm_delete_page"))) {
     albumPages.splice(i, 1);
+    if (editingIndex === i) clearPageForm();
+    else if (editingIndex > i) editingIndex -= 1;
     renderPagesList();
   }
 };
