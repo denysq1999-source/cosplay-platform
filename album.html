@@ -35,15 +35,23 @@
   .lang-btn{height:30px;min-width:38px;padding:0 10px;border:0;border-radius:999px;background:transparent;color:#d8cbdc;font-size:12px;font-weight:700;cursor:pointer;transition:background-color .28s ease,color .28s ease}
   .lang-btn.active{background:rgba(243,168,195,.24);color:#fff;border:1px solid rgba(243,168,195,.65)}
   .lang-btn:focus-visible{outline:2px solid var(--sakura);outline-offset:2px}
-  .back-cover-art,.front-cover-art{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:radial-gradient(120% 90% at 30% 20%,#5b2349,var(--wine) 60%,#220c1d)}
-  .back-cover-art img,.front-cover-art img{display:block;width:100%;height:100%;object-fit:contain}
-  .front-cover-art{background:#24101f}
-  .front-cover-art img{object-fit:contain}
-  /* In widescreen magazines, front and back covers bleed to all page edges. */
-  .book[data-page-format="16:9"] .front-cover-art img,
-  .book[data-page-format="16:9"] .back-cover-art img{
-    width:100%;height:100%;object-fit:cover;object-position:center;
+  .back-cover-art,.front-cover-art{
+    position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    overflow:hidden;isolation:isolate;
+    background:radial-gradient(120% 90% at 30% 20%,#5b2349,var(--wine) 60%,#220c1d);
   }
+  /* Soft blurred extension fills the page edges while the complete cover stays visible. */
+  .back-cover-art::before,.front-cover-art::before{
+    content:"";position:absolute;inset:-16px;z-index:-1;
+    background-image:var(--cover-backdrop);
+    background-size:cover;background-position:center;
+    filter:blur(14px) brightness(.58);transform:scale(1.05);
+  }
+  .back-cover-art img,.front-cover-art img{
+    position:relative;z-index:1;display:block;width:100%;height:100%;
+    object-fit:contain;object-position:center;
+  }
+  .front-cover-art{background:#24101f}
   .face.cover.has-cover-art::after,.face.cover.has-cover-art::before{display:none}
   .back-cover-empty{position:absolute;inset:8%;border:2px solid rgba(216,180,106,.65);display:flex;align-items:center;justify-content:center;color:#e6cf9b;font:600 1.5em Georgia,serif;text-align:center;padding:10%}
   .iconbtn{
@@ -510,6 +518,15 @@ const likeCount = p => p.likes + (likes.has(p.id) ? 1 : 0);
 const photoById = id => PHOTOS.find(p => p.id === id);
 const hue = i => (i * 47 + 330) % 360;
 
+function syncCoverBackdrops() {
+  if (!book) return;
+  book.querySelectorAll('.front-cover-art img, .back-cover-art img').forEach(img => {
+    const cover = img.parentElement;
+    if (!cover || !img.src) return;
+    cover.style.setProperty('--cover-backdrop', `url(${JSON.stringify(img.currentSrc || img.src)})`);
+  });
+}
+
 /* Calculate each photo frame from the real page space and source image ratio. */
 function syncPhotoFrames() {
   if (!book) return;
@@ -605,6 +622,7 @@ function build() {
       `<div class="face back ${back.kind === 'back' ? 'cover' : ''}">${faceHTML(back, i + 1)}<div class="shade"></div></div>`;
     book.appendChild(el); acc.push(el); return acc;
   }, []);
+  syncCoverBackdrops();
   syncPhotoFrames();
   book.querySelectorAll('.photo img').forEach(img => {
     if (!img.complete) img.addEventListener('load', syncPhotoFrames, { once: true });
@@ -819,10 +837,9 @@ function fit() {
   const w = Math.max(1, stage.clientWidth), h = Math.max(1, stage.clientHeight);
   const [rw, rh] = (ALBUM.pageFormat || '4:5').split(':').map(Number);
   const pageRatio = rw > 0 && rh > 0 ? rw / rh : 4 / 5; // page width / page height
-  // Let the two-page spread use almost the full wooden display surface.
-  // Keep a small safety margin so neither page touches the stage edge.
-  const maxPageWidth = Math.min(900, (w - 24) / 2);
-  PW = Math.round(clamp(Math.min(maxPageWidth, (h - 28) * pageRatio), 100, 900));
+  // Keep a clear, even margin around the spread on the wooden display surface.
+  const maxPageWidth = Math.min(760, (w - 160) / 2);
+  PW = Math.round(clamp(Math.min(maxPageWidth, (h - 42) * pageRatio), 100, 760));
   PH = Math.round(PW / pageRatio);
   const root = document.documentElement.style;
   root.setProperty('--pw', PW + 'px'); root.setProperty('--ph', PH + 'px');
