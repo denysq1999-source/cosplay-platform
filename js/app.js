@@ -367,6 +367,7 @@ document.addEventListener("DOMContentLoaded", () => {
         card.className = "album-card";
         card.href = id === "legacy" ? "album.html?id=legacy" : `album.html?id=${encodeURIComponent(id.replace(/^album_/, ""))}`;
         card.style.setProperty("--album-ratio", `${ratioW} / ${ratioH}`);
+        card.dataset.format = format;
         card.setAttribute("aria-label", data.title
           ? `Відкрити журнал: ${data.title}`
           : "Відкрити журнал");
