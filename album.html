@@ -162,38 +162,42 @@
   .pno{ position:absolute; bottom:1.2%; font-size:.8em; color:#a898ad; }
   .face.front .pno{ right:6%; }  .face.back .pno{ left:6%; }
 
-  /* Кастомні декоративні куточки журналу */
+  /* Декор на верхніх кутах фоторамки */
   .corner{
     position:absolute;bottom:0;width:7%;aspect-ratio:1;z-index:2;
-    pointer-events:none;transition:width .28s ease,filter .28s ease,transform .28s ease;
+    pointer-events:none;transition:width .28s ease;
   }
-  .face.front .corner{
-    right:0;background:linear-gradient(315deg,var(--corner-color,#cdbfa8) 0 50%,transparent 50%);
-    box-shadow:-2px -2px 6px rgba(0,0,0,.18);
+  .face.front .corner{right:0;background:linear-gradient(315deg,#cdbfa8 0 50%,transparent 50%);box-shadow:-2px -2px 6px rgba(0,0,0,.18);}
+  .face.back .corner{left:0;background:linear-gradient(45deg,#cdbfa8 0 50%,transparent 50%);box-shadow:2px -2px 6px rgba(0,0,0,.18);}
+
+  .photo-corner{
+    position:absolute;top:0;z-index:3;width:clamp(26px,8.5%,42px);height:clamp(26px,8.5%,42px);
+    display:grid;place-items:center;pointer-events:none;line-height:1;
+    transition:color .2s ease,background-color .2s ease,filter .2s ease;
   }
-  .face.back .corner{
-    left:0;background:linear-gradient(45deg,var(--corner-color,#cdbfa8) 0 50%,transparent 50%);
-    box-shadow:2px -2px 6px rgba(0,0,0,.18);
+  .photo-corner.left{left:0;}
+  .photo-corner.right{right:0;}
+  .book[data-corner-style="classic"] .photo-corner{
+    background:var(--corner-color,#cdbfa8);
+    box-shadow:0 1px 4px rgba(0,0,0,.18);
   }
-  .book:hover .face .corner{width:10%;}
-  .book[data-corner-style="star"] .corner,
-  .book[data-corner-style="flower"] .corner,
-  .book[data-corner-style="bookmark"] .corner{background:none;box-shadow:none;width:10%;}
-  .book[data-corner-style="star"] .corner::after,
-  .book[data-corner-style="flower"] .corner::after{
-    content:"★";position:absolute;inset:0;display:grid;place-items:center;
-    color:var(--corner-color,#e7b85c);font-size:clamp(18px,2.6vw,34px);
-    line-height:1;text-shadow:0 2px 5px rgba(0,0,0,.24);
+  .book[data-corner-style="classic"] .photo-corner.left{clip-path:polygon(0 0,100% 0,0 100%);}
+  .book[data-corner-style="classic"] .photo-corner.right{clip-path:polygon(0 0,100% 0,100% 100%);}
+  .book[data-corner-style="star"] .photo-corner,
+  .book[data-corner-style="flower"] .photo-corner{
+    background:none;color:var(--corner-color,#e7b85c);
+    font-size:clamp(20px,2.8vw,34px);text-shadow:0 2px 5px rgba(0,0,0,.28);
   }
-  .book[data-corner-style="flower"] .corner::after{content:"✿";}
-  .book[data-corner-style="bookmark"] .corner{width:8%;aspect-ratio:.72;bottom:0;}
-  .book[data-corner-style="bookmark"] .face.front .corner{right:3%;}
-  .book[data-corner-style="bookmark"] .face.back .corner{left:3%;}
-  .book[data-corner-style="bookmark"] .corner::after{
-    content:"";position:absolute;inset:0;background:var(--corner-color,#e7b85c);
+  .book[data-corner-style="star"] .photo-corner::before{content:"★";}
+  .book[data-corner-style="flower"] .photo-corner::before{content:"✿";}
+  .book[data-corner-style="bookmark"] .photo-corner{
+    width:clamp(19px,5.5%,27px);height:clamp(34px,9%,46px);
+    background:var(--corner-color,#e7b85c);
     clip-path:polygon(0 0,100% 0,100% 100%,50% 76%,0 100%);
     filter:drop-shadow(0 2px 3px rgba(0,0,0,.25));
   }
+  .book[data-corner-enabled="false"] .photo-corner{display:none;}
+
 
   /* обкладинка, вступ, кінець */
   .face.cover{ background:radial-gradient(120% 90% at 30% 20%, #5b2349, var(--wine) 60%, #220c1d); color:#f3dfb2; background-image:none; }
@@ -325,7 +329,7 @@ const db = getFirestore(firebaseApp);
    tags     — теги персонажа/серії; за ними працює фільтр зверху.
    likes    — стартова кількість лайків.
    ===================================================================== */
-let ALBUM = { title: 'Альбом косплеєра', owner: 'Нікнейм косплеєра', year: '2026', pageFormat: '4:5', cornerStyle: 'classic', cornerColor: '#cdbfa8' };
+let ALBUM = { title: 'Альбом косплеєра', owner: 'Нікнейм косплеєра', year: '2026', pageFormat: '4:5', cornerStyle: 'classic', cornerColor: '#cdbfa8', cornerDecorEnabled: true };
 
 let PHOTOS = [];
 
@@ -453,11 +457,11 @@ function photoFace(p, side, faceIndex) {
     ? `<img src="${esc(safeSrc(p.src))}" alt="${esc(p.title)}" draggable="false" decoding="async" style="object-fit:contain">`
     : `<div class="ph" style="--g1:hsl(${hue(i)} 52% 42%);--g2:hsl(${hue(i) + 40} 55% 28%)"><b>${esc(p.title.slice(0, 1))}</b><small>${tr('addPhoto')}</small></div>`;
   return `<div class="sheet" data-photo="${esc(p.id)}">
-    <div class="photo" data-open="${esc(p.id)}">${media}<i class="tape t1"></i><i class="tape t2"></i></div>
+    <div class="photo" data-open="${esc(p.id)}">${media}<i class="photo-corner left"></i><i class="photo-corner right"></i></div>
     <div class="cap"><h3>${esc(p.title)}</h3><p class="series">${esc(p.series)}</p><p class="by">${tr('cosplayer')} ${esc(p.cosplayer)}</p>
       <div class="row"><div class="tags">${p.tags.map(t => `<button class="tag" type="button" data-tag="${esc(t)}">${esc(t)}</button>`).join('')}</div>
       <button class="like" type="button" data-like="${esc(p.id)}" aria-pressed="false">♥ <span>${likeCount(p)}</span></button></div></div>
-    <span class="pno">${faceIndex}</span></div><i class="corner"></i>`;
+    <span class="pno">${faceIndex}</span></div>`;
 }
 function faceHTML(f, faceIndex) {
   switch (f.kind) {
@@ -498,6 +502,7 @@ function build() {
   const cornerStyle = allowedCornerStyles.includes(ALBUM.cornerStyle) ? ALBUM.cornerStyle : 'classic';
   const cornerColor = /^#[0-9a-fA-F]{6}$/.test(ALBUM.cornerColor || '') ? ALBUM.cornerColor : '#cdbfa8';
   book.dataset.cornerStyle = cornerStyle;
+  book.dataset.cornerEnabled = ALBUM.cornerDecorEnabled === false ? 'false' : 'true';
   book.style.setProperty('--corner-color', cornerColor);
   faces = buildFaces(visiblePhotos(PHOTOS, tag));
   N = faces.length / 2; cur = 0; busy = false;
@@ -753,7 +758,8 @@ async function loadAlbum() {
         coverImage: data.coverImage || data.introImage || data.firstPageImage || '',
         backCoverImage: data.backCoverImage || data.backCover || '',
         cornerStyle: ['classic','star','bookmark','flower'].includes(data.cornerStyle) ? data.cornerStyle : 'classic',
-        cornerColor: /^#[0-9a-fA-F]{6}$/.test(data.cornerColor || '') ? data.cornerColor : '#cdbfa8'
+        cornerColor: /^#[0-9a-fA-F]{6}$/.test(data.cornerColor || '') ? data.cornerColor : '#cdbfa8',
+        cornerDecorEnabled: data.cornerDecorEnabled !== false
       };
       PHOTOS = Array.isArray(data.pages) ? data.pages.map((p, i) => ({
         id: String(p.id || `photo-${i + 1}`),
