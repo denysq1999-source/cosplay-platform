@@ -356,6 +356,8 @@ function updateCornerPreview() {
     mark.style.background = "none";
     mark.style.color = color;
     mark.style.clipPath = "none";
+    mark.style.width = "30px";
+    mark.style.height = "30px";
     mark.style.fontSize = "27px";
     mark.style.lineHeight = "30px";
     mark.style.textAlign = "center";
