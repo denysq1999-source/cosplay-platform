@@ -97,9 +97,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const siteTitleEl = document.querySelector("header h1");
   const langSwitcher = document.querySelector(".lang-switcher");
   const albumPreview = document.getElementById("album-preview");
-  const albumCover = document.getElementById("album-cover");
-  const albumPreviewTitle = document.getElementById("album-preview-title");
-  const albumPreviewCount = document.getElementById("album-preview-count");
+  const albumShelf = document.getElementById("album-shelf");
 
   function applyTitleStyle() {
     if (siteTitleEl) {
@@ -294,55 +292,62 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function loadAlbumPreview() {
+    if (!albumPreview || !albumShelf) return;
     try {
-      const snap = await getDoc(doc(db, "settings", "album"));
-      if (!snap.exists()) {
-        albumPreview.style.display = "none";
-        return;
-      }
-      const data = snap.data() || {};
-      const pages = Array.isArray(data.pages) ? data.pages : [];
-      if (!pages.length) {
-        albumPreview.style.display = "none";
-        return;
+      const settingsSnap = await getDocs(collection(db, "settings"));
+      let magazines = settingsSnap.docs
+        .filter(item => item.id.startsWith("album_"))
+        .map(item => ({ id: item.id, data: item.data() || {} }))
+        .sort((a, b) => a.id.localeCompare(b.id));
+
+      // Backward compatibility while the legacy single-album document still exists.
+      if (!magazines.length) {
+        const legacySnap = await getDoc(doc(db, "settings", "album"));
+        if (legacySnap.exists()) magazines = [{ id: "legacy", data: legacySnap.data() || {} }];
       }
 
-      // The outside cover is shown on the gallery shelf. The intro text remains
-      // inside the book and is only visible after opening the magazine.
-      const first = pages[0] || {};
-      const coverSource = data.coverImage || data.frontCoverImage || data.introImage ||
-        data.firstPageImage || first.src || first.url || first.imageUrl || first.image || "";
-      const fileId = extractGoogleDriveFileId(coverSource);
-      const coverUrl = fileId
-        ? `https://drive.google.com/thumbnail?id=${fileId}&sz=w1200`
-        : coverSource;
+      albumShelf.innerHTML = "";
+      magazines.forEach(({ id, data }) => {
+        const pages = Array.isArray(data.pages) ? data.pages : [];
+        if (!pages.length) return;
 
-      const format = ["4:5","3:4","2:3","1:1","16:9"].includes(data.pageFormat)
-        ? data.pageFormat : "4:5";
-      const [ratioW, ratioH] = format.split(":").map(Number);
-      const albumCard = document.getElementById("album-card");
-      if (albumCard) {
-        albumCard.style.setProperty("--album-ratio", `${ratioW} / ${ratioH}`);
-        albumCard.setAttribute("aria-label", data.title
+        const first = pages[0] || {};
+        const coverSource = data.coverImage || data.frontCoverImage || data.introImage ||
+          data.firstPageImage || first.src || first.url || first.imageUrl || first.image || "";
+        if (!coverSource) return;
+
+        const fileId = extractGoogleDriveFileId(coverSource);
+        const coverUrl = fileId
+          ? `https://drive.google.com/thumbnail?id=${fileId}&sz=w1200`
+          : coverSource;
+        const format = ["4:5","3:4","2:3","1:1","16:9"].includes(data.pageFormat)
+          ? data.pageFormat : "4:5";
+        const [ratioW, ratioH] = format.split(":").map(Number);
+
+        const card = document.createElement("a");
+        card.className = "album-card";
+        card.href = `album.html?id=${encodeURIComponent(id.replace(/^album_/, ""))}`;
+        card.style.setProperty("--album-ratio", `${ratioW} / ${ratioH}`);
+        card.setAttribute("aria-label", data.title
           ? `Відкрити журнал: ${data.title}`
           : "Відкрити журнал");
-      }
 
-      if (albumCover) {
-        albumCover.onload = () => { albumCover.style.visibility = "visible"; };
-        albumCover.onerror = () => {
-          albumCover.removeAttribute("src");
-          albumCover.style.visibility = "hidden";
-          console.warn("Не вдалося завантажити обкладинку журналу. Перевір посилання та доступ Google Drive.");
+        const cover = document.createElement("img");
+        cover.src = coverUrl;
+        cover.alt = data.title ? `Обкладинка журналу «${data.title}»` : "Обкладинка журналу";
+        cover.loading = "lazy";
+        cover.referrerPolicy = "no-referrer";
+        cover.onerror = () => {
+          cover.style.visibility = "hidden";
+          console.warn("Не вдалося завантажити обкладинку журналу:", data.title || id);
         };
-        albumCover.style.visibility = "hidden";
-        albumCover.src = coverUrl;
-        albumCover.alt = data.title ? `Обкладинка журналу «${data.title}»` : "Обкладинка журналу";
-      }
+        card.appendChild(cover);
+        albumShelf.appendChild(card);
+      });
 
-      albumPreview.style.display = "block";
+      albumPreview.style.display = albumShelf.children.length ? "block" : "none";
     } catch (err) {
-      console.error("Не вдалося завантажити прев'ю альбому:", err);
+      console.error("Не вдалося завантажити прев'ю журналів:", err);
       albumPreview.style.display = "none";
     }
   }
@@ -380,16 +385,17 @@ document.addEventListener("DOMContentLoaded", () => {
         // Check both the legacy single-album document and the newer albums collection.
         let hasAlbums = false;
         try {
-          const [legacyAlbumSnap, albumsSnap] = await Promise.all([
+          const [legacyAlbumSnap, settingsSnap] = await Promise.all([
             getDoc(doc(db, "settings", "album")),
-            getDocs(collection(db, "albums"))
+            getDocs(collection(db, "settings"))
           ]);
 
           const legacyData = legacyAlbumSnap.exists() ? legacyAlbumSnap.data() || {} : {};
           const legacyHasPages = Array.isArray(legacyData.pages) && legacyData.pages.length > 0;
-          const collectionHasAlbums = albumsSnap.docs.some(albumDoc => {
+          const collectionHasAlbums = settingsSnap.docs.some(albumDoc => {
             const albumData = albumDoc.data() || {};
-            return Array.isArray(albumData.pages) && albumData.pages.length > 0;
+            return albumDoc.id.startsWith("album_") &&
+              Array.isArray(albumData.pages) && albumData.pages.length > 0;
           });
 
           hasAlbums = legacyHasPages || collectionHasAlbums;
