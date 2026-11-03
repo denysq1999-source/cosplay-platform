@@ -109,10 +109,13 @@
       outline:2px solid #f3a8c3;
       outline-offset:6px;
     }
+    /* Wide magazine covers need a wider shelf footprint than portrait covers. */
+    .album-card[data-format="16:9"] { width:clamp(240px,25vw,310px); }
     @media (max-width:600px) {
       #album-preview { width:calc(100% - 24px); margin:18px auto 24px; }
       .album-shelf { gap:18px; }
       .album-card { width:clamp(138px,39vw,180px); }
+      .album-card[data-format="16:9"] { width:clamp(205px,58vw,270px); }
     }
   </style>
 </head>
@@ -166,6 +169,6 @@
     <div id="gallery" class="gallery"></div>
   </div>
 
-  <script type="module" src="js/app.js?v=33"></script>
+  <script type="module" src="js/app.js?v=34"></script>
 </body>
 </html>
