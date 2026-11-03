@@ -73,18 +73,43 @@
   .stage{
     position:relative;flex:1;min-height:0;overflow:hidden;
     background:
-      radial-gradient(ellipse 48% 72% at 50% 48%,rgba(207,151,184,.15),transparent 72%),
+      radial-gradient(ellipse 60% 78% at 50% 45%,rgba(197,145,117,.12),transparent 72%),
       radial-gradient(ellipse 90% 110% at 50% 50%,rgba(255,255,255,.025),transparent 70%),
-      repeating-linear-gradient(95deg,rgba(255,255,255,.009) 0 2px,transparent 2px 8px),
-      linear-gradient(145deg,#21172a 0%,#17101f 52%,#100b16 100%);
+      linear-gradient(145deg,#211720 0%,#17101b 56%,#100b15 100%);
   }
+  /* Дерев'яна поверхня стенда під журналом */
   .stage::before{
-    content:"";position:absolute;inset:18px 4%;border:1px solid rgba(255,255,255,.035);
-    border-radius:24px;pointer-events:none;
-    box-shadow:inset 0 0 80px rgba(0,0,0,.12);
+    content:"";position:absolute;inset:16px 3.3%;border:1px solid rgba(232,195,151,.34);
+    border-radius:22px;pointer-events:none;
+    background:
+      radial-gradient(ellipse 26% 32% at 18% 22%,rgba(224,174,124,.10),transparent 75%),
+      radial-gradient(ellipse 34% 30% at 78% 76%,rgba(12,5,3,.16),transparent 75%),
+      repeating-linear-gradient(2deg,transparent 0 23px,rgba(255,224,184,.035) 24px,rgba(28,12,7,.12) 27px,transparent 31px 48px),
+      repeating-linear-gradient(178deg,rgba(0,0,0,.055) 0 1px,transparent 1px 8px),
+      linear-gradient(112deg,#65432f 0%,#4b3027 22%,#765039 48%,#45291f 73%,#68452f 100%);
+    box-shadow:
+      0 18px 44px rgba(0,0,0,.34),
+      inset 0 1px 0 rgba(255,245,226,.22),
+      inset 0 -15px 25px rgba(12,5,3,.24),
+      inset 0 0 0 7px rgba(22,10,7,.15),
+      inset 0 0 0 8px rgba(236,201,160,.13);
+  }
+  /* Ледь помітне скло: відблиски, тонкий кант і м'який глянець */
+  .stage::after{
+    content:"";position:absolute;inset:16px 3.3%;border:1px solid rgba(255,240,219,.19);
+    border-radius:22px;pointer-events:none;
+    background:
+      linear-gradient(122deg,rgba(255,255,255,.15) 0%,rgba(255,255,255,.045) 13%,transparent 31%,transparent 66%,rgba(255,255,255,.035) 81%,rgba(255,255,255,.09) 100%),
+      radial-gradient(ellipse 34% 18% at 50% 0%,rgba(255,245,229,.10),transparent 85%),
+      linear-gradient(180deg,rgba(255,255,255,.025),transparent 34%,transparent 78%,rgba(0,0,0,.10));
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.24),inset 0 0 32px rgba(255,244,226,.035);
+    backdrop-filter:blur(1px);-webkit-backdrop-filter:blur(1px);
+  }
+  @media(max-width:640px){
+    .stage::before,.stage::after{inset:8px 2%;border-radius:15px;}
   }
   .book{
-    position:absolute; left:50%; top:50%;
+    position:absolute; z-index:1; left:50%; top:50%;
     width:calc(var(--pw) * 2); height:var(--ph);
     margin-left:calc(var(--pw) * -1 + var(--shift));
     margin-top:calc(var(--ph) / -2);
