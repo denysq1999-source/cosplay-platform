@@ -153,8 +153,9 @@
   /* сторінка з фото */
   .sheet{ position:absolute; inset:0; padding:5.5% 7% 5%; display:flex; flex-direction:column; }
   .photo{
-    position:relative; flex:0 1 auto; align-self:center;
-    width:auto; height:72%; max-width:100%; max-height:72%; min-width:0; min-height:0;
+    position:relative; flex:0 0 auto; align-self:center;
+    width:var(--photo-width,86%); height:var(--photo-height,60%);
+    max-width:90%; max-height:72%; min-width:0; min-height:0;
     aspect-ratio:var(--photo-ratio, 4 / 5);
     margin:0 0 4.5%; padding:0;
     overflow:hidden; background:#fff; border:1px solid rgba(255,255,255,.9);
@@ -497,6 +498,34 @@ const likeCount = p => p.likes + (likes.has(p.id) ? 1 : 0);
 const photoById = id => PHOTOS.find(p => p.id === id);
 const hue = i => (i * 47 + 330) % 360;
 
+/* Calculate each photo frame from the real page space and source image ratio. */
+function syncPhotoFrames() {
+  if (!book) return;
+  book.querySelectorAll('.photo').forEach(frame => {
+    const sheet = frame.closest('.sheet');
+    if (!sheet) return;
+    const img = frame.querySelector('img');
+    const ratio = img && img.naturalWidth > 0 && img.naturalHeight > 0
+      ? img.naturalWidth / img.naturalHeight
+      : 4 / 5;
+    const sheetStyle = getComputedStyle(sheet);
+    const innerWidth = Math.max(1,
+      sheet.clientWidth - parseFloat(sheetStyle.paddingLeft) - parseFloat(sheetStyle.paddingRight));
+    const innerHeight = Math.max(1,
+      sheet.clientHeight - parseFloat(sheetStyle.paddingTop) - parseFloat(sheetStyle.paddingBottom));
+    const caption = sheet.querySelector('.cap');
+    const captionHeight = caption ? caption.getBoundingClientRect().height : innerHeight * .25;
+    const bottomGap = sheet.clientHeight * .045;
+    const maxWidth = innerWidth * .90;
+    const maxHeight = Math.max(56, innerHeight - captionHeight - bottomGap - 8);
+    const width = Math.max(1, Math.min(maxWidth, maxHeight * ratio));
+    const height = width / ratio;
+    frame.style.width = width.toFixed(1) + 'px';
+    frame.style.height = height.toFixed(1) + 'px';
+    frame.style.setProperty('--photo-ratio', ratio.toFixed(5));
+  });
+}
+
 /* ===================== РЕНДЕР СТОРІНОК ===================== */
 function photoFace(p, side, faceIndex) {
   const i = PHOTOS.indexOf(p);
@@ -564,15 +593,9 @@ function build() {
       `<div class="face back ${back.kind === 'back' ? 'cover' : ''}">${faceHTML(back, i + 1)}<div class="shade"></div></div>`;
     book.appendChild(el); acc.push(el); return acc;
   }, []);
-  // Match each photo frame to the actual image ratio: no empty inner strips and no crop.
+  syncPhotoFrames();
   book.querySelectorAll('.photo img').forEach(img => {
-    const syncPhotoRatio = () => {
-      if (img.naturalWidth > 0 && img.naturalHeight > 0) {
-        img.parentElement.style.setProperty('--photo-ratio', img.naturalWidth + ' / ' + img.naturalHeight);
-      }
-    };
-    if (img.complete) syncPhotoRatio();
-    else img.addEventListener('load', syncPhotoRatio, { once: true });
+    if (!img.complete) img.addEventListener('load', syncPhotoFrames, { once: true });
   });
   refreshLikes(); layout(); updateUI();
 }
@@ -789,7 +812,7 @@ function fit() {
   PH = Math.round(PW / pageRatio);
   const root = document.documentElement.style;
   root.setProperty('--pw', PW + 'px'); root.setProperty('--ph', PH + 'px');
-  if (leaves.length) { layout(); }
+  if (leaves.length) { syncPhotoFrames(); layout(); }
 }
 addEventListener('resize', fit);
 
