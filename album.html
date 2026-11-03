@@ -60,7 +60,12 @@
   .iconbtn:focus-visible, .chip:focus-visible, .like:focus-visible, .lb button:focus-visible{ outline:2px solid var(--sakura); outline-offset:3px; }
 
   /* ---------- фільтр за тегами ---------- */
-  .tagbar{ display:none !important; }
+  .tagbar{
+    position:relative; z-index:2; display:flex; align-items:center; gap:8px;
+    width:100%; padding:8px 16px; overflow-x:auto; overscroll-behavior-x:contain;
+    scrollbar-width:none;
+  }
+  .tagbar[hidden]{ display:none; }
   .tagbar::-webkit-scrollbar{ display:none; }
   .chip{
     flex:none; height:32px; padding:0 14px; border-radius:999px; cursor:pointer; font-size:13px; font-weight:600;
@@ -360,6 +365,21 @@ let PHOTOS = [];
 
 const LS_LIKES = 'cosplay:album:likes:v1';
 const LS_SOUND = 'cosplay:album:sound:v1';
+function readLocalValue(key) {
+  try { return localStorage.getItem(key); } catch { return null; }
+}
+function writeLocalValue(key, value) {
+  try { localStorage.setItem(key, value); } catch {}
+}
+try { localStorage.removeItem('savedCredentials'); } catch {}
+function readStoredLikes() {
+  try {
+    const value = JSON.parse(readLocalValue(LS_LIKES) || '[]');
+    return Array.isArray(value) ? value.filter(id => typeof id === 'string') : [];
+  } catch {
+    return [];
+  }
+}
 
 /* ===================== ЧИСТА ЛОГІКА (її перевіряють тести) ===================== */
 //#pure-start
@@ -421,9 +441,10 @@ const $ = id => document.getElementById(id);
 const book = $('book'), stage = $('stage');
 let faces = [], N = 0, leaves = [], cur = 0, PW = 420, PH = 571;
 let busy = false, drag = null, tag = '';
-const likes = new Set(JSON.parse(localStorage.getItem(LS_LIKES) || '[]'));
-let soundOn = localStorage.getItem(LS_SOUND) !== '0';
-let currentLang = localStorage.getItem('appLang') || 'uk';
+const likes = new Set(readStoredLikes());
+let soundOn = readLocalValue(LS_SOUND) !== '0';
+const savedLang = readLocalValue('appLang');
+let currentLang = ['uk', 'en'].includes(savedLang) ? savedLang : 'uk';
 const TXT = {
   uk: {
     description:'Потягни кут сторінки мишкою, як у справжньому альбомі, або користуйся стрілками. Клік по фото відкриває його на весь екран.',
@@ -463,7 +484,7 @@ function applyLanguage() {
 function setLanguage(lang) {
   if (!TXT[lang]) return;
   currentLang = lang;
-  localStorage.setItem('appLang', lang);
+  writeLocalValue('appLang', lang);
   applyLanguage();
 }
 $('lang-uk').addEventListener('click', () => setLanguage('uk'));
@@ -661,8 +682,10 @@ addEventListener('keydown', e => {
 /* ===================== ТЕГИ ===================== */
 function renderTags() {
   const bar = $('tags');
-  bar.innerHTML = '';
-  ['', ...topTags(PHOTOS, 10)].forEach(t => {
+  const tags = topTags(PHOTOS, 10);
+  bar.replaceChildren();
+  bar.hidden = tags.length === 0;
+  ['', ...tags].forEach(t => {
     const b = document.createElement('button');
     b.type = 'button'; b.className = 'chip'; b.textContent = t || tr('all');
     b.setAttribute('aria-pressed', String(t === tag));
@@ -682,7 +705,7 @@ function refreshLikes() {
 }
 function toggleLike(id) {
   likes.has(id) ? likes.delete(id) : likes.add(id);
-  localStorage.setItem(LS_LIKES, JSON.stringify([...likes]));
+  writeLocalValue(LS_LIKES, JSON.stringify([...likes]));
   refreshLikes();
 }
 $('lbLike').onclick = () => lbId && toggleLike(lbId);
@@ -753,7 +776,7 @@ function play(buf, gain, rate, filterType, f0, f1) {
 function swish(power) { ensureAudio(); play(bufFile || bufRustle, (bufFile ? .6 : .3) * power, bufFile ? 1 : .8 + Math.random() * .25, 'bandpass', 4200, 1600); }
 function thud(power) { ensureAudio(); if (!bufFile) play(bufThud, .5 * power, .95 + Math.random() * .1, 'lowpass', 500); }
 function paintSound() { const b = $('snd'); b.textContent = soundOn ? '🔊' : '🔈'; b.setAttribute('aria-pressed', String(soundOn)); }
-$('snd').onclick = () => { soundOn = !soundOn; localStorage.setItem(LS_SOUND, soundOn ? '1' : '0'); paintSound(); };
+  $('snd').onclick = () => { soundOn = !soundOn; writeLocalValue(LS_SOUND, soundOn ? '1' : '0'); paintSound(); };
 
 /* ===================== РОЗМІР ПІД ЕКРАН ===================== */
 function fit() {
@@ -771,6 +794,7 @@ addEventListener('resize', fit);
 
 /* ===================== ЗАВАНТАЖЕННЯ АЛЬБОМУ З FIRESTORE ===================== */
 async function loadAlbum() {
+  let loadFailed = false;
   try {
     const requestedId = new URLSearchParams(location.search).get('id');
     let snap;
@@ -805,23 +829,25 @@ async function loadAlbum() {
         cornerColor: /^#[0-9a-fA-F]{6}$/.test(data.cornerColor || '') ? data.cornerColor : '#cdbfa8',
         cornerDecorEnabled: data.cornerDecorEnabled !== false
       };
-      PHOTOS = Array.isArray(data.pages) ? data.pages.map((p, i) => ({
-        id: String(p.id || `photo-${i + 1}`),
-        title: p.title || 'Без назви',
-        series: p.series || '',
-        cosplayer: p.cosplayer || '—',
-        tags: Array.isArray(p.tags) ? p.tags : [],
-        likes: Number(p.likes || 0),
-        src: p.src || p.url || p.imageUrl || p.image || ''
-      })) : [];
+      PHOTOS = Array.isArray(data.pages) ? data.pages
+        .filter(p => p && typeof p === 'object')
+        .map((p, i) => ({
+          id: String(p.id || `photo-${i + 1}`),
+          title: String(p.title || 'Без назви'),
+          series: String(p.series || ''),
+          cosplayer: String(p.cosplayer || '—'),
+          tags: Array.isArray(p.tags) ? p.tags.map(String).filter(Boolean) : [],
+          likes: Number.isFinite(Number(p.likes)) ? Math.max(0, Number(p.likes)) : 0,
+          src: String(p.src || p.url || p.imageUrl || p.image || '')
+        })) : [];
     } else {
       console.warn('Запитаний журнал не знайдено у Firestore.');
-      $('label').textContent = tr('loadError');
+      loadFailed = true;
       PHOTOS = [];
     }
   } catch (error) {
     console.error('Не вдалося завантажити альбом з Firestore:', error);
-    $('label').textContent = tr('loadError');
+    loadFailed = true;
   }
 
   document.title = ALBUM.title || 'Журнал косплеєра';
@@ -831,6 +857,7 @@ async function loadAlbum() {
   fit();
   build();
   fit();
+  if (loadFailed) $('label').textContent = tr('loadError');
 }
 
 loadAlbum();

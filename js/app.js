@@ -6,7 +6,10 @@ import {
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
   signOut, 
-  onAuthStateChanged
+  onAuthStateChanged,
+  setPersistence,
+  browserLocalPersistence,
+  browserSessionPersistence
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { 
   getFirestore, 
@@ -32,6 +35,23 @@ const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
 
 const ADMIN_EMAIL = "denysq1999@gmail.com";
+const REMEMBERED_EMAIL_KEY = "rememberedEmail";
+const LEGACY_SAVED_CREDENTIALS_KEY = "savedCredentials";
+
+function readLocalValue(key) {
+  try { return localStorage.getItem(key); } catch { return null; }
+}
+
+function writeLocalValue(key, value) {
+  try { localStorage.setItem(key, value); } catch {}
+}
+
+function removeLocalValue(key) {
+  try { localStorage.removeItem(key); } catch {}
+}
+
+// Older versions stored the password in localStorage. Remove it on upgrade.
+removeLocalValue(LEGACY_SAVED_CREDENTIALS_KEY);
 
 document.addEventListener("DOMContentLoaded", () => {
   const dict = {
@@ -49,9 +69,10 @@ document.addEventListener("DOMContentLoaded", () => {
       modal_submit_register: "Зареєструватися",
       email_placeholder: "Email",
       password_placeholder: "Пароль",
-      remember_password: "Запам’ятати пароль",
+      remember_password: "Запам’ятати мене",
       err_invalid: "Невірний email або пароль.",
       err_reg: "Помилка реєстрації. Перевірте дані.",
+      err_google: "Не вдалося увійти через Google. Спробуй ще раз.",
       err_google_exists: "Цей email вже зареєстрований через Google. Увійди через Google.",
       err_email_exists: "Цей email вже існує. Спробуй увійти або скинути пароль.",
       delete_btn: "Видалити",
@@ -71,9 +92,10 @@ document.addEventListener("DOMContentLoaded", () => {
       modal_submit_register: "Register",
       email_placeholder: "Email",
       password_placeholder: "Password",
-      remember_password: "Remember password",
+      remember_password: "Remember me",
       err_invalid: "Invalid email or password.",
       err_reg: "Registration error. Check your data.",
+      err_google: "Could not sign in with Google. Please try again.",
       err_google_exists: "This email is already registered via Google. Please sign in with Google.",
       err_email_exists: "This email already exists. Try logging in or reset the password.",
       delete_btn: "Delete",
@@ -81,7 +103,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
-  let currentLang = localStorage.getItem("appLang") || "uk";
+  const savedLang = readLocalValue("appLang");
+  let currentLang = ["uk", "en"].includes(savedLang) ? savedLang : "uk";
   let isLoginMode = true;
   let currentUser = null;
   let emptyText = dict[currentLang].empty_gallery;
@@ -115,6 +138,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   const updateLangUI = () => {
+    document.documentElement.lang = currentLang;
     document.querySelectorAll("[data-i18n]").forEach(el => {
       const key = el.getAttribute("data-i18n");
       if (dict[currentLang][key]) el.textContent = dict[currentLang][key];
@@ -133,12 +157,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.getElementById("lang-uk").addEventListener("click", () => {
     currentLang = "uk";
-    localStorage.setItem("appLang", "uk");
+    writeLocalValue("appLang", "uk");
     updateLangUI();
   });
   document.getElementById("lang-en").addEventListener("click", () => {
     currentLang = "en";
-    localStorage.setItem("appLang", "en");
+    writeLocalValue("appLang", "en");
     updateLangUI();
   });
 
@@ -155,22 +179,20 @@ document.addEventListener("DOMContentLoaded", () => {
   const closeModalBtn = document.getElementById("close-modal-btn");
   const authForm = document.getElementById("auth-form");
 
-  function loadSavedCredentials() {
-    const saved = localStorage.getItem("savedCredentials");
-    if (saved) {
-      try {
-        const { email, password } = JSON.parse(saved);
-        document.getElementById("auth-email").value = email || "";
-        document.getElementById("auth-password").value = password || "";
-        if (rememberCheckbox) rememberCheckbox.checked = true;
-      } catch {}
-    }
+  function loadRememberedEmail() {
+    const emailInput = document.getElementById("auth-email");
+    const passwordInput = document.getElementById("auth-password");
+    if (emailInput) emailInput.value = readLocalValue(REMEMBERED_EMAIL_KEY) || "";
+    if (passwordInput) passwordInput.value = "";
+    if (rememberCheckbox) rememberCheckbox.checked = Boolean(readLocalValue(REMEMBERED_EMAIL_KEY));
   }
 
   const openModal = (mode) => {
     isLoginMode = mode === "login";
+    const rememberLabel = rememberCheckbox?.closest("label");
+    if (rememberLabel) rememberLabel.hidden = !isLoginMode;
     errorContainer.textContent = "";
-    if (mode === "login") loadSavedCredentials();
+    if (mode === "login") loadRememberedEmail();
     else authForm.reset();
     updateLangUI();
     authModal.classList.remove("hidden");
@@ -184,7 +206,17 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   btnGoogle?.addEventListener("click", async () => {
-    try { await signInWithPopup(auth, provider); } catch (err) { console.error(err); }
+    try {
+      await signInWithPopup(auth, provider);
+    } catch (err) {
+      console.error(err);
+      if (authModal) authModal.classList.remove("hidden");
+      if (errorContainer) {
+        errorContainer.textContent = err.code === "auth/account-exists-with-different-credential"
+          ? dict[currentLang].err_google_exists
+          : dict[currentLang].err_google;
+      }
+    }
   });
 
   authForm?.addEventListener("submit", async (e) => {
@@ -193,21 +225,24 @@ document.addEventListener("DOMContentLoaded", () => {
     const email = document.getElementById("auth-email").value.trim();
     const password = document.getElementById("auth-password").value;
 
-    if (isLoginMode && rememberCheckbox?.checked) {
-      localStorage.setItem("savedCredentials", JSON.stringify({ email, password }));
-    } else if (isLoginMode) {
-      localStorage.removeItem("savedCredentials");
-    }
-
     try {
-      if (isLoginMode) await signInWithEmailAndPassword(auth, email, password);
-      else await createUserWithEmailAndPassword(auth, email, password);
+      if (isLoginMode) {
+        const remember = Boolean(rememberCheckbox?.checked);
+        await setPersistence(auth, remember ? browserLocalPersistence : browserSessionPersistence);
+        await signInWithEmailAndPassword(auth, email, password);
+        if (remember) writeLocalValue(REMEMBERED_EMAIL_KEY, email);
+        else removeLocalValue(REMEMBERED_EMAIL_KEY);
+      } else {
+        await createUserWithEmailAndPassword(auth, email, password);
+      }
       authModal.classList.add("hidden");
     } catch (err) {
       console.error(err);
       let msg = isLoginMode ? dict[currentLang].err_invalid : dict[currentLang].err_reg;
-      if (err.code === "auth/account-exists-with-different-credential" || err.code === "auth/email-already-in-use") {
+      if (err.code === "auth/account-exists-with-different-credential") {
         msg = dict[currentLang].err_google_exists;
+      } else if (err.code === "auth/email-already-in-use") {
+        msg = dict[currentLang].err_email_exists;
       }
       errorContainer.textContent = msg;
     }
@@ -241,7 +276,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (snap.exists()) {
         const data = snap.data();
         const size = data.size || "w1920";
-        const fileId = data.fileId || (data.url?.match(/\/file\/d\/([a-zA-Z0-9_-]+)/)?.[1]) || (data.url?.match(/[?&]id=([a-zA-Z0-9_-]+)/)?.[1]);
+        const fileId = data.fileId || extractGoogleDriveFileId(data.url);
         const imageUrl = fileId
           ? `https://drive.google.com/thumbnail?id=${fileId}&sz=${size}`
           : (data.imageUrl || data.url || "");
@@ -254,7 +289,10 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }
       document.body.style.backgroundImage = "none";
-    } catch (err) { console.error(err); }
+    } catch (err) {
+      document.body.style.backgroundImage = "none";
+      console.error(err);
+    }
   }
 
   async function loadEmptyText() {
@@ -286,8 +324,9 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function extractGoogleDriveFileId(url) {
-    if (!url) return null;
-    const m = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/id=([a-zA-Z0-9_-]+)/);
+    const raw = String(url || "").trim();
+    if (!raw) return null;
+    const m = raw.match(/\/d\/([a-zA-Z0-9_-]+)/) || raw.match(/[?&]id=([a-zA-Z0-9_-]+)/);
     return m ? m[1] : null;
   }
 
@@ -314,12 +353,12 @@ document.addEventListener("DOMContentLoaded", () => {
         const first = pages[0] || {};
         const coverSource = data.coverImage || data.frontCoverImage || data.introImage ||
           data.firstPageImage || first.src || first.url || first.imageUrl || first.image || "";
-        if (!coverSource) return;
 
-        const fileId = extractGoogleDriveFileId(coverSource);
+        const coverUrlSource = String(coverSource || "").trim();
+        const fileId = extractGoogleDriveFileId(coverUrlSource);
         const coverUrl = fileId
           ? `https://drive.google.com/thumbnail?id=${fileId}&sz=w1200`
-          : coverSource;
+          : coverUrlSource;
         const format = ["4:5","3:4","2:3","1:1","16:9"].includes(data.pageFormat)
           ? data.pageFormat : "4:5";
         const [ratioW, ratioH] = format.split(":").map(Number);
@@ -332,16 +371,32 @@ document.addEventListener("DOMContentLoaded", () => {
           ? `Відкрити журнал: ${data.title}`
           : "Відкрити журнал");
 
-        const cover = document.createElement("img");
-        cover.src = coverUrl;
-        cover.alt = data.title ? `Обкладинка журналу «${data.title}»` : "Обкладинка журналу";
-        cover.loading = "lazy";
-        cover.referrerPolicy = "no-referrer";
-        cover.onerror = () => {
-          cover.style.visibility = "hidden";
-          console.warn("Не вдалося завантажити обкладинку журналу:", data.title || id);
-        };
-        card.appendChild(cover);
+        const fallback = document.createElement("div");
+        fallback.className = "album-card-placeholder";
+        const fallbackTitle = document.createElement("strong");
+        fallbackTitle.textContent = data.title || (currentLang === "en" ? "Cosplay magazine" : "Журнал косплеєра");
+        fallback.appendChild(fallbackTitle);
+        if (data.owner) {
+          const fallbackOwner = document.createElement("span");
+          fallbackOwner.textContent = data.owner;
+          fallback.appendChild(fallbackOwner);
+        }
+
+        if (coverUrl) {
+          const cover = document.createElement("img");
+          cover.src = coverUrl;
+          cover.alt = data.title ? `Обкладинка журналу «${data.title}»` : "Обкладинка журналу";
+          cover.loading = "lazy";
+          cover.referrerPolicy = "no-referrer";
+          cover.onerror = () => {
+            cover.remove();
+            if (!card.contains(fallback)) card.appendChild(fallback);
+            console.warn("Не вдалося завантажити обкладинку журналу:", data.title || id);
+          };
+          card.appendChild(cover);
+        } else {
+          card.appendChild(fallback);
+        }
         albumShelf.appendChild(card);
       });
 
@@ -351,7 +406,6 @@ document.addEventListener("DOMContentLoaded", () => {
       albumPreview.style.display = "none";
     }
   }
-  loadEmptyText();
   loadSiteTitle();
   loadButtonColors();
 
@@ -377,6 +431,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function loadGallery() {
     if (!galleryEl) return;
+    await loadEmptyText();
     galleryEl.innerHTML = "";
     try {
       const snap = await getDocs(collection(db, "cosplays"));
@@ -406,12 +461,17 @@ document.addEventListener("DOMContentLoaded", () => {
         if (hasAlbums) {
           galleryEl.innerHTML = "";
         } else {
-          galleryEl.innerHTML = `
-            <div class="gallery-empty-state" style="text-align:center; padding:60px 20px; color:#666;">
-              <div style="font-size:48px; margin-bottom:12px;">🖼️</div>
-              <p style="margin:0; font-size:15px;">${emptyText}</p>
-            </div>
-          `;
+          const emptyState = document.createElement("div");
+          emptyState.className = "gallery-empty-state";
+          emptyState.style.cssText = "text-align:center;padding:60px 20px;color:#666;grid-column:1 / -1;";
+          const icon = document.createElement("div");
+          icon.textContent = "🖼️";
+          icon.style.cssText = "font-size:48px;margin-bottom:12px;";
+          const message = document.createElement("p");
+          message.textContent = emptyText;
+          message.style.cssText = "margin:0;font-size:15px;";
+          emptyState.append(icon, message);
+          galleryEl.replaceChildren(emptyState);
         }
         return;
       }
@@ -425,29 +485,30 @@ document.addEventListener("DOMContentLoaded", () => {
         const card = document.createElement("div");
         card.className = "card";
 
-        let del = "";
+        const image = document.createElement("img");
+        image.src = imageUrl;
+        image.loading = "lazy";
+        image.referrerPolicy = "no-referrer";
+        image.alt = "Cosplay";
+        card.appendChild(image);
+
         if (isAdmin(currentUser)) {
-          del = `<button class="delete-btn" data-id="${docSnap.id}">${dict[currentLang].delete_btn}</button>`;
+          const deleteButton = document.createElement("button");
+          deleteButton.type = "button";
+          deleteButton.className = "delete-btn";
+          deleteButton.textContent = dict[currentLang].delete_btn;
+          deleteButton.addEventListener("click", async () => {
+            if (!confirm("Видалити цю картинку?")) return;
+            try {
+              await deleteDoc(doc(db, "cosplays", docSnap.id));
+              loadGallery();
+            } catch {
+              alert("Помилка видалення");
+            }
+          });
+          card.appendChild(deleteButton);
         }
-
-        card.innerHTML = `
-          <img src="${imageUrl}" loading="lazy" referrerpolicy="no-referrer" alt="Cosplay">
-          ${del}
-        `;
         galleryEl.appendChild(card);
-      });
-
-      document.querySelectorAll(".delete-btn").forEach(btn => {
-        btn.addEventListener("click", async (e) => {
-          const id = e.target.getAttribute("data-id");
-          if (!confirm("Видалити цю картинку?")) return;
-          try {
-            await deleteDoc(doc(db, "cosplays", id));
-            loadGallery();
-          } catch {
-            alert("Помилка видалення");
-          }
-        });
       });
     } catch {
       galleryEl.innerHTML = '<p style="color:#d93025; text-align:center;">Помилка завантаження</p>';

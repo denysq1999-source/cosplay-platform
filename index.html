@@ -78,6 +78,33 @@
       border-radius:4px 9px 9px 4px;
       background:linear-gradient(145deg,#352338,#17121c);
     }
+    .album-card-placeholder {
+      position:absolute;
+      inset:0;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      padding:18px 18px 18px 26px;
+      border:1px solid rgba(255,255,255,.16);
+      border-radius:4px 9px 9px 4px;
+      background:radial-gradient(120% 90% at 30% 20%,#5b2349,#3a1630 60%,#220c1d);
+      color:#f3dfb2;
+      text-align:center;
+      overflow:hidden;
+    }
+    .album-card-placeholder strong {
+      max-width:100%;
+      overflow-wrap:anywhere;
+      font:600 1.05rem/1.2 Georgia,serif;
+    }
+    .album-card-placeholder span {
+      max-width:100%;
+      overflow-wrap:anywhere;
+      color:#e6cf9b;
+      font-size:.82rem;
+    }
     .album-card:focus-visible {
       outline:2px solid #f3a8c3;
       outline-offset:6px;
@@ -121,8 +148,8 @@
       <h2 id="modal-title" style="margin:0 0 15px; text-align:center; font-size:18px;">Вхід</h2>
       <div id="error-container" class="error-msg"></div>
       <form id="auth-form">
-        <input type="email" id="auth-email" data-i18n-placeholder="email_placeholder" placeholder="Email" required>
-        <input type="password" id="auth-password" data-i18n-placeholder="password_placeholder" placeholder="Пароль" required>
+        <input type="email" id="auth-email" autocomplete="email" data-i18n-placeholder="email_placeholder" placeholder="Email" required>
+        <input type="password" id="auth-password" autocomplete="current-password" data-i18n-placeholder="password_placeholder" placeholder="Пароль" required>
         <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:#aaa; margin: 4px 0 12px; cursor:pointer;">
           <input type="checkbox" id="remember-password" style="width:auto; margin:0;">
           <span data-i18n="remember_password">Запам’ятати пароль</span>
@@ -139,6 +166,6 @@
     <div id="gallery" class="gallery"></div>
   </div>
 
-  <script type="module" src="js/app.js?v=32"></script>
+  <script type="module" src="js/app.js?v=33"></script>
 </body>
 </html>

@@ -90,7 +90,14 @@ const dict = {
   }
 };
 
-let currentLang = localStorage.getItem("appLang") || "uk";
+function readLocalValue(key) {
+  try { return localStorage.getItem(key); } catch { return null; }
+}
+function writeLocalValue(key, value) {
+  try { localStorage.setItem(key, value); } catch {}
+}
+try { localStorage.removeItem("savedCredentials"); } catch {}
+let currentLang = readLocalValue("appLang") || "uk";
 if (!["uk","en"].includes(currentLang)) currentLang = "uk";
 const t = key => dict[currentLang]?.[key] || dict.uk[key] || key;
 let albumPages = [];
@@ -126,12 +133,12 @@ function updateLangUI() {
 }
 document.getElementById("lang-uk")?.addEventListener("click", () => {
   currentLang = "uk";
-  localStorage.setItem("appLang", "uk");
+  writeLocalValue("appLang", "uk");
   updateLangUI();
 });
 document.getElementById("lang-en")?.addEventListener("click", () => {
   currentLang = "en";
-  localStorage.setItem("appLang", "en");
+  writeLocalValue("appLang", "en");
   updateLangUI();
 });
 
@@ -146,6 +153,8 @@ const btnSettings = document.getElementById("btn-settings");
 
 onAuthStateChanged(auth, (user) => {
   if (!user || user.email?.trim().toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
+    adminContent?.classList.add("hidden");
+    statusEl?.classList.remove("hidden");
     statusEl.textContent = dict[currentLang].access_denied;
     setTimeout(() => { window.location.href = "index.html"; }, 1200);
     return;
@@ -480,8 +489,7 @@ function updateCornerPreview() {
 }
 document.getElementById("album-corner-style")?.addEventListener("change", updateCornerPreview);
 document.getElementById("album-corner-color")?.addEventListener("input", updateCornerPreview);
-document.getElementById("album-corner-enabled")?.addEventListener("change", updateCornerPreview);document.getElementById("album-corner-style")?.addEventListener("change", updateCornerPreview);
-document.getElementById("album-corner-color")?.addEventListener("input", updateCornerPreview);
+document.getElementById("album-corner-enabled")?.addEventListener("change", updateCornerPreview);
 
 function updateIntroImagePreview() {
   const input = document.getElementById("album-intro-image");

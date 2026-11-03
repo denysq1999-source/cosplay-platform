@@ -32,6 +32,7 @@ const dict = {
     password_mismatch: "Паролі не збігаються",
     password_short: "Пароль має бути мінімум 6 символів",
     already_has_password: "Пароль вже встановлено",
+    not_authorized: "Не авторизовано. Перенаправлення...",
     error: "Помилка. Спробуй ще раз."
   },
   en: {
@@ -47,11 +48,20 @@ const dict = {
     password_mismatch: "Passwords do not match",
     password_short: "Password must be at least 6 characters",
     already_has_password: "Password is already set",
+    not_authorized: "Not signed in. Redirecting...",
     error: "Error. Please try again."
   }
 };
 
-let currentLang = localStorage.getItem("appLang") || "uk";
+function readLocalValue(key) {
+  try { return localStorage.getItem(key); } catch { return null; }
+}
+function writeLocalValue(key, value) {
+  try { localStorage.setItem(key, value); } catch {}
+}
+try { localStorage.removeItem("savedCredentials"); } catch {}
+const savedLang = readLocalValue("appLang");
+let currentLang = ["uk", "en"].includes(savedLang) ? savedLang : "uk";
 
 function updateLangUI() {
   document.querySelectorAll("[data-i18n]").forEach(el => {
@@ -70,12 +80,12 @@ function updateLangUI() {
 
 document.getElementById("lang-uk")?.addEventListener("click", () => {
   currentLang = "uk";
-  localStorage.setItem("appLang", "uk");
+  writeLocalValue("appLang", "uk");
   updateLangUI();
 });
 document.getElementById("lang-en")?.addEventListener("click", () => {
   currentLang = "en";
-  localStorage.setItem("appLang", "en");
+  writeLocalValue("appLang", "en");
   updateLangUI();
 });
 
@@ -87,7 +97,7 @@ const profileStatus = document.getElementById("profile-status");
 
 onAuthStateChanged(auth, (user) => {
   if (!user) {
-    statusEl.textContent = "Не авторизовано. Перенаправлення...";
+    statusEl.textContent = dict[currentLang].not_authorized;
     setTimeout(() => { window.location.href = "index.html"; }, 1200);
     return;
   }
