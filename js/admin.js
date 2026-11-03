@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore, doc, setDoc, getDoc, deleteDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBnS9-bQngWjNxM1rKz_qRbrQopSd1aAqA",
@@ -21,7 +21,7 @@ const dict = {
   uk: {
     admin_title:"Панель адміністратора", back_btn:"← На галерею", albums_btn:"Альбоми", settings_btn:"Налаштування сайту",
     checking_access:"Перевірка доступу...", access_denied:"Доступ заборонено. Перенаправлення...",
-    album_manage:"Керування альбомом (журнал)", album_name:"Назва альбому", album_title_placeholder:"Альбом косплеєра",
+    magazines_title:"Мої журнали", new_magazine:"＋ Створити журнал", select_magazine:"Відкрити редактор", magazine_empty:"Журналів поки немає. Створи перший.", magazine_count:"сторінок", move_up:"↑", move_down:"↓", draft_magazine:"Новий журнал (ще не збережено)",\n    album_manage:"Керування альбомом (журнал)", album_name:"Назва альбому", album_title_placeholder:"Альбом косплеєра",
     album_owner:"Власник / нік", owner_placeholder:"Нікнейм косплеєра", page_format:"Формат сторінок журналу",
     ratio_45:"4:5 — портретний (соцмережі)", ratio_34:"3:4 — класичний портретний", ratio_23:"2:3 — вертикальне фото", ratio_11:"1:1 — квадрат", ratio_169:"16:9 — альбомний / широкий",
     format_help:"Розмір обох сторінок і всієї книжки автоматично підлаштується під вибрані пропорції та екран. Самі фотографії не обрізаються.",
@@ -55,7 +55,7 @@ const dict = {
   en: {
     admin_title:"Admin Panel", back_btn:"← Back to Gallery", albums_btn:"Albums", settings_btn:"Site Settings",
     checking_access:"Checking access...", access_denied:"Access denied. Redirecting...",
-    album_manage:"Album management (magazine)", album_name:"Album title", album_title_placeholder:"Cosplayer album",
+    magazines_title:"My magazines", new_magazine:"＋ Create magazine", select_magazine:"Open editor", magazine_empty:"No magazines yet. Create your first one.", magazine_count:"pages", move_up:"↑", move_down:"↓", draft_magazine:"New magazine (not saved yet)",\n    album_manage:"Album management (magazine)", album_name:"Album title", album_title_placeholder:"Cosplayer album",
     album_owner:"Owner / nickname", owner_placeholder:"Cosplayer nickname", page_format:"Magazine page format",
     ratio_45:"4:5 — portrait (social)", ratio_34:"3:4 — classic portrait", ratio_23:"2:3 — vertical photo", ratio_11:"1:1 — square", ratio_169:"16:9 — landscape / widescreen",
     format_help:"Both pages and the full book automatically fit the selected proportions and screen. Photos are never cropped.",
@@ -93,6 +93,8 @@ if (!["uk","en"].includes(currentLang)) currentLang = "uk";
 const t = key => dict[currentLang]?.[key] || dict.uk[key] || key;
 let albumPages = [];
 let editingIndex = -1;
+let albumRecords = [];
+let activeAlbumId = null;
 
 function updateLangUI() {
   document.documentElement.lang = currentLang;
@@ -320,29 +322,123 @@ async function loadAllSettings() {
   }
 }
 
+function getAlbumDocId(id) {
+  return id.startsWith("album_") ? id : `album_${id}`;
+}
+
+function setAlbumForm(data = {}) {
+  document.getElementById("album-title").value = data.title || "";
+  document.getElementById("album-owner").value = data.owner || "";
+  document.getElementById("album-page-format").value = data.pageFormat || "4:5";
+  document.getElementById("album-corner-style").value = ["classic","star","bookmark","flower"].includes(data.cornerStyle) ? data.cornerStyle : "classic";
+  document.getElementById("album-corner-color").value = /^#[0-9a-fA-F]{6}$/.test(data.cornerColor || "") ? data.cornerColor : "#cdbfa8";
+  document.getElementById("album-corner-enabled").checked = data.cornerDecorEnabled !== false;
+  document.getElementById("album-intro-image").value = data.coverImage || data.introImage || data.firstPageImage || "";
+  document.getElementById("album-back-cover-image").value = data.backCoverImage || data.backCover || "";
+  albumPages = Array.isArray(data.pages) ? data.pages.map(page => ({...page})) : [];
+  editingIndex = -1;
+  clearPageForm();
+  renderPagesList();
+  updateIntroImagePreview();
+  updateBackCoverPreview();
+  updateCornerPreview();
+}
+
+function renderAlbumLibrary() {
+  const list = document.getElementById("album-list");
+  if (!list) return;
+  list.innerHTML = "";
+  if (!albumRecords.length) {
+    const empty = document.createElement("p");
+    empty.textContent = t("magazine_empty");
+    empty.style.cssText = "color:#aaa;margin:4px 0;";
+    list.appendChild(empty);
+  }
+  albumRecords.forEach(record => {
+    const card = document.createElement("div");
+    const selected = record.id === activeAlbumId;
+    card.style.cssText = `padding:12px;border:1px solid ${selected ? "#c77da2" : "#48404c"};border-radius:10px;background:${selected ? "#302331" : "#1b171f"};min-width:0;`;
+    const title = document.createElement("strong");
+    title.textContent = record.data.title || t("album_title_placeholder");
+    title.style.cssText = "display:block;overflow-wrap:anywhere;margin-bottom:4px;";
+    const meta = document.createElement("small");
+    meta.textContent = `${record.data.owner || ""} · ${(record.data.pages || []).length} ${t("magazine_count")}`;
+    meta.style.cssText = "display:block;color:#aaa;margin-bottom:10px;";
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "admin-btn";
+    button.textContent = selected ? t("select_magazine") : t("select_magazine");
+    button.disabled = selected;
+    button.style.width = "100%";
+    button.addEventListener("click", () => loadAlbumIntoEditor(record.id));
+    card.append(title, meta, button);
+    list.appendChild(card);
+  });
+}
+
+function showAlbumEditor(show) {
+  document.getElementById("album-editor")?.classList.toggle("hidden", !show);
+}
+
+async function loadAlbumIntoEditor(id) {
+  const record = albumRecords.find(item => item.id === id);
+  if (!record) return;
+  activeAlbumId = id;
+  setAlbumForm(record.data);
+  showAlbumEditor(true);
+  const view = document.getElementById("btn-view-album");
+  if (view) view.href = `album.html?id=${encodeURIComponent(id.replace(/^album_/, ""))}`;
+  renderAlbumLibrary();
+}
+
 async function loadAlbum() {
   try {
-    const snap = await getDoc(doc(db, "settings", "album"));
-    if (snap.exists()) {
-      const data = snap.data();
-      document.getElementById("album-title").value = data.title || "";
-      document.getElementById("album-owner").value = data.owner || "";
-      document.getElementById("album-page-format").value = data.pageFormat || "4:5";
-      document.getElementById("album-corner-style").value = ["classic","star","bookmark","flower"].includes(data.cornerStyle) ? data.cornerStyle : "classic";
-      document.getElementById("album-corner-color").value = /^#[0-9a-fA-F]{6}$/.test(data.cornerColor || "") ? data.cornerColor : "#cdbfa8";
-      document.getElementById("album-corner-enabled").checked = data.cornerDecorEnabled !== false;
-      document.getElementById("album-intro-image").value = data.coverImage || data.introImage || data.firstPageImage || "";
-      document.getElementById("album-back-cover-image").value = data.backCoverImage || data.backCover || "";
-      albumPages = data.pages || [];
+    const settingsSnap = await getDocs(collection(db, "settings"));
+    let docs = settingsSnap.docs
+      .filter(item => item.id.startsWith("album_"))
+      .map(item => ({ id: item.id, data: item.data() || {} }));
+
+    // One-time safe migration: copy the existing legacy album without deleting it.
+    if (!docs.length) {
+      const legacySnap = await getDoc(doc(db, "settings", "album"));
+      if (legacySnap.exists()) {
+        const legacyData = legacySnap.data() || {};
+        await setDoc(doc(db, "settings", "album_legacy"), legacyData);
+        docs = [{ id: "album_legacy", data: legacyData }];
+      }
     }
-    renderPagesList();
-    updateIntroImagePreview();
-    updateBackCoverPreview();
-    updateCornerPreview();
+
+    albumRecords = docs;
+    if (albumRecords.length) {
+      const requested = new URLSearchParams(location.search).get("album");
+      const requestedId = requested ? getAlbumDocId(requested) : null;
+      const initial = albumRecords.find(item => item.id === requestedId) || albumRecords[0];
+      await loadAlbumIntoEditor(initial.id);
+    } else {
+      activeAlbumId = null;
+      setAlbumForm({});
+      showAlbumEditor(false);
+      renderAlbumLibrary();
+    }
   } catch (err) {
-    console.error(err);
+    console.error("Не вдалося завантажити список журналів:", err);
+    const status = document.getElementById("album-status");
+    if (status) {
+      status.textContent = t("save_error");
+      status.style.color = "#d93025";
+    }
   }
 }
+
+document.getElementById("btn-new-album")?.addEventListener("click", () => {
+  activeAlbumId = `album_${Date.now()}`;
+  setAlbumForm({ title: "", owner: "", pages: [], pageFormat: "4:5", cornerStyle: "classic", cornerColor: "#cdbfa8", cornerDecorEnabled: true });
+  showAlbumEditor(true);
+  const view = document.getElementById("btn-view-album");
+  if (view) view.href = `album.html?id=${encodeURIComponent(activeAlbumId.replace(/^album_/, ""))}`;
+  renderAlbumLibrary();
+  document.getElementById("album-title")?.focus();
+});
 
 function updateCornerPreview() {
   const style = document.getElementById("album-corner-style")?.value || "classic";
@@ -422,19 +518,33 @@ document.getElementById("album-back-cover-image")?.addEventListener("input", upd
 function renderPagesList() {
   const list = document.getElementById("pages-list");
   if (!list) return;
-  list.innerHTML = albumPages.length ? albumPages.map((p, i) => `
-    <div style="background:#1e1e1e; padding:10px; border-radius:8px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
-      <div>
-        <strong>${p.title || t("page_title_fallback")}</strong><br>
-        <small style="color:#aaa;">${p.series || ""} · ${p.cosplayer || ""}</small>
-      </div>
-      <div style="display:flex; gap:6px;">
-        <button class="admin-btn" onclick="editPage(${i})" style="padding:6px 10px; font-size:12px;">Ред.</button>
-        <button class="admin-btn danger" onclick="deletePage(${i})" style="padding:6px 10px; font-size:12px;">Вид.</button>
-      </div>
-    </div>
-  `).join("") : "<p style=\"color:#666;\">Немає сторінок</p>";
+  list.innerHTML = albumPages.length ? albumPages.map((p, i) => {
+    const title = String(p.title || t("page_title_fallback")).replace(/[&<>"]/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[ch]));
+    const series = String(p.series || "").replace(/[&<>"]/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[ch]));
+    const cosplayer = String(p.cosplayer || "").replace(/[&<>"]/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[ch]));
+    return `
+      <div style="background:#1e1e1e;padding:10px;border:1px solid #39313e;border-radius:9px;margin-bottom:8px;display:flex;align-items:center;gap:10px;">
+        <div style="width:30px;height:30px;flex:none;border-radius:7px;background:#302331;display:grid;place-items:center;color:#f2cfe0;font-weight:700;">${i + 1}</div>
+        <div style="flex:1;min-width:0;overflow-wrap:anywhere;">
+          <strong>${title}</strong><br>
+          <small style="color:#aaa;">${series}${series && cosplayer ? " · " : ""}${cosplayer}</small>
+        </div>
+        <div style="display:flex;gap:4px;flex:none;flex-wrap:wrap;justify-content:flex-end;">
+          <button class="admin-btn" onclick="movePage(${i},-1)" title="${t("move_up")}" aria-label="${t("move_up")}" ${i === 0 ? "disabled" : ""} style="padding:6px 9px;font-size:13px;">↑</button>
+          <button class="admin-btn" onclick="movePage(${i},1)" title="${t("move_down")}" aria-label="${t("move_down")}" ${i === albumPages.length - 1 ? "disabled" : ""} style="padding:6px 9px;font-size:13px;">↓</button>
+          <button class="admin-btn" onclick="editPage(${i})" style="padding:6px 10px;font-size:12px;">${t("edit_short")}</button>
+          <button class="admin-btn danger" onclick="deletePage(${i})" style="padding:6px 10px;font-size:12px;">${t("delete_short")}</button>
+        </div>
+      </div>`;
+  }).join("") : `<p style="color:#666;">${t("no_pages")}</p>`;
 }
+
+window.movePage = (index, direction) => {
+  const next = index + direction;
+  if (next < 0 || next >= albumPages.length) return;
+  [albumPages[index], albumPages[next]] = [albumPages[next], albumPages[index]];
+  renderPagesList();
+};
 
 window.editPage = (i) => {
   const p = albumPages[i];
@@ -501,8 +611,12 @@ document.getElementById("btn-cancel-edit")?.addEventListener("click", clearPageF
 
 document.getElementById("btn-save-album")?.addEventListener("click", async () => {
   const status = document.getElementById("album-status");
+  if (!activeAlbumId) {
+    if (status) status.textContent = t("save_error");
+    return;
+  }
   try {
-    await setDoc(doc(db, "settings", "album"), {
+    const data = {
       title: document.getElementById("album-title").value.trim() || "Альбом косплеєра",
       owner: document.getElementById("album-owner").value.trim() || "Косплеєр",
       year: new Date().getFullYear().toString(),
@@ -513,37 +627,53 @@ document.getElementById("btn-save-album")?.addEventListener("click", async () =>
       coverImage: document.getElementById("album-intro-image").value.trim(),
       backCoverImage: document.getElementById("album-back-cover-image").value.trim(),
       pages: albumPages
-    });
-    status.textContent = t("album_saved");
-    status.style.color = "#4caf50";
+    };
+    await setDoc(doc(db, "settings", activeAlbumId), data);
+    const existing = albumRecords.findIndex(item => item.id === activeAlbumId);
+    const record = { id: activeAlbumId, data };
+    if (existing >= 0) albumRecords[existing] = record;
+    else albumRecords.push(record);
+    renderAlbumLibrary();
+    const view = document.getElementById("btn-view-album");
+    if (view) view.href = `album.html?id=${encodeURIComponent(activeAlbumId.replace(/^album_/, ""))}`;
+    if (status) {
+      status.textContent = t("album_saved");
+      status.style.color = "#4caf50";
+    }
   } catch (err) {
     console.error(err);
-    status.textContent = t("save_error");
-    status.style.color = "#d93025";
+    if (status) {
+      status.textContent = t("save_error") + (err?.code ? ` (${err.code})` : "");
+      status.style.color = "#d93025";
+    }
   }
 });
 
 document.getElementById("btn-delete-album")?.addEventListener("click", async () => {
-  if (!confirm(t("confirm_delete_album"))) return;
+  if (!activeAlbumId || !confirm(t("confirm_delete_album"))) return;
   try {
-    await deleteDoc(doc(db, "settings", "album"));
-    albumPages = [];
-    document.getElementById("album-title").value = "";
-    document.getElementById("album-owner").value = "";
-    document.getElementById("album-corner-style").value = "classic";
-    document.getElementById("album-corner-color").value = "#cdbfa8";
-    document.getElementById("album-corner-enabled").checked = true;
-    updateCornerPreview();
-    document.getElementById("album-intro-image").value = "";
-    document.getElementById("album-back-cover-image").value = "";
-    updateIntroImagePreview();
-    updateBackCoverPreview();
-    renderPagesList();
-    document.getElementById("album-status").textContent = t("album_deleted");
+    await deleteDoc(doc(db, "settings", activeAlbumId));
+    // Remove the untouched legacy document too, so a deleted migrated album cannot reappear.
+    if (activeAlbumId === "album_legacy") {
+      await deleteDoc(doc(db, "settings", "album"));
+    }
+    albumRecords = albumRecords.filter(item => item.id !== activeAlbumId);
+    activeAlbumId = null;
+    setAlbumForm({});
+    showAlbumEditor(false);
+    renderAlbumLibrary();
+    const status = document.getElementById("album-status");
+    if (status) status.textContent = t("album_deleted");
   } catch (err) {
     console.error(err);
+    const status = document.getElementById("album-status");
+    if (status) {
+      status.textContent = t("save_error") + (err?.code ? ` (${err.code})` : "");
+      status.style.color = "#d93025";
+    }
   }
 });
+
 
 // Background and settings handlers (simplified from previous versions)
 document.getElementById("btn-save-settings")?.addEventListener("click", async () => {
