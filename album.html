@@ -153,9 +153,10 @@
   /* сторінка з фото */
   .sheet{ position:absolute; inset:0; padding:5.5% 7% 5%; display:flex; flex-direction:column; }
   .photo{
-    position:relative; flex:0 1 auto; width:100%; min-height:0;
+    position:relative; flex:0 1 auto; align-self:center;
+    width:auto; height:72%; max-width:100%; max-height:72%; min-width:0; min-height:0;
     aspect-ratio:var(--photo-ratio, 4 / 5);
-    max-height:72%; margin:0 0 4.5%; padding:0;
+    margin:0 0 4.5%; padding:0;
     overflow:hidden; background:#fff; border:1px solid rgba(255,255,255,.9);
     cursor:zoom-in; box-shadow:0 .3em 1em rgba(60,30,40,.24);
     transform:none;
@@ -783,8 +784,8 @@ function fit() {
   const w = Math.max(1, stage.clientWidth), h = Math.max(1, stage.clientHeight);
   const [rw, rh] = (ALBUM.pageFormat || '4:5').split(':').map(Number);
   const pageRatio = rw > 0 && rh > 0 ? rw / rh : 4 / 5; // page width / page height
-  // Fit the complete two-page spread inside the stage without distorting the selected ratio.
-  PW = Math.round(clamp(Math.min((w - 36) / 2, (h - 34) * pageRatio, 520), 100, 520));
+  // Give wide 16:9 pages more room while keeping the complete spread inside the stage.
+  PW = Math.round(clamp(Math.min((w - 56) / 2, (h - 34) * pageRatio, 600), 100, 600));
   PH = Math.round(PW / pageRatio);
   const root = document.documentElement.style;
   root.setProperty('--pw', PW + 'px'); root.setProperty('--ph', PH + 'px');
