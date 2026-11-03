@@ -333,7 +333,7 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBnS9-bQngWjNxM1rKz_qRbrQopSd1aAqA",
@@ -772,7 +772,19 @@ addEventListener('resize', fit);
 /* ===================== ЗАВАНТАЖЕННЯ АЛЬБОМУ З FIRESTORE ===================== */
 async function loadAlbum() {
   try {
-    const snap = await getDoc(doc(db, 'settings', 'album'));
+    const requestedId = new URLSearchParams(location.search).get('id');
+    let snap;
+    if (requestedId) {
+      snap = await getDoc(doc(db, 'settings', `album_${requestedId}`));
+    } else {
+      const settingsSnap = await getDocs(collection(db, 'settings'));
+      const magazineDocs = settingsSnap.docs
+        .filter(item => item.id.startsWith('album_'))
+        .sort((a, b) => a.id.localeCompare(b.id));
+      snap = magazineDocs.length
+        ? magazineDocs[0]
+        : await getDoc(doc(db, 'settings', 'album'));
+    }
     if (snap.exists()) {
       const data = snap.data() || {};
       ALBUM = {
@@ -795,8 +807,10 @@ async function loadAlbum() {
         likes: Number(p.likes || 0),
         src: p.src || p.url || p.imageUrl || p.image || ''
       })) : [];
-    } else {
-      console.warn('Документ settings/album не знайдено у Firestore.');
+    if (!snap.exists()) {
+      console.warn('Запитаний журнал не знайдено у Firestore.');
+      $('label').textContent = tr('loadError');
+      PHOTOS = [];
     }
   } catch (error) {
     console.error('Не вдалося завантажити альбом з Firestore:', error);
