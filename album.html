@@ -154,14 +154,21 @@
   .sheet{ position:absolute; inset:0; padding:5.5% 7% 5%; display:flex; flex-direction:column; }
   .photo{
     position:relative; flex:0 0 auto; align-self:center;
-    width:var(--photo-width,86%); height:var(--photo-height,60%);
-    max-width:90%; max-height:72%; min-width:0; min-height:0;
+    width:86%; height:60%; max-width:94%; max-height:72%; min-width:0; min-height:0;
     aspect-ratio:var(--photo-ratio, 4 / 5);
-    margin:0 0 4.5%; padding:0;
+    margin:0 0 3%; padding:0;
     overflow:hidden; background:#fff; border:1px solid rgba(255,255,255,.9);
     cursor:zoom-in; box-shadow:0 .3em 1em rgba(60,30,40,.24);
     transform:none;
   }
+  /* Widescreen magazine: larger images, tighter margins, compact captions. */
+  .book[data-page-format="16:9"] .sheet{padding:3.8% 4.5% 3.2%;}
+  .book[data-page-format="16:9"] .photo{margin-bottom:2.2%;}
+  .book[data-page-format="16:9"] .cap h3{font-size:1.28em;line-height:1.08;}
+  .book[data-page-format="16:9"] .cap .series,
+  .book[data-page-format="16:9"] .cap .by{font-size:.82em;line-height:1.1;}
+  .book[data-page-format="16:9"] .row{margin-top:.35em;}
+  .book[data-page-format="16:9"] .like{padding:.22em .65em;font-size:.9em;}
   .photo img, .ph{
     width:100%; height:100%; display:block; object-fit:contain;
     background:transparent; border:0;
@@ -513,11 +520,10 @@ function syncPhotoFrames() {
       sheet.clientWidth - parseFloat(sheetStyle.paddingLeft) - parseFloat(sheetStyle.paddingRight));
     const innerHeight = Math.max(1,
       sheet.clientHeight - parseFloat(sheetStyle.paddingTop) - parseFloat(sheetStyle.paddingBottom));
-    const caption = sheet.querySelector('.cap');
-    const captionHeight = caption ? caption.getBoundingClientRect().height : innerHeight * .25;
-    const bottomGap = sheet.clientHeight * .045;
-    const maxWidth = innerWidth * .90;
-    const maxHeight = Math.max(56, innerHeight - captionHeight - bottomGap - 8);
+    // Reserve a predictable lower band for title, cosplayer and likes instead of
+    // subtracting the measured caption twice and shrinking photos unpredictably.
+    const maxWidth = innerWidth * (ALBUM.pageFormat === '16:9' ? .96 : .90);
+    const maxHeight = Math.max(56, innerHeight * (ALBUM.pageFormat === '16:9' ? .72 : .64));
     const width = Math.max(1, Math.min(maxWidth, maxHeight * ratio));
     const height = width / ratio;
     frame.style.width = width.toFixed(1) + 'px';
@@ -579,6 +585,7 @@ function build() {
   const cornerColor = /^#[0-9a-fA-F]{6}$/.test(ALBUM.cornerColor || '') ? ALBUM.cornerColor : '#cdbfa8';
   book.dataset.cornerStyle = cornerStyle;
   book.dataset.cornerEnabled = ALBUM.cornerDecorEnabled === false ? 'false' : 'true';
+  book.dataset.pageFormat = ['4:5','3:4','2:3','1:1','16:9'].includes(ALBUM.pageFormat) ? ALBUM.pageFormat : '4:5';
   book.style.setProperty('--corner-color', cornerColor);
   faces = buildFaces(visiblePhotos(PHOTOS, tag));
   N = faces.length / 2; cur = 0; busy = false;
@@ -807,8 +814,9 @@ function fit() {
   const w = Math.max(1, stage.clientWidth), h = Math.max(1, stage.clientHeight);
   const [rw, rh] = (ALBUM.pageFormat || '4:5').split(':').map(Number);
   const pageRatio = rw > 0 && rh > 0 ? rw / rh : 4 / 5; // page width / page height
-  // Give wide 16:9 pages more room while keeping the complete spread inside the stage.
-  PW = Math.round(clamp(Math.min((w - 56) / 2, (h - 34) * pageRatio, 600), 100, 600));
+  // Fill the available desktop stage with the complete spread; each page keeps its selected ratio.
+  const maxPageWidth = Math.min(760, (w - 48) / 2);
+  PW = Math.round(clamp(Math.min(maxPageWidth, (h - 42) * pageRatio), 100, 760));
   PH = Math.round(PW / pageRatio);
   const root = document.documentElement.style;
   root.setProperty('--pw', PW + 'px'); root.setProperty('--ph', PH + 'px');
