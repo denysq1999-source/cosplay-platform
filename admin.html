@@ -27,7 +27,16 @@
 
     <div class="admin-main">
       <div id="albums-section" class="albums-section hidden">
-        <h3 style="margin:0 0 12px;" data-i18n="album_manage">Керування альбомом (журнал)</h3>
+        <section id="album-library" style="margin:0 0 18px;padding:14px;border:1px solid #39313e;border-radius:12px;background:#211b25;">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px;">
+            <h3 style="margin:0;font-size:17px;" data-i18n="magazines_title">Мої журнали</h3>
+            <button class="admin-btn primary" id="btn-new-album" type="button" data-i18n="new_magazine">＋ Створити журнал</button>
+          </div>
+          <div id="album-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;"></div>
+        </section>
+
+        <div id="album-editor" class="hidden">
+        <h3 style="margin:0 0 12px;" data-i18n="album_manage">Керування альбомом (журнал)</h3>Керування альбомом (журнал)</h3>
 
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px;">
           <div>
@@ -111,11 +120,12 @@
 
         <div style="margin-top:16px; display:flex; gap:8px; flex-wrap:wrap;">
           <button class="admin-btn" id="btn-save-album" data-i18n="save_album">Зберегти альбом</button>
-          <a href="album.html" class="admin-btn" target="_blank" data-i18n="view_album">Переглянути альбом</a>
+          <a href="album.html" id="btn-view-album" class="admin-btn" target="_blank" data-i18n="view_album">Переглянути альбом</a>
           <button class="admin-btn danger" id="btn-delete-album" data-i18n="delete_album">Видалити альбом</button>
         </div>
 
         <div id="album-status" style="font-size:13px; margin-top:12px; color:#aaa;"></div>
+        </div>
       </div>
 
       <div id="settings-section" class="albums-section hidden">
