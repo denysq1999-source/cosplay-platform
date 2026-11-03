@@ -775,7 +775,9 @@ async function loadAlbum() {
     const requestedId = new URLSearchParams(location.search).get('id');
     let snap;
     if (requestedId) {
-      snap = await getDoc(doc(db, 'settings', `album_${requestedId}`));
+      snap = requestedId === 'legacy'
+        ? await getDoc(doc(db, 'settings', 'album'))
+        : await getDoc(doc(db, 'settings', `album_${requestedId}`));
     } else {
       const settingsSnap = await getDocs(collection(db, 'settings'));
       const magazineDocs = settingsSnap.docs
@@ -807,7 +809,7 @@ async function loadAlbum() {
         likes: Number(p.likes || 0),
         src: p.src || p.url || p.imageUrl || p.image || ''
       })) : [];
-    if (!snap.exists()) {
+    } else {
       console.warn('Запитаний журнал не знайдено у Firestore.');
       $('label').textContent = tr('loadError');
       PHOTOS = [];
