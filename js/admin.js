@@ -21,7 +21,8 @@ const dict = {
   uk: {
     admin_title:"Панель адміністратора", back_btn:"← На галерею", albums_btn:"Альбоми", settings_btn:"Налаштування сайту",
     checking_access:"Перевірка доступу...", access_denied:"Доступ заборонено. Перенаправлення...",
-    magazines_title:"Мої журнали", new_magazine:"＋ Створити журнал", select_magazine:"Відкрити редактор", magazine_empty:"Журналів поки немає. Створи перший.", magazine_count:"сторінок", move_up:"↑", move_down:"↓", draft_magazine:"Новий журнал (ще не збережено)",\n    album_manage:"Керування альбомом (журнал)", album_name:"Назва альбому", album_title_placeholder:"Альбом косплеєра",
+    magazines_title:"Мої журнали", new_magazine:"＋ Створити журнал", select_magazine:"Відкрити редактор", magazine_empty:"Журналів поки немає. Створи перший.", magazine_count:"сторінок", move_up:"↑", move_down:"↓", draft_magazine:"Новий журнал (ще не збережено)",
+    album_manage:"Керування альбомом (журнал)", album_name:"Назва альбому", album_title_placeholder:"Альбом косплеєра",
     album_owner:"Власник / нік", owner_placeholder:"Нікнейм косплеєра", page_format:"Формат сторінок журналу",
     ratio_45:"4:5 — портретний (соцмережі)", ratio_34:"3:4 — класичний портретний", ratio_23:"2:3 — вертикальне фото", ratio_11:"1:1 — квадрат", ratio_169:"16:9 — альбомний / широкий",
     format_help:"Розмір обох сторінок і всієї книжки автоматично підлаштується під вибрані пропорції та екран. Самі фотографії не обрізаються.",
@@ -55,7 +56,8 @@ const dict = {
   en: {
     admin_title:"Admin Panel", back_btn:"← Back to Gallery", albums_btn:"Albums", settings_btn:"Site Settings",
     checking_access:"Checking access...", access_denied:"Access denied. Redirecting...",
-    magazines_title:"My magazines", new_magazine:"＋ Create magazine", select_magazine:"Open editor", magazine_empty:"No magazines yet. Create your first one.", magazine_count:"pages", move_up:"↑", move_down:"↓", draft_magazine:"New magazine (not saved yet)",\n    album_manage:"Album management (magazine)", album_name:"Album title", album_title_placeholder:"Cosplayer album",
+    magazines_title:"My magazines", new_magazine:"＋ Create magazine", select_magazine:"Open editor", magazine_empty:"No magazines yet. Create your first one.", magazine_count:"pages", move_up:"↑", move_down:"↓", draft_magazine:"New magazine (not saved yet)",
+    album_manage:"Album management (magazine)", album_name:"Album title", album_title_placeholder:"Cosplayer album",
     album_owner:"Owner / nickname", owner_placeholder:"Cosplayer nickname", page_format:"Magazine page format",
     ratio_45:"4:5 — portrait (social)", ratio_34:"3:4 — classic portrait", ratio_23:"2:3 — vertical photo", ratio_11:"1:1 — square", ratio_169:"16:9 — landscape / widescreen",
     format_help:"Both pages and the full book automatically fit the selected proportions and screen. Photos are never cropped.",
@@ -410,7 +412,7 @@ async function loadAlbum() {
 
     albumRecords = docs;
     if (albumRecords.length) {
-      const requested = new URLSearchParams(location.search).get("album");
+      const requested = new URLSearchParams(location.search).get("id");
       const requestedId = requested ? getAlbumDocId(requested) : null;
       const initial = albumRecords.find(item => item.id === requestedId) || albumRecords[0];
       await loadAlbumIntoEditor(initial.id);
